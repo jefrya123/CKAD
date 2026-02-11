@@ -1,0 +1,16 @@
+# Bug: references secret "db-password" which hasn't been created
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lab07-pod
+spec:
+  containers:
+  - name: app
+    image: busybox
+    command: ["sleep", "3600"]
+    env:
+    - name: DB_PASS
+      valueFrom:
+        secretKeyRef:
+          name: db-password
+          key: password

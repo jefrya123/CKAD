@@ -1,0 +1,14 @@
+# Bug: volume is declared but not mounted in the container
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lab03-pod
+spec:
+  containers:
+  - name: app
+    image: busybox
+    command: ["sh", "-c", "cat /config/app.conf; sleep 3600"]
+  volumes:
+  - name: config
+    configMap:
+      name: lab03-config

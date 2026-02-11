@@ -1,0 +1,16 @@
+# Bug: invalid cron schedule (6 fields instead of 5)
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: lab09-cron
+spec:
+  schedule: "0 */2 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: task
+            image: busybox
+            command: ["echo", "running"]
+          restartPolicy: OnFailure

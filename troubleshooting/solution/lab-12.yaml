@@ -1,0 +1,37 @@
+# Fixes:
+# 1. Image: ngnix:latest → nginx:latest
+# 2. containerPort: 8080 → 80 (nginx default)
+# 3. Readiness probe port: 3000 → 80
+# 4. ConfigMap lab12-config must exist (create it first)
+# 5. Volume name mismatch: volumeMount "data" doesn't match volume "storage"
+#
+# kubectl create configmap lab12-config --from-literal=setting=value
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lab12-app
+  labels:
+    app: lab12
+spec:
+  containers:
+  - name: web
+    image: nginx:latest
+    ports:
+    - containerPort: 80
+    readinessProbe:
+      httpGet:
+        path: /
+        port: 80
+      initialDelaySeconds: 5
+    env:
+    - name: CONFIG
+      valueFrom:
+        configMapKeyRef:
+          name: lab12-config
+          key: setting
+    volumeMounts:
+    - name: data
+      mountPath: /data
+  volumes:
+  - name: data
+    emptyDir: {}

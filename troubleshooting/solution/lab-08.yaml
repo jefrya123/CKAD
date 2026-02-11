@@ -1,0 +1,13 @@
+# Fix: restartPolicy changed to Never
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: lab08-job
+spec:
+  template:
+    spec:
+      containers:
+      - name: worker
+        image: busybox
+        command: ["echo", "done"]
+      restartPolicy: Never

@@ -1,0 +1,21 @@
+# Fix: added DNS egress rule (port 53 UDP)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: lab11-policy
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: restricted
+  policyTypes:
+  - Egress
+  egress:
+  - to: []
+    ports:
+    - port: 53
+      protocol: UDP
+  - to: []
+    ports:
+    - port: 443
+      protocol: TCP

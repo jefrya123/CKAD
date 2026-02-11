@@ -1,0 +1,17 @@
+# Fix: create the secret first, then apply the pod
+# kubectl create secret generic db-password --from-literal=password=s3cret
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lab07-pod
+spec:
+  containers:
+  - name: app
+    image: busybox
+    command: ["sleep", "3600"]
+    env:
+    - name: DB_PASS
+      valueFrom:
+        secretKeyRef:
+          name: db-password
+          key: password

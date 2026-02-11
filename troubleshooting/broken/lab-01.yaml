@@ -1,0 +1,11 @@
+# Bug: image name has a typo (ngnix instead of nginx)
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lab01-web
+spec:
+  containers:
+  - name: web
+    image: ngnix
+    ports:
+    - containerPort: 80

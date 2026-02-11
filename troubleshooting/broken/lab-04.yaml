@@ -1,0 +1,14 @@
+# Bug: using old deprecated API version for Ingress
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: lab04-ingress
+spec:
+  rules:
+  - host: app.example.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: web-svc
+          servicePort: 80

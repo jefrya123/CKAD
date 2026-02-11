@@ -1,0 +1,22 @@
+# Bug: service selector doesn't match pod labels
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lab05-pod
+  labels:
+    app: backend
+    tier: api
+spec:
+  containers:
+  - name: nginx
+    image: nginx
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lab05-svc
+spec:
+  selector:
+    app: frontend
+  ports:
+  - port: 80

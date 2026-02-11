@@ -1,0 +1,11 @@
+# Fix: corrected image name to nginx
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lab01-web
+spec:
+  containers:
+  - name: web
+    image: nginx
+    ports:
+    - containerPort: 80

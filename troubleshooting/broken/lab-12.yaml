@@ -1,0 +1,30 @@
+# Multiple bugs — find and fix all of them
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lab12-app
+  labels:
+    app: lab12
+spec:
+  containers:
+  - name: web
+    image: ngnix:latest
+    ports:
+    - containerPort: 8080
+    readinessProbe:
+      httpGet:
+        path: /ready
+        port: 3000
+      initialDelaySeconds: 5
+    env:
+    - name: CONFIG
+      valueFrom:
+        configMapKeyRef:
+          name: lab12-config
+          key: setting
+    volumeMounts:
+    - name: data
+      mountPath: /data
+  volumes:
+  - name: storage
+    emptyDir: {}

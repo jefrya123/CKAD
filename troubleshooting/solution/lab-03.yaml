@@ -1,0 +1,18 @@
+# Fix: added volumeMounts to container and create configmap first
+# kubectl create configmap lab03-config --from-literal=app.conf="setting=value"
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lab03-pod
+spec:
+  containers:
+  - name: app
+    image: busybox
+    command: ["sh", "-c", "cat /config/app.conf; sleep 3600"]
+    volumeMounts:
+    - name: config
+      mountPath: /config
+  volumes:
+  - name: config
+    configMap:
+      name: lab03-config
