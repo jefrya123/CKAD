@@ -225,15 +225,85 @@ k create ns dev && k config set-context --current --namespace=dev
 
 ---
 
+## HPA & Autoscaling
+
+**41. Create an HPA for a deployment (min 2, max 10, 80% CPU)**
+```bash
+k autoscale deploy web --min=2 --max=10 --cpu-percent=80
+```
+
+**42. Check HPA status**
+```bash
+k get hpa web
+```
+
+---
+
+## Registry & Image Pull
+
+**43. Create a docker-registry secret**
+```bash
+k create secret docker-registry regcred --docker-server=reg.io --docker-username=user --docker-password=pass --docker-email=a@b.com
+```
+
+---
+
+## Labels & Annotations
+
+**44. Add a label to a pod**
+```bash
+k label pod nginx tier=frontend
+```
+
+**45. Remove a label from a pod**
+```bash
+k label pod nginx tier-
+```
+
+**46. Annotate a deployment**
+```bash
+k annotate deploy web description="main web app"
+```
+
+---
+
+## Rollout Management
+
+**47. Pause a rollout**
+```bash
+k rollout pause deploy/web
+```
+
+**48. Resume a paused rollout**
+```bash
+k rollout resume deploy/web
+```
+
+---
+
+## Debugging
+
+**49. Debug a pod with an ephemeral container**
+```bash
+k debug -it nginx --image=busybox
+```
+
+**50. Test port connectivity from a temp pod**
+```bash
+k run tmp --image=busybox --rm -it --restart=Never -- nc -v -w 2 -z my-svc 80
+```
+
+---
+
 ## Challenge Round (under 60 seconds each)
 
-**38. Create a pod with resource limits (100m CPU, 128Mi memory)**
+**51. Create a pod with resource limits (100m CPU, 128Mi memory)**
 ```bash
 k run limited --image=nginx $do > p.yaml
 # Edit to add resources.limits, apply
 ```
 
-**39. Create a NetworkPolicy that denies all ingress**
+**52. Create a NetworkPolicy that denies all ingress**
 ```bash
 cat <<EOF | k apply -f -
 apiVersion: networking.k8s.io/v1
@@ -246,7 +316,17 @@ spec:
 EOF
 ```
 
-**40. Find which pods are NOT ready**
+**53. Find which pods are NOT ready**
 ```bash
 k get pods -A | grep -v "1/1\|2/2\|3/3\|Completed"
+```
+
+**54. Create a pod with command and args override**
+```bash
+k run cmd-pod --image=busybox --command -- /bin/sh -c "echo hello; sleep 3600"
+```
+
+**55. Force replace a resource from file**
+```bash
+k replace --force -f pod.yaml
 ```

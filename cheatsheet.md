@@ -117,6 +117,8 @@ k rollout status deploy/web
 k rollout history deploy/web
 k rollout undo deploy/web
 k rollout undo deploy/web --to-revision=2
+k rollout pause deploy/web                   # pause mid-rollout
+k rollout resume deploy/web                  # resume paused rollout
 ```
 
 ### Strategy
@@ -413,6 +415,91 @@ helm install myapp bitnami/nginx --dry-run # validate with server
 
 ---
 
+## HPA (Horizontal Pod Autoscaler)
+
+```bash
+k autoscale deploy nginx --min=5 --max=10 --cpu-percent=80
+k get hpa
+k describe hpa nginx
+k delete hpa nginx
+```
+
+> Deployment must have `resources.requests.cpu` set for HPA to work.
+
+---
+
+## Commands & Arguments
+
+```yaml
+# command overrides ENTRYPOINT, args overrides CMD
+spec:
+  containers:
+  - name: app
+    image: busybox
+    command: ["/bin/sh", "-c"]         # ENTRYPOINT
+    args: ["echo hello; sleep 3600"]   # CMD
+    env:
+    - name: MSG
+      value: "hi"
+```
+
+| Docker | Kubernetes | Purpose |
+|--------|-----------|---------|
+| ENTRYPOINT | `command` | The executable |
+| CMD | `args` | Arguments to the executable |
+
+> If you set `command`, Docker's ENTRYPOINT is **fully replaced** (not merged).
+
+---
+
+## Labels & Annotations
+
+```bash
+k label pod nginx tier=frontend              # add label
+k label pod nginx tier=backend --overwrite   # change label
+k label pod nginx tier-                      # remove label
+k get pods -l tier=frontend                  # filter by label
+k get pods -l 'tier in (frontend,backend)'   # set-based selector
+
+k annotate pod nginx description="web server"    # add annotation
+k annotate pod nginx description-                # remove annotation
+```
+
+---
+
+## Connectivity Testing
+
+```bash
+# Quick HTTP test from temp pod
+k run tmp --image=busybox --rm -it --restart=Never -- wget -qO- http://svc-name
+
+# DNS lookup
+k run tmp --image=busybox --rm -it --restart=Never -- nslookup svc-name
+
+# Port connectivity test
+k run tmp --image=busybox --rm -it --restart=Never -- nc -v -w 2 -z <ip> <port>
+
+# Curl (use a curl image)
+k run tmp --image=curlimages/curl --rm -it --restart=Never -- curl -s http://svc-name
+```
+
+---
+
+## Pod Edit Workflow
+
+```bash
+# Can't edit most fields of a running pod. The workflow:
+k edit pod nginx                    # make changes
+# "cannot be updated" error → saved to /tmp/file.yaml
+k delete pod nginx $now
+k apply -f /tmp/file.yaml
+
+# Force apply shortcut (delete + recreate in one step)
+k replace --force -f pod.yaml
+```
+
+---
+
 ## Debugging
 
 ```bash
@@ -423,6 +510,8 @@ k exec -it <pod> -- sh                # shell into container
 k get events --sort-by='.lastTimestamp'
 k top pods --sort-by=cpu              # resource usage
 k auth can-i create pods              # RBAC check
+k debug -it <pod> --image=busybox     # ephemeral debug container
+k debug <pod> --copy-to=debug-copy --image=busybox -it  # debug copy
 ```
 
 ---
@@ -457,3 +546,14 @@ Esc       normal mode          yy   copy line
 /text     search               n    next match
 :set nu   line numbers         :set paste  paste mode
 ```
+
+---
+
+## Exam Day Tips
+
+- **Time management:** Do easy questions first (2-3 min ones), flag hard ones, come back. Batch-verify at the end.
+- **Namespace switching:** Every question specifies a namespace. Switch immediately: `k config set-context --current --namespace=<ns>`
+- **Imperative first:** Generate YAML with `$do`, edit only what's needed. Don't write YAML from scratch.
+- **Two attempts:** You get 2 attempts with the same questions. Use attempt 1 to learn the gaps.
+- **Built-in docs:** `kubectl explain pod.spec.containers` is faster than searching the docs site.
+- **Copy-paste:** Use the exam notepad to stage commands before pasting into the terminal.
