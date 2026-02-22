@@ -1,7 +1,7 @@
 # Practice Q19 — Service ClusterIP to NodePort
 
 **Mirrors KillerShell CKAD Question 19**
-**Time target:** 4 minutes
+**Time target:** 6 minutes
 
 ---
 
@@ -16,7 +16,7 @@ kind: Deployment
 metadata:
   name: saturn-web
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: saturn-web
@@ -43,34 +43,54 @@ spec:
   - port: 80
     targetPort: 80
 EOF
+
+# Wait for pods
+kubectl rollout status deploy/saturn-web -n saturn
 ```
 
 ---
 
-## Your Task
+## Your Tasks
 
-Convert the service `saturn-web-svc` in namespace `saturn` from `ClusterIP` to `NodePort`, using a specific nodePort of `30080`.
+The `saturn-web-svc` service in namespace `saturn` is currently ClusterIP and only reachable from inside the cluster. The team needs it exposed externally.
+
+1. Confirm the service is ClusterIP and that it currently has **working endpoints** (pods are healthy)
+
+2. Convert `saturn-web-svc` to **NodePort** with a specific `nodePort` of `30080`
+
+3. Confirm the service type changed AND traffic still works — curl it from inside the cluster using a temp pod
+
+4. Save the NodePort number to `/tmp/q19-nodeport.txt`
 
 ---
 
 ## Verification
 
 ```bash
+# Service type and port
 kubectl get svc saturn-web-svc -n saturn
-# TYPE should be NodePort
-# PORT(S) should show 80:30080/TCP
+# TYPE=NodePort, PORT(S)=80:30080/TCP
 
-# Test from the node (if using minikube/kind with port forwarding):
-# curl localhost:30080
+# Endpoints still populated (pods didn't break)
+kubectl get endpoints saturn-web-svc -n saturn
+
+# Curl still works internally
+kubectl run tmp --image=curlimages/curl --restart=Never -it --rm -n saturn \
+  -- curl -s saturn-web-svc:80 | grep -i "welcome\|nginx"
+
+# Saved nodeport
+cat /tmp/q19-nodeport.txt   # 30080
 ```
 
 ---
 
 <details>
-<summary>💡 Hint</summary>
+<summary>💡 Hints</summary>
 
-- `kubectl edit svc saturn-web-svc -n saturn` — change `type: ClusterIP` to `type: NodePort` and add `nodePort: 30080` under the port entry
-- Or use `kubectl patch`
+- First check current state: `kubectl get svc saturn-web-svc -n saturn` and `kubectl get endpoints saturn-web-svc -n saturn`
+- `kubectl edit svc saturn-web-svc -n saturn` — change `type: ClusterIP` → `type: NodePort`, add `nodePort: 30080` under the port entry
+- Or use `kubectl patch` with a JSON payload
+- The ClusterIP doesn't go away — NodePort adds external access ON TOP, so internal curl still works
 
 </details>
 
@@ -78,6 +98,11 @@ kubectl get svc saturn-web-svc -n saturn
 <summary>✅ Solution</summary>
 
 ```bash
+# 1. Check current state
+kubectl get svc saturn-web-svc -n saturn         # ClusterIP
+kubectl get endpoints saturn-web-svc -n saturn   # 2 pod IPs
+
+# 2. Convert to NodePort with specific port
 kubectl patch svc saturn-web-svc -n saturn -p '{
   "spec": {
     "type": "NodePort",
@@ -85,7 +110,15 @@ kubectl patch svc saturn-web-svc -n saturn -p '{
   }
 }'
 
-kubectl get svc saturn-web-svc -n saturn
+# 3. Verify service changed
+kubectl get svc saturn-web-svc -n saturn         # NodePort, 80:30080/TCP
+
+# 3. Verify curl still works from inside cluster
+kubectl run tmp --image=curlimages/curl --restart=Never -it --rm -n saturn \
+  -- curl -s saturn-web-svc:80
+
+# 4. Save nodeport
+echo "30080" > /tmp/q19-nodeport.txt
 ```
 
 </details>
