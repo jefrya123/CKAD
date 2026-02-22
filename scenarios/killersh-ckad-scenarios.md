@@ -1,4 +1,4 @@
-# Killer Shell CKAD — All 17 Scenario Topics + Tips & Tricks
+# Killer Shell CKAD — All 22 Scenario Topics + Tips & Tricks
 
 > Based on the Killer Shell CKAD simulator. Each section covers the task type, the workflow to solve it fast, and the key commands to know.
 
@@ -549,3 +549,187 @@ k exec <pod> -- cat /usr/share/nginx/html/data.txt
 - Pod shows `Init:0/1` status while init is running — normal
 - If the init fails, pod goes to `Init:CrashLoopBackOff` — check with `k logs <pod> -c <init-name>`
 - Shared volume (`emptyDir`) persists between init and main containers within the same pod
+
+
+---
+
+## Q18 — Service Misconfiguration: Troubleshoot and Fix
+
+**Task type:** Find why a Service isn't routing traffic and fix it.
+
+**Workflow:**
+```bash
+# Check the service and its selector
+k get svc <name> -n <ns> -oyaml
+k describe svc <name> -n <ns>
+
+# Check endpoints — if empty, selector doesn't match any pods
+k get endpoints <name> -n <ns>
+
+# Check pod labels to find the mismatch
+k get pods -n <ns> --show-labels
+
+# Fix: edit the service selector to match pod labels
+k edit svc <name> -n <ns>
+# OR patch directly:
+k patch svc <name> -n <ns> -p '{"spec":{"selector":{"app":"correct-label"}}}'
+
+# Verify endpoints populated
+k get endpoints <name> -n <ns>
+```
+
+**Tips:**
+- Empty `Endpoints` is the #1 sign of a selector mismatch — always check this first
+- Compare `svc.spec.selector` vs `pod.metadata.labels` carefully — even a typo breaks routing
+- After fixing, test with a temporary curl pod: `k run tmp --image=curlimages/curl --restart=Never -it --rm -- curl <svc-name>.<ns>.svc.cluster.local:<port>`
+- Also check `targetPort` matches the container's actual listening port
+
+---
+
+## Q19 — Service ClusterIP → NodePort Conversion
+
+**Task type:** Change an existing ClusterIP Service to NodePort (and optionally set a specific nodePort).
+
+**Workflow:**
+```bash
+# Edit the service type
+k edit svc <name> -n <ns>
+# Change: spec.type: ClusterIP  →  spec.type: NodePort
+# Optionally add under the port entry:
+#   nodePort: 30XXX   (must be in range 30000-32767)
+
+# OR patch it:
+k patch svc <name> -n <ns> -p '{"spec":{"type":"NodePort"}}'
+
+# Verify
+k get svc <name> -n <ns>
+# Should show TYPE=NodePort and a port mapping like 80:30XXX/TCP
+```
+
+**Tips:**
+- NodePort range is 30000–32767 — if the task specifies a port, set it explicitly
+- If no nodePort is specified, Kubernetes assigns one automatically
+- ClusterIP is still accessible internally after conversion — NodePort adds external access on top
+- Test from a node: `curl <node-ip>:<nodePort>`
+
+---
+
+## Q20 — NetworkPolicy: Restrict Pod Traffic
+
+**Task type:** Create a NetworkPolicy to allow or deny traffic between pods/namespaces.
+
+**Workflow:**
+```bash
+# Example: allow ingress only from pods with a specific label
+cat <<EOF | k apply -f -
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: <name>
+  namespace: <ns>
+spec:
+  podSelector:
+    matchLabels:
+      app: <target-app>       # pods this policy applies TO
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: <allowed-app>   # pods allowed to connect
+      ports:
+        - protocol: TCP
+          port: 80
+EOF
+
+k get networkpolicy -n <ns>
+```
+
+**Tips:**
+- `podSelector: {}` (empty) means the policy applies to ALL pods in the namespace
+- `policyTypes` must explicitly list `Ingress` and/or `Egress` — omitting one means it's unrestricted
+- Multiple `from` entries in the same `ingress` rule are OR'd; separate `ingress` items are also OR'd
+- To deny all traffic: set `podSelector: {}` with `policyTypes: [Ingress]` and no `ingress` rules
+- Test with: `k exec <pod> -- curl <target-ip>:<port>` — should succeed or fail based on policy
+
+---
+
+## Q21 — Requests and Limits + ServiceAccount
+
+**Task type:** Create multiple pods with specific CPU/memory requests/limits and a named ServiceAccount.
+
+**Workflow:**
+```bash
+# Create the ServiceAccount first
+k create sa <sa-name> -n <ns>
+
+# Create pods with resources and serviceAccountName
+k run <pod-name> --image=<img> $do > pod.yaml
+# Edit pod.yaml to add:
+# spec:
+#   serviceAccountName: <sa-name>
+#   containers:
+#   - name: ...
+#     resources:
+#       requests:
+#         memory: "64Mi"
+#         cpu: "250m"
+#       limits:
+#         memory: "128Mi"
+#         cpu: "500m"
+k apply -f pod.yaml
+
+# Repeat for all 3 pods (or use a loop)
+for i in 1 2 3; do
+  k run pod-$i --image=<img> --serviceaccount=<sa-name> \
+    --requests='cpu=250m,memory=64Mi' --limits='cpu=500m,memory=128Mi' \
+    -n <ns> $do | k apply -f -
+done
+```
+
+**Tips:**
+- `--requests` and `--limits` flags work with `k run` for simple cases
+- CPU is in millicores (`250m` = 0.25 cores); memory in Mi/Gi
+- Limits must be >= requests — if you set limits lower, the pod won't schedule
+- Verify: `k describe pod <name> -n <ns>` → check `Requests` and `Limits` sections
+- Check SA is attached: `k get pod <name> -ojsonpath='{.spec.serviceAccountName}'`
+
+---
+
+## Q22 — Labels and Annotations: Identify and Manage Pods
+
+**Task type:** Find pods by label, add/update labels or annotations, and save results.
+
+**Workflow:**
+```bash
+# List pods with specific label
+k get pods -n <ns> -l <key>=<value>
+
+# Save pod names to file
+k get pods -n <ns> -l <key>=<value> -o name > /path/to/output.txt
+
+# Add or update a label on a pod
+k label pod <name> -n <ns> <key>=<value>
+k label pod <name> -n <ns> <key>=<value> --overwrite   # if label already exists
+
+# Add or update an annotation
+k annotate pod <name> -n <ns> <key>=<value>
+k annotate pod <name> -n <ns> <key>=<value> --overwrite
+
+# Remove a label
+k label pod <name> -n <ns> <key>-
+
+# Filter by multiple labels (AND)
+k get pods -n <ns> -l app=web,env=prod
+
+# Show labels in output
+k get pods -n <ns> --show-labels
+```
+
+**Tips:**
+- `-l key=value` filters by exact match; `-l key` filters by key existence
+- `k get pods -o jsonpath='{.items[*].metadata.name}'` extracts just names without the `pod/` prefix
+- Annotations are for non-identifying metadata (tool info, checksums) — labels are for selectors
+- After labeling, verify with `k get pod <name> --show-labels`
+- Common exam ask: label pods then create a Service/NetworkPolicy that selects them — do the label step first
