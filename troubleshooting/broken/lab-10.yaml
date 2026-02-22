@@ -1,18 +1,30 @@
-# Bug: selector.matchLabels doesn't match template.metadata.labels
-apiVersion: apps/v1
-kind: Deployment
+# LAB 10 — Broken: InitContainer fails, main container never starts
+# Symptom: Pod stuck in Init:CrashLoopBackOff
+# Your job: Find why the initContainer is failing and fix it
+#
+# SETUP: kubectl apply -f lab-10.yaml
+# GOAL:  Pod reaches Running state, /work/ready file exists inside main container
+---
+apiVersion: v1
+kind: Pod
 metadata:
-  name: lab10-deploy
+  name: lab10-pod
+  namespace: default
+  labels:
+    lab: "10"
 spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: web
-  template:
-    metadata:
-      labels:
-        app: frontend
-    spec:
-      containers:
-      - name: nginx
-        image: nginx
+  initContainers:
+  - name: init-setup
+    image: busybox
+    command: ["/bin/sh", "-c", "echo ready > /work/ready"]
+    # <-- bug: no volumeMount here, so /work doesn't exist, command fails
+  containers:
+  - name: main
+    image: busybox
+    command: ["/bin/sh", "-c", "cat /work/ready; sleep 3600"]
+    volumeMounts:
+    - name: workdir
+      mountPath: /work
+  volumes:
+  - name: workdir
+    emptyDir: {}

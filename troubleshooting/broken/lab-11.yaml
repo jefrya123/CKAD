@@ -1,17 +1,36 @@
-# Bug: egress policy blocks DNS (port 53 UDP), so pod can't resolve any service names
+# LAB 11 — Broken: NetworkPolicy accidentally blocks ALL egress including DNS
+# Symptom: Pod can't resolve any DNS names (curl google.com fails with "bad address")
+#          but the pod itself is Running fine
+# Your job: Fix the NetworkPolicy so the pod can do DNS lookups and reach the internet
+#
+# SETUP: kubectl apply -f lab-11.yaml
+# GOAL:  kubectl exec lab11-pod -- wget -qO- http://example.com  succeeds
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lab11-pod
+  namespace: default
+  labels:
+    app: lab11
+spec:
+  containers:
+  - name: app
+    image: busybox
+    command: ["/bin/sh", "-c", "sleep 3600"]
+---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: lab11-policy
+  name: lab11-netpol
   namespace: default
 spec:
   podSelector:
     matchLabels:
-      app: restricted
+      app: lab11
   policyTypes:
-  - Egress
+  - Egress          # <-- bug: egress is locked down but no rules allow DNS (UDP 53)
   egress:
-  - to: []
-    ports:
-    - port: 443
-      protocol: TCP
+  - ports:
+    - port: 80
+      protocol: TCP  # only HTTP allowed — DNS on UDP/53 is blocked

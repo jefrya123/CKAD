@@ -1,22 +1,28 @@
-# Bug: service selector doesn't match pod labels
-apiVersion: v1
-kind: Pod
-metadata:
-  name: lab05-pod
-  labels:
-    app: backend
-    tier: api
-spec:
-  containers:
-  - name: nginx
-    image: nginx
+# LAB 05 — Broken: Deployment selector doesn't match pod template labels
+# Symptom: kubectl apply errors with "selector does not match template labels"
+#          OR pods are created but Deployment can't manage them
+# Your job: Fix the manifest so the Deployment manages its pods correctly
+#
+# SETUP: kubectl apply -f lab-05.yaml
+# GOAL:  kubectl get deploy lab05-deploy shows 2/2 READY
 ---
-apiVersion: v1
-kind: Service
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: lab05-svc
+  name: lab05-deploy
+  namespace: default
 spec:
+  replicas: 2
   selector:
-    app: frontend
-  ports:
-  - port: 80
+    matchLabels:
+      app: myapp            # selector looks for THIS label
+  template:
+    metadata:
+      labels:
+        app: my-app         # <-- bug: "my-app" != "myapp"
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - containerPort: 80

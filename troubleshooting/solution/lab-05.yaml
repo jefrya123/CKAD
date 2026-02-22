@@ -1,22 +1,24 @@
-# Fix: service selector matches pod labels
-apiVersion: v1
-kind: Pod
-metadata:
-  name: lab05-pod
-  labels:
-    app: backend
-    tier: api
-spec:
-  containers:
-  - name: nginx
-    image: nginx
+# LAB 05 SOLUTION — Fixed: pod template label matches selector
+# Bug was: template label app: my-app, selector matchLabels app: myapp
+# Fix:     make both "myapp"
 ---
-apiVersion: v1
-kind: Service
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: lab05-svc
+  name: lab05-deploy
+  namespace: default
 spec:
+  replicas: 2
   selector:
-    app: backend
-  ports:
-  - port: 80
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp             # fixed: matches selector
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - containerPort: 80

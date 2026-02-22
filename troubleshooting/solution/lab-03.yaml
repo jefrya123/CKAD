@@ -1,18 +1,22 @@
-# Fix: added volumeMounts to container and create configmap first
-# kubectl create configmap lab03-config --from-literal=app.conf="setting=value"
+# LAB 03 SOLUTION — Fixed: volumeMount added to container
+# Bug was: volume was defined but never mounted in the container
+# Fix:     add volumeMounts referencing data-vol at /data
+---
 apiVersion: v1
 kind: Pod
 metadata:
   name: lab03-pod
+  namespace: default
+  labels:
+    lab: "03"
 spec:
   containers:
   - name: app
     image: busybox
-    command: ["sh", "-c", "cat /config/app.conf; sleep 3600"]
-    volumeMounts:
-    - name: config
-      mountPath: /config
+    command: ["/bin/sh", "-c", "while true; do echo log >> /data/app.log; sleep 5; done"]
+    volumeMounts:              # fixed: mount added
+    - name: data-vol
+      mountPath: /data
   volumes:
-  - name: config
-    configMap:
-      name: lab03-config
+  - name: data-vol
+    emptyDir: {}

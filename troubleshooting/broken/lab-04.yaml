@@ -1,14 +1,27 @@
-# Bug: using old deprecated API version for Ingress
-apiVersion: extensions/v1beta1
-kind: Ingress
+# LAB 04 — Broken: Liveness probe checking wrong port
+# Symptom: Pod starts then gets killed and restarted repeatedly (RESTARTS keeps climbing)
+# Your job: Find why it keeps restarting and fix it
+#
+# SETUP: kubectl apply -f lab-04.yaml
+# GOAL:  Pod stays Running with 0 restarts after a minute
+---
+apiVersion: v1
+kind: Pod
 metadata:
-  name: lab04-ingress
+  name: lab04-pod
+  namespace: default
+  labels:
+    lab: "04"
 spec:
-  rules:
-  - host: app.example.com
-    http:
-      paths:
-      - path: /
-        backend:
-          serviceName: web-svc
-          servicePort: 80
+  containers:
+  - name: nginx
+    image: nginx
+    ports:
+    - containerPort: 80
+    livenessProbe:
+      httpGet:
+        path: /
+        port: 8080          # <-- bug: nginx listens on 80, not 8080
+      initialDelaySeconds: 5
+      periodSeconds: 5
+      failureThreshold: 2

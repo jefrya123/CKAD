@@ -1,21 +1,40 @@
-# Fix: added DNS egress rule (port 53 UDP)
+# LAB 11 SOLUTION — Fixed: egress rules now allow DNS (UDP 53) in addition to HTTP
+# Bug was: only TCP/80 egress allowed — DNS queries (UDP/53) were blocked
+# Fix:     add egress rule for port 53 UDP+TCP so DNS resolution works
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lab11-pod
+  namespace: default
+  labels:
+    app: lab11
+spec:
+  containers:
+  - name: app
+    image: busybox
+    command: ["/bin/sh", "-c", "sleep 3600"]
+---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: lab11-policy
+  name: lab11-netpol
   namespace: default
 spec:
   podSelector:
     matchLabels:
-      app: restricted
+      app: lab11
   policyTypes:
   - Egress
   egress:
-  - to: []
-    ports:
+  - ports:                   # allow DNS — required for any hostname resolution
     - port: 53
       protocol: UDP
-  - to: []
-    ports:
+    - port: 53
+      protocol: TCP
+  - ports:                   # allow HTTP
+    - port: 80
+      protocol: TCP
+  - ports:                   # allow HTTPS too
     - port: 443
       protocol: TCP

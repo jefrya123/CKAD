@@ -1,18 +1,34 @@
-# Fix: liveness probe port changed to 80
+# LAB 06 SOLUTION — Fixed: create the missing secret first, then apply pod
+# Bug was: pod referenced lab06-secret which didn't exist
+# Fix:     create the secret, then apply the pod
+#
+# kubectl create secret generic lab06-secret --from-literal=password=supersecret123
+# kubectl apply -f lab-06-solution.yaml
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: lab06-secret
+  namespace: default
+type: Opaque
+stringData:
+  password: supersecret123    # fixed: secret now exists
+---
 apiVersion: v1
 kind: Pod
 metadata:
   name: lab06-pod
+  namespace: default
+  labels:
+    lab: "06"
 spec:
   containers:
-  - name: nginx
-    image: nginx
-    ports:
-    - containerPort: 80
-    livenessProbe:
-      httpGet:
-        path: /
-        port: 80
-      initialDelaySeconds: 3
-      periodSeconds: 3
-      failureThreshold: 2
+  - name: app
+    image: busybox
+    command: ["/bin/sh", "-c", "echo DB_PASSWORD=$DB_PASSWORD; sleep 3600"]
+    env:
+    - name: DB_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: lab06-secret
+          key: password

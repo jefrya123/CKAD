@@ -1,17 +1,48 @@
-# Fix: create the secret first, then apply the pod
-# kubectl create secret generic db-password --from-literal=password=s3cret
+# LAB 07 SOLUTION — Fixed: PVC storage request reduced to match PV capacity
+# Bug was: PVC requested 2Gi but PV only offered 500Mi
+# Fix:     PVC requests 500Mi (matches PV capacity)
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lab07-pv
+spec:
+  capacity:
+    storage: 500Mi
+  accessModes:
+  - ReadWriteOnce
+  hostPath:
+    path: /tmp/lab07
+  persistentVolumeReclaimPolicy: Retain
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: lab07-pvc
+  namespace: default
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi          # fixed: matches PV capacity
+---
 apiVersion: v1
 kind: Pod
 metadata:
   name: lab07-pod
+  namespace: default
+  labels:
+    lab: "07"
 spec:
   containers:
   - name: app
     image: busybox
-    command: ["sleep", "3600"]
-    env:
-    - name: DB_PASS
-      valueFrom:
-        secretKeyRef:
-          name: db-password
-          key: password
+    command: ["/bin/sh", "-c", "echo hello > /mnt/data/test.txt; sleep 3600"]
+    volumeMounts:
+    - name: storage
+      mountPath: /mnt/data
+  volumes:
+  - name: storage
+    persistentVolumeClaim:
+      claimName: lab07-pvc

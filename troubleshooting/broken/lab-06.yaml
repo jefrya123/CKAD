@@ -1,18 +1,27 @@
-# Bug: liveness probe checks port 3000 but app runs on port 80
+# LAB 06 — Broken: Secret referenced by pod doesn't exist
+# Symptom: Pod stuck in Pending with "secret not found" error
+# Your job: Figure out what's missing, create it, get the pod running
+#
+# SETUP: kubectl apply -f lab-06.yaml
+# GOAL:  Pod Running, env var DB_PASSWORD is set inside the container
+#
+# The secret should contain:  key=password  value=supersecret123
+---
 apiVersion: v1
 kind: Pod
 metadata:
   name: lab06-pod
+  namespace: default
+  labels:
+    lab: "06"
 spec:
   containers:
-  - name: nginx
-    image: nginx
-    ports:
-    - containerPort: 80
-    livenessProbe:
-      httpGet:
-        path: /
-        port: 3000
-      initialDelaySeconds: 3
-      periodSeconds: 3
-      failureThreshold: 2
+  - name: app
+    image: busybox
+    command: ["/bin/sh", "-c", "echo DB_PASSWORD=$DB_PASSWORD; sleep 3600"]
+    env:
+    - name: DB_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: lab06-secret   # <-- bug: this secret doesn't exist yet
+          key: password

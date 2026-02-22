@@ -1,14 +1,23 @@
-# Bug: volume is declared but not mounted in the container
+# LAB 03 — Broken: Volume defined but not mounted in container
+# Symptom: Pod runs, but writing to /data fails (directory doesn't exist as expected)
+# Your job: The app writes logs to /data/app.log — make that path work via an emptyDir
+#
+# SETUP: kubectl apply -f lab-03.yaml
+# GOAL:  kubectl exec lab03-pod -- ls /data   should succeed
+---
 apiVersion: v1
 kind: Pod
 metadata:
   name: lab03-pod
+  namespace: default
+  labels:
+    lab: "03"
 spec:
   containers:
   - name: app
     image: busybox
-    command: ["sh", "-c", "cat /config/app.conf; sleep 3600"]
+    command: ["/bin/sh", "-c", "while true; do echo log >> /data/app.log; sleep 5; done"]
+    # <-- bug: volumeMount for /data is missing entirely
   volumes:
-  - name: config
-    configMap:
-      name: lab03-config
+  - name: data-vol
+    emptyDir: {}

@@ -1,13 +1,23 @@
-# Bug: restartPolicy is Always — not valid for Jobs (must be Never or OnFailure)
+# LAB 08 — Broken: CronJob with invalid schedule expression
+# Symptom: kubectl apply gives a validation error OR jobs never run
+# Your job: Fix the schedule so it runs every 2 minutes
+#
+# SETUP: kubectl apply -f lab-08.yaml
+# GOAL:  kubectl get cronjob lab08-cron shows a valid SCHEDULE and jobs appear
+---
 apiVersion: batch/v1
-kind: Job
+kind: CronJob
 metadata:
-  name: lab08-job
+  name: lab08-cron
+  namespace: default
 spec:
-  template:
+  schedule: "*/2 * * * * *"   # <-- bug: 6 fields instead of 5 (cron uses 5)
+  jobTemplate:
     spec:
-      containers:
-      - name: worker
-        image: busybox
-        command: ["echo", "done"]
-      restartPolicy: Always
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: job
+            image: busybox
+            command: ["/bin/sh", "-c", "date; echo job ran"]

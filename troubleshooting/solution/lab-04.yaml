@@ -1,18 +1,24 @@
-# Fix: use networking.k8s.io/v1, add pathType and new backend format
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+# LAB 04 SOLUTION — Fixed: liveness probe port corrected to 80
+# Bug was: port: 8080
+# Fix:     port: 80  (nginx default)
+---
+apiVersion: v1
+kind: Pod
 metadata:
-  name: lab04-ingress
+  name: lab04-pod
+  namespace: default
+  labels:
+    lab: "04"
 spec:
-  ingressClassName: nginx
-  rules:
-  - host: app.example.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: web-svc
-            port:
-              number: 80
+  containers:
+  - name: nginx
+    image: nginx
+    ports:
+    - containerPort: 80
+    livenessProbe:
+      httpGet:
+        path: /
+        port: 80               # fixed
+      initialDelaySeconds: 5
+      periodSeconds: 5
+      failureThreshold: 2

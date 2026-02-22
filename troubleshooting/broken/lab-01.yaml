@@ -1,11 +1,20 @@
-# Bug: image name has a typo (ngnix instead of nginx)
+# LAB 01 — Broken: Wrong image name
+# Symptom: Pod stuck in ImagePullBackOff
+# Your job: Find out why and fix it
+#
+# SETUP: kubectl apply -f lab-01.yaml
+# GOAL:  Get the pod Running
+---
 apiVersion: v1
 kind: Pod
 metadata:
-  name: lab01-web
+  name: lab01-pod
+  namespace: default
+  labels:
+    lab: "01"
 spec:
   containers:
   - name: web
-    image: ngnix
+    image: ngnix:latest        # <-- bug is here
     ports:
     - containerPort: 80

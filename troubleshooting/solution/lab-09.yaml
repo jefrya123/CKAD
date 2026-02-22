@@ -1,16 +1,30 @@
-# Fix: schedule corrected to 5 fields (every 2 hours)
-apiVersion: batch/v1
-kind: CronJob
+# LAB 09 SOLUTION — Fixed: configMapKeyRef key matches actual ConfigMap key
+# Bug was: key: app-color  (doesn't exist in ConfigMap)
+# Fix:     key: color      (the actual key in the ConfigMap)
+---
+apiVersion: v1
+kind: ConfigMap
 metadata:
-  name: lab09-cron
+  name: lab09-config
+  namespace: default
+data:
+  color: blue
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lab09-pod
+  namespace: default
+  labels:
+    lab: "09"
 spec:
-  schedule: "0 */2 * * *"
-  jobTemplate:
-    spec:
-      template:
-        spec:
-          containers:
-          - name: task
-            image: busybox
-            command: ["echo", "running"]
-          restartPolicy: OnFailure
+  containers:
+  - name: app
+    image: busybox
+    command: ["/bin/sh", "-c", "echo APP_COLOR=$APP_COLOR; sleep 3600"]
+    env:
+    - name: APP_COLOR
+      valueFrom:
+        configMapKeyRef:
+          name: lab09-config
+          key: color           # fixed: matches actual key

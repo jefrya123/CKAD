@@ -1,30 +1,56 @@
-# Multiple bugs — find and fix all of them
-apiVersion: v1
-kind: Pod
+# LAB 12 — Broken: Multiple bugs in one manifest (hardest)
+# Symptom: Nothing works — figure out ALL the problems
+# There are FOUR bugs. Find and fix them all.
+#
+# SETUP: kubectl apply -f lab-12.yaml
+# GOAL:
+#   - Deployment has 2 running pods
+#   - Service endpoints are populated
+#   - curl to the service returns nginx response
+#   - readinessProbe passes (pod is Ready)
+---
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: lab12-app
-  labels:
-    app: lab12
+  name: lab12-deploy
+  namespace: default
 spec:
-  containers:
-  - name: web
-    image: ngnix:latest
-    ports:
-    - containerPort: 8080
-    readinessProbe:
-      httpGet:
-        path: /ready
-        port: 3000
-      initialDelaySeconds: 5
-    env:
-    - name: CONFIG
-      valueFrom:
-        configMapKeyRef:
-          name: lab12-config
-          key: setting
-    volumeMounts:
-    - name: data
-      mountPath: /data
-  volumes:
-  - name: storage
-    emptyDir: {}
+  replicas: 2
+  selector:
+    matchLabels:
+      app: lab12
+  template:
+    metadata:
+      labels:
+        app: lab12
+    spec:
+      containers:
+      - name: web
+        image: nginx:1.99.99       # BUG 1: bad image tag — doesn't exist
+        ports:
+        - containerPort: 80
+        readinessProbe:
+          httpGet:
+            path: /healthz         # BUG 2: nginx doesn't have /healthz, use /
+            port: 80
+          initialDelaySeconds: 3
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "32Mi"         # BUG 3: limit (32Mi) is LESS than request (64Mi) — invalid
+            cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lab12-svc
+  namespace: default
+spec:
+  selector:
+    app: lab-12                    # BUG 4: "lab-12" doesn't match pod label "lab12"
+  ports:
+  - port: 80
+    targetPort: 80

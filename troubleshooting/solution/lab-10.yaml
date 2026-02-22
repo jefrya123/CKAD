@@ -1,18 +1,29 @@
-# Fix: template labels match selector
-apiVersion: apps/v1
-kind: Deployment
+# LAB 10 SOLUTION — Fixed: initContainer now has volumeMount for /work
+# Bug was: initContainer wrote to /work but had no volumeMount so path didn't exist
+# Fix:     add volumeMount to initContainer pointing to same "workdir" volume
+---
+apiVersion: v1
+kind: Pod
 metadata:
-  name: lab10-deploy
+  name: lab10-pod
+  namespace: default
+  labels:
+    lab: "10"
 spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: web
-  template:
-    metadata:
-      labels:
-        app: web
-    spec:
-      containers:
-      - name: nginx
-        image: nginx
+  initContainers:
+  - name: init-setup
+    image: busybox
+    command: ["/bin/sh", "-c", "echo ready > /work/ready"]
+    volumeMounts:              # fixed: mount added to initContainer
+    - name: workdir
+      mountPath: /work
+  containers:
+  - name: main
+    image: busybox
+    command: ["/bin/sh", "-c", "cat /work/ready; sleep 3600"]
+    volumeMounts:
+    - name: workdir
+      mountPath: /work
+  volumes:
+  - name: workdir
+    emptyDir: {}

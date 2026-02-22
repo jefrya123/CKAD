@@ -1,16 +1,51 @@
-# Bug: references secret "db-password" which hasn't been created
+# LAB 07 — Broken: PVC requests more storage than PV provides
+# Symptom: PVC stays in Pending state forever, pod never schedules
+# Your job: Find why the PVC won't bind and fix it
+#
+# SETUP: kubectl apply -f lab-07.yaml
+# GOAL:  PVC is Bound, pod is Running, can write to /mnt/data
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lab07-pv
+spec:
+  capacity:
+    storage: 500Mi          # PV only offers 500Mi
+  accessModes:
+  - ReadWriteOnce
+  hostPath:
+    path: /tmp/lab07
+  persistentVolumeReclaimPolicy: Retain
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: lab07-pvc
+  namespace: default
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi           # <-- bug: requesting 2Gi but PV only has 500Mi
+---
 apiVersion: v1
 kind: Pod
 metadata:
   name: lab07-pod
+  namespace: default
+  labels:
+    lab: "07"
 spec:
   containers:
   - name: app
     image: busybox
-    command: ["sleep", "3600"]
-    env:
-    - name: DB_PASS
-      valueFrom:
-        secretKeyRef:
-          name: db-password
-          key: password
+    command: ["/bin/sh", "-c", "echo hello > /mnt/data/test.txt; sleep 3600"]
+    volumeMounts:
+    - name: storage
+      mountPath: /mnt/data
+  volumes:
+  - name: storage
+    persistentVolumeClaim:
+      claimName: lab07-pvc

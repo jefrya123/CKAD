@@ -1,37 +1,51 @@
-# Fixes:
-# 1. Image: ngnix:latest → nginx:latest
-# 2. containerPort: 8080 → 80 (nginx default)
-# 3. Readiness probe port: 3000 → 80
-# 4. ConfigMap lab12-config must exist (create it first)
-# 5. Volume name mismatch: volumeMount "data" doesn't match volume "storage"
-#
-# kubectl create configmap lab12-config --from-literal=setting=value
-apiVersion: v1
-kind: Pod
+# LAB 12 SOLUTION — All 4 bugs fixed
+# BUG 1: image: nginx:1.99.99       -> nginx:latest
+# BUG 2: readinessProbe path /healthz -> /
+# BUG 3: memory limit 32Mi < request 64Mi -> limit 128Mi
+# BUG 4: service selector app: lab-12  -> app: lab12
+---
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: lab12-app
-  labels:
-    app: lab12
+  name: lab12-deploy
+  namespace: default
 spec:
-  containers:
-  - name: web
-    image: nginx:latest
-    ports:
-    - containerPort: 80
-    readinessProbe:
-      httpGet:
-        path: /
-        port: 80
-      initialDelaySeconds: 5
-    env:
-    - name: CONFIG
-      valueFrom:
-        configMapKeyRef:
-          name: lab12-config
-          key: setting
-    volumeMounts:
-    - name: data
-      mountPath: /data
-  volumes:
-  - name: data
-    emptyDir: {}
+  replicas: 2
+  selector:
+    matchLabels:
+      app: lab12
+  template:
+    metadata:
+      labels:
+        app: lab12
+    spec:
+      containers:
+      - name: web
+        image: nginx:latest            # fixed BUG 1
+        ports:
+        - containerPort: 80
+        readinessProbe:
+          httpGet:
+            path: /                    # fixed BUG 2
+            port: 80
+          initialDelaySeconds: 3
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"            # fixed BUG 3: limit >= request
+            cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lab12-svc
+  namespace: default
+spec:
+  selector:
+    app: lab12                         # fixed BUG 4
+  ports:
+  - port: 80
+    targetPort: 80
