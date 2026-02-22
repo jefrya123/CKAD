@@ -1,48 +1,24 @@
-# LAB 07 SOLUTION — Fixed: PVC storage request reduced to match PV capacity
-# Bug was: PVC requested 2Gi but PV only offered 500Mi
-# Fix:     PVC requests 500Mi (matches PV capacity)
+# LAB 07 SOLUTION
+# BUG 1: replicas: 1 -> 3
+# BUG 2: template label "q09-wrong-label" -> "q09-app" to match selector
 ---
-apiVersion: v1
-kind: PersistentVolume
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: lab07-pv
+  name: q09-deploy
+  namespace: neptune
 spec:
-  capacity:
-    storage: 500Mi
-  accessModes:
-  - ReadWriteOnce
-  hostPath:
-    path: /tmp/lab07
-  persistentVolumeReclaimPolicy: Retain
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: lab07-pvc
-  namespace: default
-spec:
-  accessModes:
-  - ReadWriteOnce
-  resources:
-    requests:
-      storage: 500Mi          # fixed: matches PV capacity
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: lab07-pod
-  namespace: default
-  labels:
-    lab: "07"
-spec:
-  containers:
-  - name: app
-    image: busybox
-    command: ["/bin/sh", "-c", "echo hello > /mnt/data/test.txt; sleep 3600"]
-    volumeMounts:
-    - name: storage
-      mountPath: /mnt/data
-  volumes:
-  - name: storage
-    persistentVolumeClaim:
-      claimName: lab07-pvc
+  replicas: 3
+  selector:
+    matchLabels:
+      app: q09-app
+  template:
+    metadata:
+      labels:
+        app: q09-app
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.21
+        ports:
+        - containerPort: 80

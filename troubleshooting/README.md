@@ -1,80 +1,67 @@
 # Troubleshooting Labs
 
-12 broken manifests. Apply them, watch them fail, diagnose the problem, fix it yourself. Only check the solution when you're done or truly stuck.
+12 broken manifests that mirror the exact question types from the KillerShell CKAD simulator.
 
-## How to Use
-
-```bash
-# 1. Apply the broken manifest
-kubectl apply -f broken/lab-XX.yaml
-
-# 2. Watch what happens
-kubectl get pods -w
-kubectl describe pod <name>
-kubectl logs <name>
-kubectl get events --sort-by='.lastTimestamp'
-
-# 3. Fix it — edit the broken file or write your own corrected version
-
-# 4. Compare with the solution
-diff broken/lab-XX.yaml solution/lab-XX.yaml
-# or just read solution/lab-XX.yaml
-```
-
-## Clean Up Between Labs
-
-```bash
-kubectl delete -f broken/lab-XX.yaml --force --grace-period=0
-# or wipe everything:
-kubectl delete pods,deployments,services,cronjobs,pvc,pv,networkpolicies,configmaps,secrets -l lab --all
-```
+**How to use:**
+1. Read the comment header in the broken YAML — it tells you the symptom but NOT the fix
+2. Apply it: `kubectl apply -f broken/lab-XX.yaml`
+3. Reproduce the symptom yourself with the verification commands in the header
+4. Debug and fix it on your own
+5. Only then diff with the solution: `diff broken/lab-XX.yaml solution/lab-XX.yaml`
 
 ---
 
 ## Labs
 
-| # | Bug Type | Symptom You'll See | Difficulty |
-|---|----------|--------------------|------------|
-| [01](broken/lab-01.yaml) | Typo in image name | `ImagePullBackOff` | ⭐ |
-| [02](broken/lab-02.yaml) | Service selector mismatch | No Endpoints, curl times out | ⭐ |
-| [03](broken/lab-03.yaml) | Volume defined but not mounted | Container can't write to `/data` | ⭐ |
-| [04](broken/lab-04.yaml) | Liveness probe on wrong port | RESTARTS count climbs every ~10s | ⭐⭐ |
-| [05](broken/lab-05.yaml) | Deployment selector ≠ template labels | `0/2` pods, selector error | ⭐⭐ |
-| [06](broken/lab-06.yaml) | Secret referenced but missing | Pod stuck in `Pending` | ⭐⭐ |
-| [07](broken/lab-07.yaml) | PVC requests more than PV offers | PVC stuck in `Pending`, pod won't schedule | ⭐⭐ |
-| [08](broken/lab-08.yaml) | CronJob has 6-field cron schedule | Validation error on apply | ⭐ |
-| [09](broken/lab-09.yaml) | ConfigMap key name mismatch | Pod runs but env var is empty | ⭐⭐ |
-| [10](broken/lab-10.yaml) | InitContainer missing volumeMount | `Init:CrashLoopBackOff` | ⭐⭐ |
-| [11](broken/lab-11.yaml) | NetworkPolicy blocks DNS egress | Pod can't resolve hostnames | ⭐⭐⭐ |
-| [12](broken/lab-12.yaml) | Four bugs in one manifest | Nothing works at all | ⭐⭐⭐ |
+| Lab | KillerShell Q | Topic | Bug Type | Symptom |
+|-----|--------------|-------|----------|---------|
+| [lab-01](broken/lab-01.yaml) | Q2  | Pods | Wrong container name + bad label | Pod runs but spec is wrong |
+| [lab-02](broken/lab-02.yaml) | Q3  | Job | Wrong parallelism + wrong label key | Job runs but pods not labelled correctly |
+| [lab-03](broken/lab-03.yaml) | Q5  | ServiceAccount Secret | Wrong secret type | Token field empty, not a real SA token |
+| [lab-04](broken/lab-04.yaml) | Q6  | ReadinessProbe | Wrong path + wrong port | Pod stuck at `0/1 READY` |
+| [lab-05](broken/lab-05.yaml) | Q7  | Pod Namespace Migration | Pod in wrong namespace | Pod running in neptune, should be pluto |
+| [lab-06](broken/lab-06.yaml) | Q8  | Deployment Rollback | Bad image tag | `0/2` pods, `ImagePullBackOff` |
+| [lab-07](broken/lab-07.yaml) | Q9  | Pod→Deployment | Selector mismatch + wrong replicas | Deployment shows wrong READY count |
+| [lab-08](broken/lab-08.yaml) | Q10 | Service + Logs | Selector + targetPort wrong | Endpoints empty, curl fails |
+| [lab-09](broken/lab-09.yaml) | Q12 | PV/PVC Storage | PVC access mode + size mismatch | PVC stuck `Pending` |
+| [lab-10](broken/lab-10.yaml) | Q14 | Secret Env + Volume | Key name mismatches + wrong secret name | Env vars empty, volume missing |
+| [lab-11](broken/lab-11.yaml) | Q16 | Logging Sidecar | Sidecar uses wrong volume name | `kubectl logs -c log-reader` shows nothing |
+| [lab-12](broken/lab-12.yaml) | Q17+Q18+Q20 | Init + Service + NetworkPolicy | Three bugs across three resources | Nothing works |
 
 ---
 
-## Debugging Command Reference
+## Quick Start
 
 ```bash
-# Where to start every time
-kubectl get pods -o wide
-kubectl describe pod <name>          # look at Events section at the bottom
-kubectl logs <name>
-kubectl logs <name> --previous       # if container already crashed
+# Apply a single lab
+kubectl apply -f broken/lab-01.yaml
 
-# Service not working?
-kubectl get endpoints <svc-name>     # empty = selector mismatch
-kubectl get pods --show-labels       # compare to svc selector
+# Apply all labs at once
+bash deploy-labs.sh
+
+# Clean up everything
+bash deploy-labs.sh clean
+```
+
+## Debugging Reference
+
+```bash
+# Pod not starting?
+kubectl get pods -A
+kubectl describe pod <name> -n <ns>     # check Events at the bottom
+kubectl logs <name> -n <ns>
+kubectl logs <name> -n <ns> --previous  # if already crashed
+
+# Service not routing?
+kubectl get endpoints <svc> -n <ns>     # empty = selector mismatch
+kubectl get pods -n <ns> --show-labels  # compare to service selector
 
 # PVC not binding?
-kubectl get pvc                      # check STATUS column
-kubectl describe pvc <name>          # look for "no matching volumes" etc
-kubectl get pv                       # check CAPACITY and ACCESS MODES
+kubectl get pvc -n <ns>                 # check STATUS
+kubectl describe pvc <name> -n <ns>     # "no matching volumes" or similar
+kubectl get pv                          # check capacity and accessModes
 
-# Probe issues?
-kubectl describe pod <name>          # look for "Liveness probe failed" in Events
-kubectl get pod <name> -o wide       # check RESTARTS column
-
-# NetworkPolicy blocking things?
-kubectl get networkpolicy -A
-kubectl describe networkpolicy <name>
-kubectl exec <pod> -- wget -qO- http://8.8.8.8   # bypass DNS to test connectivity
-kubectl exec <pod> -- nslookup kubernetes         # test DNS specifically
+# NetworkPolicy blocking unexpected traffic?
+kubectl describe networkpolicy <name> -n <ns>
+kubectl exec <pod> -- wget -qO- --timeout=2 <ip>   # test connectivity
 ```

@@ -1,28 +1,25 @@
-# LAB 05 — Broken: Deployment selector doesn't match pod template labels
-# Symptom: kubectl apply errors with "selector does not match template labels"
-#          OR pods are created but Deployment can't manage them
-# Your job: Fix the manifest so the Deployment manages its pods correctly
+# LAB 05 — Mirrors Q7 (Pod Namespace Migration): Pod has wrong namespace in spec
+# Symptom: Pod is running in neptune but should be in pluto. Manifest has the wrong namespace.
+# Your job: Fix the manifest so it creates the pod in namespace "pluto", then delete from neptune.
 #
-# SETUP: kubectl apply -f lab-05.yaml
-# GOAL:  kubectl get deploy lab05-deploy shows 2/2 READY
+# SETUP:
+#   kubectl create namespace neptune 2>/dev/null || true
+#   kubectl create namespace pluto   2>/dev/null || true
+#   kubectl apply -f lab-05.yaml
+#   kubectl get pod q07-webserver -n neptune   # <- running in wrong namespace
+#
+# GOAL: pod running in pluto, deleted from neptune
 ---
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Pod
 metadata:
-  name: lab05-deploy
-  namespace: default
+  name: q07-webserver
+  namespace: neptune          # BUG: should be pluto
+  labels:
+    app: webserver
 spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: myapp            # selector looks for THIS label
-  template:
-    metadata:
-      labels:
-        app: my-app         # <-- bug: "my-app" != "myapp"
-    spec:
-      containers:
-      - name: nginx
-        image: nginx
-        ports:
-        - containerPort: 80
+  containers:
+  - name: nginx
+    image: nginx:1.21
+    ports:
+    - containerPort: 80

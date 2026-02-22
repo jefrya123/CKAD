@@ -1,51 +1,29 @@
-# LAB 07 — Broken: PVC requests more storage than PV provides
-# Symptom: PVC stays in Pending state forever, pod never schedules
-# Your job: Find why the PVC won't bind and fix it
+# LAB 07 — Mirrors Q9 (Pod→Deployment): Deployment missing selector + wrong replicas
+# Symptom: kubectl apply errors OR pods created but Deployment shows 0/1 READY
+# Your job: Fix the Deployment so it manages its pods and runs 3 replicas
 #
-# SETUP: kubectl apply -f lab-07.yaml
-# GOAL:  PVC is Bound, pod is Running, can write to /mnt/data
+# SETUP:
+#   kubectl create namespace neptune 2>/dev/null || true
+#   kubectl apply -f lab-07.yaml
+#   kubectl get deploy q09-deploy -n neptune
 ---
-apiVersion: v1
-kind: PersistentVolume
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: lab07-pv
+  name: q09-deploy
+  namespace: neptune
 spec:
-  capacity:
-    storage: 500Mi          # PV only offers 500Mi
-  accessModes:
-  - ReadWriteOnce
-  hostPath:
-    path: /tmp/lab07
-  persistentVolumeReclaimPolicy: Retain
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: lab07-pvc
-  namespace: default
-spec:
-  accessModes:
-  - ReadWriteOnce
-  resources:
-    requests:
-      storage: 2Gi           # <-- bug: requesting 2Gi but PV only has 500Mi
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: lab07-pod
-  namespace: default
-  labels:
-    lab: "07"
-spec:
-  containers:
-  - name: app
-    image: busybox
-    command: ["/bin/sh", "-c", "echo hello > /mnt/data/test.txt; sleep 3600"]
-    volumeMounts:
-    - name: storage
-      mountPath: /mnt/data
-  volumes:
-  - name: storage
-    persistentVolumeClaim:
-      claimName: lab07-pvc
+  replicas: 1                  # BUG 1: should be 3
+  selector:
+    matchLabels:
+      app: q09-app
+  template:
+    metadata:
+      labels:
+        app: q09-wrong-label   # BUG 2: "q09-wrong-label" != "q09-app" in selector
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.21
+        ports:
+        - containerPort: 80

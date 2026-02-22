@@ -1,27 +1,26 @@
-# LAB 04 — Broken: Liveness probe checking wrong port
-# Symptom: Pod starts then gets killed and restarted repeatedly (RESTARTS keeps climbing)
-# Your job: Find why it keeps restarting and fix it
+# LAB 04 — Mirrors Q6 (ReadinessProbe): Probe path and timing wrong
+# Symptom: Pod runs but READY shows 0/1 indefinitely — probe never passes
+# Your job: Fix the readinessProbe so pod becomes 1/1 Ready
 #
-# SETUP: kubectl apply -f lab-04.yaml
-# GOAL:  Pod stays Running with 0 restarts after a minute
+# SETUP:
+#   kubectl create namespace neptune 2>/dev/null || true
+#   kubectl apply -f lab-04.yaml
+#   kubectl get pod q06-pod -n neptune -w   # watch READY stay 0/1
 ---
 apiVersion: v1
 kind: Pod
 metadata:
-  name: lab04-pod
-  namespace: default
-  labels:
-    lab: "04"
+  name: q06-pod
+  namespace: neptune
 spec:
   containers:
   - name: nginx
     image: nginx
     ports:
     - containerPort: 80
-    livenessProbe:
+    readinessProbe:
       httpGet:
-        path: /
-        port: 8080          # <-- bug: nginx listens on 80, not 8080
-      initialDelaySeconds: 5
+        path: /healthz      # BUG 1: nginx doesn't serve /healthz, use /
+        port: 8080          # BUG 2: nginx listens on 80, not 8080
+      initialDelaySeconds: 10
       periodSeconds: 5
-      failureThreshold: 2

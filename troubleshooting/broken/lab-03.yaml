@@ -1,23 +1,27 @@
-# LAB 03 — Broken: Volume defined but not mounted in container
-# Symptom: Pod runs, but writing to /data fails (directory doesn't exist as expected)
-# Your job: The app writes logs to /data/app.log — make that path work via an emptyDir
+# LAB 03 — Mirrors Q5 (ServiceAccount + Secret): Secret has wrong type
+# Symptom: Secret exists but token field is empty / not a real SA token
+# Your job: Fix the secret so it auto-populates the token for the ServiceAccount
 #
-# SETUP: kubectl apply -f lab-03.yaml
-# GOAL:  kubectl exec lab03-pod -- ls /data   should succeed
+# SETUP:
+#   kubectl create namespace neptune 2>/dev/null || true
+#   kubectl apply -f lab-03.yaml
+#
+# Then check: kubectl get secret q05-token -n neptune -o jsonpath='{.data.token}' | base64 -d
+# It should be a valid JWT (starts with eyJ...)
 ---
 apiVersion: v1
-kind: Pod
+kind: ServiceAccount
 metadata:
-  name: lab03-pod
-  namespace: default
-  labels:
-    lab: "03"
-spec:
-  containers:
-  - name: app
-    image: busybox
-    command: ["/bin/sh", "-c", "while true; do echo log >> /data/app.log; sleep 5; done"]
-    # <-- bug: volumeMount for /data is missing entirely
-  volumes:
-  - name: data-vol
-    emptyDir: {}
+  name: q05-sa
+  namespace: neptune
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: q05-token
+  namespace: neptune
+  annotations:
+    kubernetes.io/service-account.name: q05-sa
+type: Opaque               # BUG: should be kubernetes.io/service-account-token
+stringData:
+  note: "this is not a token"

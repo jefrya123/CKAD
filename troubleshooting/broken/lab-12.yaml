@@ -1,56 +1,65 @@
-# LAB 12 — Broken: Multiple bugs in one manifest (hardest)
-# Symptom: Nothing works — figure out ALL the problems
-# There are FOUR bugs. Find and fix them all.
+# LAB 12 — Mirrors Q17+Q18+Q20 combined (hardest): InitContainer + Service + NetworkPolicy
+# THREE bugs across three resource types. Find and fix all of them.
+# Symptom: Pod stuck in Init:CrashLoopBackOff, service has no endpoints, policy blocks wrong traffic
 #
-# SETUP: kubectl apply -f lab-12.yaml
-# GOAL:
-#   - Deployment has 2 running pods
-#   - Service endpoints are populated
-#   - curl to the service returns nginx response
-#   - readinessProbe passes (pod is Ready)
+# SETUP:
+#   kubectl create namespace moon 2>/dev/null || true
+#   kubectl label namespace moon name=moon --overwrite
+#   kubectl apply -f lab-12.yaml
+#
+# GOALS:
+#   1. Pod q17-pod reaches Running (init must complete)
+#   2. kubectl get endpoints q18-svc -n moon  shows an IP
+#   3. NetworkPolicy allows ingress from namespace "moon" only
 ---
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Pod
 metadata:
-  name: lab12-deploy
-  namespace: default
+  name: q17-pod
+  namespace: moon
+  labels:
+    app: q17
 spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: lab12
-  template:
-    metadata:
-      labels:
-        app: lab12
-    spec:
-      containers:
-      - name: web
-        image: nginx:1.99.99       # BUG 1: bad image tag — doesn't exist
-        ports:
-        - containerPort: 80
-        readinessProbe:
-          httpGet:
-            path: /healthz         # BUG 2: nginx doesn't have /healthz, use /
-            port: 80
-          initialDelaySeconds: 3
-          periodSeconds: 5
-        resources:
-          requests:
-            memory: "64Mi"
-            cpu: "100m"
-          limits:
-            memory: "32Mi"         # BUG 3: limit (32Mi) is LESS than request (64Mi) — invalid
-            cpu: "200m"
+  initContainers:
+  - name: init
+    image: busybox
+    command: ["sh", "-c", "echo ready > /work/status.txt"]
+    # BUG 1: no volumeMount here — /work doesn't exist, init crashes
+  containers:
+  - name: main
+    image: nginx
+    volumeMounts:
+    - name: work
+      mountPath: /work
+  volumes:
+  - name: work
+    emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: lab12-svc
-  namespace: default
+  name: q18-svc
+  namespace: moon
 spec:
   selector:
-    app: lab-12                    # BUG 4: "lab-12" doesn't match pod label "lab12"
+    app: q17-wrong          # BUG 2: should be "q17" to match pod label
   ports:
   - port: 80
     targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: q20-netpol
+  namespace: moon
+spec:
+  podSelector:
+    matchLabels:
+      app: q17
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: venus       # BUG 3: should allow from "moon" namespace, not "venus"

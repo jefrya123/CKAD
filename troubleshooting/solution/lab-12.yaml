@@ -1,51 +1,58 @@
-# LAB 12 SOLUTION — All 4 bugs fixed
-# BUG 1: image: nginx:1.99.99       -> nginx:latest
-# BUG 2: readinessProbe path /healthz -> /
-# BUG 3: memory limit 32Mi < request 64Mi -> limit 128Mi
-# BUG 4: service selector app: lab-12  -> app: lab12
+# LAB 12 SOLUTION
+# BUG 1: initContainer missing volumeMount for /work
+# BUG 2: service selector app: q17-wrong -> q17
+# BUG 3: NetworkPolicy namespaceSelector name: venus -> moon
 ---
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Pod
 metadata:
-  name: lab12-deploy
-  namespace: default
+  name: q17-pod
+  namespace: moon
+  labels:
+    app: q17
 spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: lab12
-  template:
-    metadata:
-      labels:
-        app: lab12
-    spec:
-      containers:
-      - name: web
-        image: nginx:latest            # fixed BUG 1
-        ports:
-        - containerPort: 80
-        readinessProbe:
-          httpGet:
-            path: /                    # fixed BUG 2
-            port: 80
-          initialDelaySeconds: 3
-          periodSeconds: 5
-        resources:
-          requests:
-            memory: "64Mi"
-            cpu: "100m"
-          limits:
-            memory: "128Mi"            # fixed BUG 3: limit >= request
-            cpu: "200m"
+  initContainers:
+  - name: init
+    image: busybox
+    command: ["sh", "-c", "echo ready > /work/status.txt"]
+    volumeMounts:           # fixed BUG 1
+    - name: work
+      mountPath: /work
+  containers:
+  - name: main
+    image: nginx
+    volumeMounts:
+    - name: work
+      mountPath: /work
+  volumes:
+  - name: work
+    emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: lab12-svc
-  namespace: default
+  name: q18-svc
+  namespace: moon
 spec:
   selector:
-    app: lab12                         # fixed BUG 4
+    app: q17              # fixed BUG 2
   ports:
   - port: 80
     targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: q20-netpol
+  namespace: moon
+spec:
+  podSelector:
+    matchLabels:
+      app: q17
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: moon      # fixed BUG 3

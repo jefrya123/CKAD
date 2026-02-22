@@ -1,22 +1,18 @@
-# LAB 03 SOLUTION — Fixed: volumeMount added to container
-# Bug was: volume was defined but never mounted in the container
-# Fix:     add volumeMounts referencing data-vol at /data
+# LAB 03 SOLUTION
+# BUG: type: Opaque -> type: kubernetes.io/service-account-token
+# Also remove the fake stringData — Kubernetes populates the token automatically
 ---
 apiVersion: v1
-kind: Pod
+kind: ServiceAccount
 metadata:
-  name: lab03-pod
-  namespace: default
-  labels:
-    lab: "03"
-spec:
-  containers:
-  - name: app
-    image: busybox
-    command: ["/bin/sh", "-c", "while true; do echo log >> /data/app.log; sleep 5; done"]
-    volumeMounts:              # fixed: mount added
-    - name: data-vol
-      mountPath: /data
-  volumes:
-  - name: data-vol
-    emptyDir: {}
+  name: q05-sa
+  namespace: neptune
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: q05-token
+  namespace: neptune
+  annotations:
+    kubernetes.io/service-account.name: q05-sa
+type: kubernetes.io/service-account-token

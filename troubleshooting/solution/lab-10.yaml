@@ -1,29 +1,42 @@
-# LAB 10 SOLUTION — Fixed: initContainer now has volumeMount for /work
-# Bug was: initContainer wrote to /work but had no volumeMount so path didn't exist
-# Fix:     add volumeMount to initContainer pointing to same "workdir" volume
+# LAB 10 SOLUTION
+# BUG 1: key: user     -> username
+# BUG 2: key: pass     -> password
+# BUG 3: secretName: q14-wrong-secret -> q14-secret
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: q14-secret
+  namespace: moon
+stringData:
+  username: moon-admin
+  password: M00nPass
 ---
 apiVersion: v1
 kind: Pod
 metadata:
-  name: lab10-pod
-  namespace: default
-  labels:
-    lab: "10"
+  name: q14-pod
+  namespace: moon
 spec:
-  initContainers:
-  - name: init-setup
-    image: busybox
-    command: ["/bin/sh", "-c", "echo ready > /work/ready"]
-    volumeMounts:              # fixed: mount added to initContainer
-    - name: workdir
-      mountPath: /work
   containers:
-  - name: main
+  - name: app
     image: busybox
-    command: ["/bin/sh", "-c", "cat /work/ready; sleep 3600"]
+    command: ["sh", "-c", "sleep 3600"]
+    env:
+    - name: DB_USER
+      valueFrom:
+        secretKeyRef:
+          name: q14-secret
+          key: username
+    - name: DB_PASS
+      valueFrom:
+        secretKeyRef:
+          name: q14-secret
+          key: password
     volumeMounts:
-    - name: workdir
-      mountPath: /work
+    - name: creds
+      mountPath: /etc/creds
   volumes:
-  - name: workdir
-    emptyDir: {}
+  - name: creds
+    secret:
+      secretName: q14-secret

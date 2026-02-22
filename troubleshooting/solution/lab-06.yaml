@@ -1,34 +1,27 @@
-# LAB 06 SOLUTION — Fixed: create the missing secret first, then apply pod
-# Bug was: pod referenced lab06-secret which didn't exist
-# Fix:     create the secret, then apply the pod
-#
-# kubectl create secret generic lab06-secret --from-literal=password=supersecret123
-# kubectl apply -f lab-06-solution.yaml
+# LAB 06 SOLUTION
+# The broken image can't be fixed by editing alone if there's no history yet.
+# In practice you'd have previous revisions to roll back to.
+# Fix: correct the image directly
 ---
-apiVersion: v1
-kind: Secret
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: lab06-secret
-  namespace: default
-type: Opaque
-stringData:
-  password: supersecret123    # fixed: secret now exists
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: lab06-pod
-  namespace: default
-  labels:
-    lab: "06"
+  name: q08-deploy
+  namespace: neptune
 spec:
-  containers:
-  - name: app
-    image: busybox
-    command: ["/bin/sh", "-c", "echo DB_PASSWORD=$DB_PASSWORD; sleep 3600"]
-    env:
-    - name: DB_PASSWORD
-      valueFrom:
-        secretKeyRef:
-          name: lab06-secret
-          key: password
+  replicas: 2
+  selector:
+    matchLabels:
+      app: q08-deploy
+  template:
+    metadata:
+      labels:
+        app: q08-deploy
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.21    # fixed
+
+# OR via rollback command:
+# kubectl rollout undo deployment/q08-deploy -n neptune
+# kubectl rollout history deployment/q08-deploy -n neptune > /tmp/lab06-history.txt

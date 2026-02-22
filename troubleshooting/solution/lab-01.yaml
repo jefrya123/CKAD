@@ -1,17 +1,14 @@
-# LAB 01 SOLUTION — Fixed: correct image name
-# Bug was: image: ngnix:latest  (typo)
-# Fix:     image: nginx:latest
+# LAB 01 SOLUTION
+# BUG 1: label id: wrong-label  -> id: q02-pod
+# BUG 2: container name: q02-pod -> main-container
 ---
 apiVersion: v1
 kind: Pod
 metadata:
-  name: lab01-pod
-  namespace: default
+  name: q02-pod
   labels:
-    lab: "01"
+    id: q02-pod
 spec:
   containers:
-  - name: web
-    image: nginx:latest        # fixed
-    ports:
-    - containerPort: 80
+  - name: main-container
+    image: nginx:1.21

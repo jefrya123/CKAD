@@ -1,27 +1,31 @@
-# LAB 06 — Broken: Secret referenced by pod doesn't exist
-# Symptom: Pod stuck in Pending with "secret not found" error
-# Your job: Figure out what's missing, create it, get the pod running
+# LAB 06 — Mirrors Q8 (Deployment Rollout): Deployment stuck on bad image
+# Symptom: Deployment shows 0/2 READY, pods in ImagePullBackOff
+# Your job: Find the bad image, roll back to the previous working revision
 #
-# SETUP: kubectl apply -f lab-06.yaml
-# GOAL:  Pod Running, env var DB_PASSWORD is set inside the container
+# SETUP:
+#   kubectl create namespace neptune 2>/dev/null || true
+#   kubectl apply -f lab-06.yaml
+#   kubectl get pods -n neptune   # ImagePullBackOff
 #
-# The secret should contain:  key=password  value=supersecret123
+# GOAL: All pods Running after rollback, save history to /tmp/lab06-history.txt
 ---
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: lab06-pod
-  namespace: default
-  labels:
-    lab: "06"
+  name: q08-deploy
+  namespace: neptune
+  annotations:
+    kubernetes.io/change-cause: "update to broken image"
 spec:
-  containers:
-  - name: app
-    image: busybox
-    command: ["/bin/sh", "-c", "echo DB_PASSWORD=$DB_PASSWORD; sleep 3600"]
-    env:
-    - name: DB_PASSWORD
-      valueFrom:
-        secretKeyRef:
-          name: lab06-secret   # <-- bug: this secret doesn't exist yet
-          key: password
+  replicas: 2
+  selector:
+    matchLabels:
+      app: q08-deploy
+  template:
+    metadata:
+      labels:
+        app: q08-deploy
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:99.99-doesnotexist    # BUG: bad image — roll back to nginx:1.21

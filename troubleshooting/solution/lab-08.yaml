@@ -1,20 +1,36 @@
-# LAB 08 SOLUTION — Fixed: CronJob schedule uses 5 fields not 6
-# Bug was: "*/2 * * * * *"  (6 fields — seconds field doesn't exist in standard cron)
-# Fix:     "*/2 * * * *"    (5 fields: minute hour dom month dow)
+# LAB 08 SOLUTION
+# BUG 1: selector app: q10-backend -> q10-app
+# BUG 2: targetPort: 8080 -> 80
 ---
-apiVersion: batch/v1
-kind: CronJob
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: lab08-cron
-  namespace: default
+  name: q10-deploy
+  namespace: pluto
 spec:
-  schedule: "*/2 * * * *"    # fixed: 5 fields
-  jobTemplate:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: q10-app
+  template:
+    metadata:
+      labels:
+        app: q10-app
     spec:
-      template:
-        spec:
-          restartPolicy: Never
-          containers:
-          - name: job
-            image: busybox
-            command: ["/bin/sh", "-c", "date; echo job ran"]
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: q10-svc
+  namespace: pluto
+spec:
+  selector:
+    app: q10-app
+  ports:
+  - port: 3000
+    targetPort: 80

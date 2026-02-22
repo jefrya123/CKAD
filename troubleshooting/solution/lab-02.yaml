@@ -1,29 +1,22 @@
-# LAB 02 SOLUTION — Fixed: service selector matches pod label
-# Bug was: selector app: web-frontend
-# Fix:     selector app: web-backend  (matches the pod's label)
+# LAB 02 SOLUTION
+# BUG 1: parallelism: 5 -> 2
+# BUG 2: label key "app" -> "id"
 ---
-apiVersion: v1
-kind: Pod
+apiVersion: batch/v1
+kind: Job
 metadata:
-  name: lab02-pod
-  namespace: default
-  labels:
-    app: web-backend
+  name: q03-job
+  namespace: neptune
 spec:
-  containers:
-  - name: nginx
-    image: nginx
-    ports:
-    - containerPort: 80
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: lab02-svc
-  namespace: default
-spec:
-  selector:
-    app: web-backend           # fixed
-  ports:
-  - port: 80
-    targetPort: 80
+  completions: 3
+  parallelism: 2
+  template:
+    metadata:
+      labels:
+        id: q03-job
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: job
+        image: busybox
+        command: ["/bin/sh", "-c", "sleep 2 && echo done"]

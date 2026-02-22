@@ -1,24 +1,16 @@
-# LAB 05 SOLUTION — Fixed: pod template label matches selector
-# Bug was: template label app: my-app, selector matchLabels app: myapp
-# Fix:     make both "myapp"
+# LAB 05 SOLUTION
+# BUG: namespace: neptune -> pluto
 ---
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Pod
 metadata:
-  name: lab05-deploy
-  namespace: default
+  name: q07-webserver
+  namespace: pluto
+  labels:
+    app: webserver
 spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: myapp
-  template:
-    metadata:
-      labels:
-        app: myapp             # fixed: matches selector
-    spec:
-      containers:
-      - name: nginx
-        image: nginx
-        ports:
-        - containerPort: 80
+  containers:
+  - name: nginx
+    image: nginx:1.21
+    ports:
+    - containerPort: 80

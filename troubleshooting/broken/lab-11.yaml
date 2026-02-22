@@ -1,36 +1,40 @@
-# LAB 11 — Broken: NetworkPolicy accidentally blocks ALL egress including DNS
-# Symptom: Pod can't resolve any DNS names (curl google.com fails with "bad address")
-#          but the pod itself is Running fine
-# Your job: Fix the NetworkPolicy so the pod can do DNS lookups and reach the internet
+# LAB 11 — Mirrors Q16 (Logging Sidecar): Sidecar and main container not sharing volume
+# Symptom: Deployment runs but "kubectl logs -c log-reader" shows nothing
+# Your job: Fix it so the sidecar streams what the app writes
 #
-# SETUP: kubectl apply -f lab-11.yaml
-# GOAL:  kubectl exec lab11-pod -- wget -qO- http://example.com  succeeds
+# SETUP:
+#   kubectl create namespace moon 2>/dev/null || true
+#   kubectl apply -f lab-11.yaml
+#   kubectl logs -n moon deploy/q16-deploy -c log-reader  # empty
 ---
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: lab11-pod
-  namespace: default
-  labels:
-    app: lab11
+  name: q16-deploy
+  namespace: moon
 spec:
-  containers:
-  - name: app
-    image: busybox
-    command: ["/bin/sh", "-c", "sleep 3600"]
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: lab11-netpol
-  namespace: default
-spec:
-  podSelector:
+  replicas: 1
+  selector:
     matchLabels:
-      app: lab11
-  policyTypes:
-  - Egress          # <-- bug: egress is locked down but no rules allow DNS (UDP 53)
-  egress:
-  - ports:
-    - port: 80
-      protocol: TCP  # only HTTP allowed — DNS on UDP/53 is blocked
+      app: q16
+  template:
+    metadata:
+      labels:
+        app: q16
+    spec:
+      containers:
+      - name: app
+        image: busybox
+        command: ["sh", "-c", "while true; do echo \"$(date): log entry\" >> /var/log/app/app.log; sleep 3; done"]
+        volumeMounts:
+        - name: logs
+          mountPath: /var/log/app
+      - name: log-reader
+        image: busybox
+        command: ["sh", "-c", "tail -f /var/log/app/app.log"]
+        volumeMounts:
+        - name: log-data        # BUG: volume name "log-data" doesn't exist, should be "logs"
+          mountPath: /var/log/app
+      volumes:
+      - name: logs
+        emptyDir: {}

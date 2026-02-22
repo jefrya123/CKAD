@@ -1,33 +1,54 @@
-# LAB 09 — Broken: ConfigMap key name mismatch
-# Symptom: Pod starts but env var APP_COLOR is empty
-# Your job: Figure out why the env var isn't populated and fix it
+# LAB 09 — Mirrors Q12 (Storage PV/PVC): PVC won't bind to PV
+# Symptom: PVC stays in Pending, pod never starts
+# Your job: Find why the PVC won't bind and fix it — do NOT delete the PV
 #
-# SETUP: kubectl apply -f lab-09.yaml
-# GOAL:  kubectl exec lab09-pod -- env | grep APP_COLOR  shows APP_COLOR=blue
+# SETUP:
+#   kubectl create namespace earth 2>/dev/null || true
+#   kubectl apply -f lab-09.yaml
+#   kubectl get pvc q12-pvc -n earth    # Pending
+#   kubectl get pv  q12-pv              # Available (not bound)
 ---
 apiVersion: v1
-kind: ConfigMap
+kind: PersistentVolume
 metadata:
-  name: lab09-config
-  namespace: default
-data:
-  color: blue              # key is "color"
+  name: q12-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+  - ReadWriteOnce
+  hostPath:
+    path: /tmp/q12
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: q12-pvc
+  namespace: earth
+spec:
+  accessModes:
+  - ReadWriteMany              # BUG 1: PV only supports ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi             # BUG 2: PV only has 1Gi
+  storageClassName: ""
 ---
 apiVersion: v1
 kind: Pod
 metadata:
-  name: lab09-pod
-  namespace: default
-  labels:
-    lab: "09"
+  name: q12-pod
+  namespace: earth
 spec:
   containers:
   - name: app
     image: busybox
-    command: ["/bin/sh", "-c", "echo APP_COLOR=$APP_COLOR; sleep 3600"]
-    env:
-    - name: APP_COLOR
-      valueFrom:
-        configMapKeyRef:
-          name: lab09-config
-          key: app-color     # <-- bug: key should be "color" not "app-color"
+    command: ["sh", "-c", "sleep 3600"]
+    volumeMounts:
+    - name: data
+      mountPath: /mnt/data
+  volumes:
+  - name: data
+    persistentVolumeClaim:
+      claimName: q12-pvc

@@ -1,23 +1,41 @@
-# LAB 08 — Broken: CronJob with invalid schedule expression
-# Symptom: kubectl apply gives a validation error OR jobs never run
-# Your job: Fix the schedule so it runs every 2 minutes
+# LAB 08 — Mirrors Q10 (Service + Logs): Service has wrong selector and wrong targetPort
+# Symptom: Endpoints is empty, curl to service fails
+# Your job: Fix the service so traffic reaches the nginx pods
 #
-# SETUP: kubectl apply -f lab-08.yaml
-# GOAL:  kubectl get cronjob lab08-cron shows a valid SCHEDULE and jobs appear
+# SETUP:
+#   kubectl create namespace pluto 2>/dev/null || true
+#   kubectl apply -f lab-08.yaml
+#   kubectl get endpoints q10-svc -n pluto   # will show <none>
 ---
-apiVersion: batch/v1
-kind: CronJob
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: lab08-cron
-  namespace: default
+  name: q10-deploy
+  namespace: pluto
 spec:
-  schedule: "*/2 * * * * *"   # <-- bug: 6 fields instead of 5 (cron uses 5)
-  jobTemplate:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: q10-app
+  template:
+    metadata:
+      labels:
+        app: q10-app
     spec:
-      template:
-        spec:
-          restartPolicy: Never
-          containers:
-          - name: job
-            image: busybox
-            command: ["/bin/sh", "-c", "date; echo job ran"]
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: q10-svc
+  namespace: pluto
+spec:
+  selector:
+    app: q10-backend        # BUG 1: pods have label "q10-app" not "q10-backend"
+  ports:
+  - port: 3000
+    targetPort: 8080        # BUG 2: nginx listens on 80, not 8080
