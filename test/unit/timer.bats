@@ -167,6 +167,63 @@ _load_timer() {
   [[ "${output}" != *"set -euo pipefail"* ]]
 }
 
+# --- timer_env_output: zsh shell detection ---
+
+@test "timer_env_output: contains ZSH_VERSION shell detection block" {
+  _load_timer
+  local end_at
+  end_at=$(( $(date +%s) + 180 ))
+  run timer_env_output "${end_at}"
+  assert_success
+  assert_output --partial "ZSH_VERSION"
+}
+
+@test "timer_env_output: zsh branch contains add-zsh-hook precmd" {
+  _load_timer
+  local end_at
+  end_at=$(( $(date +%s) + 180 ))
+  run timer_env_output "${end_at}"
+  assert_output --partial "add-zsh-hook precmd __ckad_drill_timer"
+}
+
+@test "timer_env_output: zsh branch contains autoload add-zsh-hook" {
+  _load_timer
+  local end_at
+  end_at=$(( $(date +%s) + 180 ))
+  run timer_env_output "${end_at}"
+  assert_output --partial "autoload -Uz add-zsh-hook"
+}
+
+@test "timer_env_output: zsh branch contains kubectl completion zsh" {
+  _load_timer
+  local end_at
+  end_at=$(( $(date +%s) + 180 ))
+  run timer_env_output "${end_at}"
+  assert_output --partial "kubectl completion zsh"
+}
+
+@test "timer_env_output: zsh branch saves CKAD_DRILL_ORIGINAL_PROMPT" {
+  _load_timer
+  local end_at
+  end_at=$(( $(date +%s) + 180 ))
+  run timer_env_output "${end_at}"
+  assert_output --partial "CKAD_DRILL_ORIGINAL_PROMPT"
+}
+
+# --- timer_env_reset_output: zsh branch ---
+
+@test "timer_env_reset_output: zsh branch contains add-zsh-hook -d precmd" {
+  _load_timer
+  run timer_env_reset_output
+  assert_output --partial "add-zsh-hook -d precmd"
+}
+
+@test "timer_env_reset_output: zsh branch unsets CKAD_DRILL_ORIGINAL_PROMPT" {
+  _load_timer
+  run timer_env_reset_output
+  assert_output --partial "CKAD_DRILL_ORIGINAL_PROMPT"
+}
+
 # --- timer_remaining ---
 
 @test "timer_remaining: prints MM:SS format when time remains" {
