@@ -64,7 +64,13 @@ Plans:
   3. `ckad-drill check` runs validations and prints pass/fail per check; `ckad-drill hint` and `ckad-drill solution` display their content; `ckad-drill next` cleans up and starts a new scenario
   4. `ckad-drill status` shows per-domain pass rates, exam history, streak, and a weak domain recommendation
   5. `ckad-drill validate-scenario <file>` runs parse, setup, solution apply, validation, and cleanup and reports the result
-**Plans**: TBD
+**Plans:** 4 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Session management (session.sh) and timer (timer.sh) with unit tests
+- [ ] 03-02-PLAN.md — Progress tracking (progress.sh) and sample YAML scenarios
+- [ ] 03-03-PLAN.md — Wire drill subcommands into bin/ckad-drill (drill, check, hint, solution, current, next, skip, env, timer)
+- [ ] 03-04-PLAN.md — Status display, validate-scenario tool, and drill dispatch unit tests
 
 ### Phase 4: Exam Mode
 **Goal**: A user can run a full 2-hour mock exam with multiple questions, navigation, and graded results
@@ -123,7 +129,7 @@ Phase 6 (Content Migration) depends on Phase 2 (YAML schema) and Phase 3 (valida
 |-------|----------------|--------|-----------|
 | 1. Foundation + Cluster | 2/2 | Complete | 2026-02-28 |
 | 2. Scenario + Validation Engine | 2/2 | Complete | 2026-02-28 |
-| 3. CLI + Drill Mode | 0/TBD | Not started | - |
+| 3. CLI + Drill Mode | 0/4 | Not started | - |
 | 4. Exam Mode | 0/TBD | Not started | - |
 | 5. Learn Mode | 0/TBD | Not started | - |
 | 6. Content Migration | 0/TBD | Not started | - |
