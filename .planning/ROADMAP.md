@@ -12,7 +12,7 @@ Transform the existing CKAD study guide repo into a pure-bash exam trainer. Phas
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation + Cluster** - Project scaffold, shared lib files, kind cluster management
+- [x] **Phase 1: Foundation + Cluster** - Project scaffold, shared lib files, kind cluster management
 - [ ] **Phase 2: Scenario + Validation Engine** - YAML scenario loading and all 10 typed validation checks
 - [ ] **Phase 3: CLI + Drill Mode** - Main entry point, drill subcommands, timer, progress tracking, scenario validator tool
 - [ ] **Phase 4: Exam Mode** - Multi-scenario timed exam session with navigation, flagging, and scoring
@@ -32,11 +32,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Running `ckad-drill reset` tears down and recreates the cluster from scratch
   4. Running `ckad-drill start` a second time reuses the existing cluster without error
   5. Running `ckad-drill start` without Docker or kind installed prints a clear error with installation instructions
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans executed
 
 Plans:
-- [ ] 01-01-PLAN.md — Project scaffold, shared libs, and cluster lifecycle implementation
-- [ ] 01-02-PLAN.md — Dev tooling setup and unit tests for foundation code
+- [x] 01-01-PLAN.md — Project scaffold, shared libs, and cluster lifecycle implementation
+- [x] 01-02-PLAN.md — Dev tooling setup and unit tests for foundation code
 
 ### Phase 2: Scenario + Validation Engine
 **Goal**: Scenarios can be loaded from YAML and validated against a live cluster with all 10 check types working
@@ -117,7 +117,7 @@ Phase 6 (Content Migration) depends on Phase 2 (YAML schema) and Phase 3 (valida
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation + Cluster | 1/2 | In Progress|  |
+| 1. Foundation + Cluster | 2/2 | Complete | 2026-02-28 |
 | 2. Scenario + Validation Engine | 0/TBD | Not started | - |
 | 3. CLI + Drill Mode | 0/TBD | Not started | - |
 | 4. Exam Mode | 0/TBD | Not started | - |

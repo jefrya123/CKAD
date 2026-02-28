@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 ## Current Position
 
 Phase: 1 of 7 (Foundation + Cluster)
-Plan: 1 of TBD in current phase
+Plan: 2 of TBD in current phase
 Status: In progress
-Last activity: 2026-02-28 — Plan 01-01 complete: project scaffold + cluster lifecycle
+Last activity: 2026-02-28 — Plan 01-02 complete: test infrastructure + 36 unit tests
 
-Progress: [█░░░░░░░░░] ~5%
+Progress: [██░░░░░░░░] ~10%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
-- Average duration: 2 min
-- Total execution time: 0.03 hours
+- Total plans completed: 2
+- Average duration: 2.5 min
+- Total execution time: ~0.08 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-foundation-cluster | 1 | 2 min | 2 min |
+| 01-foundation-cluster | 2 | 5 min | 2.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (2 min)
-- Trend: baseline established
+- Last 5 plans: 01-01 (2 min), 01-02 (3 min)
+- Trend: consistent, on pace
 
 *Updated after each plan completion*
 
@@ -53,6 +53,11 @@ Key decisions affecting current work:
 - Calico installed via manifest-only method (calico.yaml) — simpler than operator method for Phase 1
 - Lib files use `# shellcheck shell=bash` directive (no shebang) + `# shellcheck disable=SC2034` for shared constants
 
+**From 01-02 execution:**
+- Re-source tests run in subshells (bash -c) — common.sh readonly vars prevent re-sourcing in same bats process
+- command() function override preferred over PATH manipulation for mocking command -v in unit tests
+- bats-support and bats-assert installed as gitignored git clones in test/helpers/ (re-bootstrapped via dev-setup.sh)
+
 ### Pending Todos
 
 None yet.
@@ -65,5 +70,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 01-01-PLAN.md — project scaffold and cluster lifecycle done
+Stopped at: Completed 01-02-PLAN.md — test infrastructure and 36 unit tests done
 Resume file: None
