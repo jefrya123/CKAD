@@ -60,10 +60,10 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **TIMR-03**: `ckad-drill env --reset` cleanly restores original prompt
 - [ ] **TIMR-04**: `ckad-drill timer` prints remaining time for users who don't source env
 - [ ] **TIMR-05**: env output is safe for user's shell (no set -euo pipefail, idempotent)
-- [ ] **PROG-01**: Drill results are recorded to progress.json (passed, time, attempts)
+- [x] **PROG-01**: Drill results are recorded to progress.json (passed, time, attempts)
 - [ ] **PROG-02**: `ckad-drill status` shows per-domain pass rates, exam history, streak, weak area recommendation
-- [ ] **PROG-03**: Progress schema is additive-only — missing fields get defaults on read
-- [ ] **PROG-04**: Progress file survives tool upgrades
+- [x] **PROG-03**: Progress schema is additive-only — missing fields get defaults on read
+- [x] **PROG-04**: Progress file survives tool upgrades
 
 ### Exam Mode
 
@@ -187,10 +187,10 @@ Requirements for initial release. Each maps to roadmap phases.
 | TIMR-03 | Phase 3 | Pending |
 | TIMR-04 | Phase 3 | Pending |
 | TIMR-05 | Phase 3 | Pending |
-| PROG-01 | Phase 3 | Pending |
+| PROG-01 | Phase 3 | Complete |
 | PROG-02 | Phase 3 | Pending |
-| PROG-03 | Phase 3 | Pending |
-| PROG-04 | Phase 3 | Pending |
+| PROG-03 | Phase 3 | Complete |
+| PROG-04 | Phase 3 | Complete |
 | DIST-03 | Phase 3 | Pending |
 | DIST-04 | Phase 3 | Pending |
 | EXAM-01 | Phase 4 | Pending |
