@@ -110,5 +110,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 03-06-PLAN.md — fixed validate-scenario multi-line heredoc solution steps via index-based yq extraction + 2 bats unit tests (15 total passing). Phase 3 gap closure done.
+Stopped at: Completed 03-05-PLAN.md — zsh timer support via ZSH_VERSION-gated add-zsh-hook precmd hook in timer_env_output; 27 timer.bats tests passing (7 new zsh-branch tests).
 Resume file: None
