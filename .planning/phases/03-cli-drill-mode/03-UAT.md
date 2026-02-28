@@ -1,9 +1,9 @@
 ---
-status: resolved
+status: complete
 phase: 03-cli-drill-mode
-source: 03-01-SUMMARY.md, 03-02-SUMMARY.md, 03-03-SUMMARY.md, 03-04-SUMMARY.md
+source: 03-01-SUMMARY.md, 03-02-SUMMARY.md, 03-03-SUMMARY.md, 03-04-SUMMARY.md, 03-05-SUMMARY.md, 03-06-SUMMARY.md
 started: 2026-02-28T23:10:00Z
-updated: 2026-02-28T23:55:00Z
+updated: 2026-03-01T00:00:00Z
 ---
 
 ## Current Test
@@ -45,23 +45,21 @@ result: pass
 expected: After starting a drill, `ckad-drill check` runs validations against the cluster, prints pass/fail per check, and records the result in progress history
 result: pass
 
-### 9. Timer countdown in prompt (requires cluster)
-expected: After `source <(ckad-drill env)`, the terminal prompt shows `[MM:SS]` countdown that updates. When time expires it shows `[TIME UP]`. `ckad-drill env --reset` restores original prompt.
-result: issue
-reported: "Timer didn't show in prompt. Uses PROMPT_COMMAND which is bash-only, user shell is zsh."
-severity: major
+### 9. Timer countdown in prompt (zsh re-test after fix)
+expected: After `source <(bin/ckad-drill env)` in zsh, the env output contains `add-zsh-hook precmd` for zsh (not just PROMPT_COMMAND). The prompt shows `[MM:SS]` countdown. `bin/ckad-drill env --reset` output contains `add-zsh-hook -d precmd` for cleanup.
+result: pass
+note: Timer shows [01:57] countdown in zsh prompt after sourcing env. add-zsh-hook precmd working correctly.
 
-### 10. Validate-scenario runs full lifecycle (requires cluster)
-expected: `ckad-drill validate-scenario scenarios/domain-1/sc-multi-container-pod.yaml` runs: parse scenario, create namespace, apply solution steps, run validations, cleanup namespace, report result. Namespace is cleaned up even on failure.
-result: issue
-reported: "Lifecycle ran (setup, validate, cleanup, report) but solution steps were not applied — all checks failed. Solution should be applied before validation."
-severity: major
+### 10. Validate-scenario applies solution steps (re-test after fix)
+expected: `bin/ckad-drill validate-scenario scenarios/domain-1/sc-multi-container-pod.yaml` applies all solution steps (including multi-line heredoc steps) before running validations. Validation checks should pass. If a solution step fails, a warning is printed (not silently suppressed).
+result: pass
+note: 3/3 checks passed (pod_exists, two_containers, nginx_image). Solution steps including heredoc applied correctly.
 
 ## Summary
 
 total: 10
-passed: 8
-issues: 2
+passed: 10
+issues: 0
 pending: 0
 skipped: 0
 
