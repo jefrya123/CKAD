@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 03-cli-drill-mode
 source: 03-01-SUMMARY.md, 03-02-SUMMARY.md, 03-03-SUMMARY.md, 03-04-SUMMARY.md
 started: 2026-02-28T23:10:00Z
@@ -72,9 +72,14 @@ skipped: 0
   reason: "User reported: Timer didn't show in prompt. Uses PROMPT_COMMAND which is bash-only, user shell is zsh."
   severity: major
   test: 9
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "timer_env_output emits PROMPT_COMMAND (bash-only); zsh ignores it and uses precmd hooks instead"
+  artifacts:
+    - path: "lib/timer.sh"
+      issue: "timer_env_output uses PROMPT_COMMAND exclusively, no zsh precmd support"
+  missing:
+    - "Detect shell (ZSH_VERSION/BASH_VERSION) and emit precmd hook for zsh, PROMPT_COMMAND for bash"
+    - "timer_env_reset_output needs add-zsh-hook -d precmd path for zsh"
+    - "kubectl completion line should emit zsh completion in zsh"
   debug_session: ""
 
 - truth: "validate-scenario applies solution steps before running validation checks"
@@ -82,7 +87,11 @@ skipped: 0
   reason: "User reported: Lifecycle ran (setup, validate, cleanup, report) but solution steps were not applied — all checks failed. Solution should be applied before validation."
   severity: major
   test: 10
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "while IFS= read -r splits multi-line heredoc steps at newlines; eval receives incomplete heredoc lines; errors suppressed by || true"
+  artifacts:
+    - path: "bin/ckad-drill"
+      issue: "_validate_single_scenario solution loop uses line-by-line read, incompatible with multi-line steps"
+  missing:
+    - "Use yq with null-delimited or index-based extraction to get each step as a complete block before eval"
+    - "Remove or reduce || true suppression so solution application failures are visible"
+  debug_session: ".planning/debug/validate-scenario-solution-not-applied.md"
