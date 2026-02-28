@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-02-28T22:34:56.638Z"
+last_updated: "2026-02-28T23:02:37.732Z"
 progress:
   total_phases: 3
   completed_phases: 3
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 10
+  completed_plans: 10
 ---
 
 # Project State
@@ -22,10 +22,10 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 
 ## Current Position
 
-Phase: 3 of 7 (CLI Drill Mode) — Complete
-Plan: 4 of 4 in current phase (03-04 complete)
-Status: Phase 3 complete — 4/4 plans done
-Last activity: 2026-02-28 — Plan 03-04 complete: status and validate-scenario subcommands + drill.bats tests
+Phase: 3 of 7 (CLI Drill Mode) — Complete (gap closure)
+Plan: 6 of 6 in current phase (03-06 complete)
+Status: Phase 3 complete — 6/6 plans done (includes gap closure plan 03-06)
+Last activity: 2026-02-28 — Plan 03-06 complete: fixed validate-scenario multi-line heredoc solution steps + 2 yq extraction unit tests
 
 Progress: [███████░░░] ~65%
 
@@ -52,6 +52,8 @@ Progress: [███████░░░] ~65%
 | Phase 03-cli-drill-mode P02 | 3 | 2 tasks | 5 files |
 | Phase 03-cli-drill-mode P01 | 3 | 2 tasks | 4 files |
 | Phase 03-cli-drill-mode P04 | 8 | 2 tasks | 2 files |
+| Phase 03-cli-drill-mode P06 | 1 | 2 tasks | 2 files |
+| Phase 03-cli-drill-mode P05 | 1 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -91,6 +93,10 @@ Key decisions affecting current work:
 - [Phase 03-cli-drill-mode]: Delegate case arms to _cmd_* helpers: local keyword cannot be used at top-level case scope in bash
 - [Phase 03-cli-drill-mode]: yaml_file loop variable instead of scenario_file to avoid SC2153 shellcheck false positive with SCENARIO_FILE global
 - [Phase 03-cli-drill-mode]: Reset kubectl context to default after validate-scenario to avoid surprising the user
+- [Phase 03-06]: Index-based yq extraction (.solution.steps[N]) for multi-line YAML block scalars prevents heredoc splitting
+- [Phase 03-06]: warn on failed eval instead of silent 2>/dev/null suppression — operator visibility for solution step failures
+- [Phase 03-cli-drill-mode]: Shell detection emitted into user shell output (ZSH_VERSION check), not in timer.sh bash logic — timer.sh always runs in bash regardless of user shell
+- [Phase 03-cli-drill-mode]: zsh timer uses add-zsh-hook precmd hook; bash timer uses PROMPT_COMMAND — shell-detection block emitted in output
 
 ### Pending Todos
 
@@ -104,5 +110,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 03-04-PLAN.md — status and validate-scenario subcommands added to bin/ckad-drill + drill.bats 13 unit tests. Phase 3 complete.
+Stopped at: Completed 03-06-PLAN.md — fixed validate-scenario multi-line heredoc solution steps via index-based yq extraction + 2 bats unit tests (15 total passing). Phase 3 gap closure done.
 Resume file: None
