@@ -4,7 +4,7 @@ set -euo pipefail
 CKAD_DRILL_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export CKAD_DRILL_ROOT
 
-# shellcheck source=lib/common.sh
+# shellcheck source=lib/common.sh disable=SC1091
 source "${CKAD_DRILL_ROOT}/lib/common.sh"
 # shellcheck source=lib/display.sh disable=SC1091
 source "${CKAD_DRILL_ROOT}/lib/display.sh"
@@ -14,8 +14,108 @@ source "${CKAD_DRILL_ROOT}/lib/cluster.sh"
 source "${CKAD_DRILL_ROOT}/lib/scenario.sh"
 # shellcheck source=lib/validator.sh disable=SC1091
 source "${CKAD_DRILL_ROOT}/lib/validator.sh"
+# shellcheck source=lib/session.sh disable=SC1091
+source "${CKAD_DRILL_ROOT}/lib/session.sh"
+# shellcheck source=lib/progress.sh disable=SC1091
+source "${CKAD_DRILL_ROOT}/lib/progress.sh"
+# shellcheck source=lib/timer.sh disable=SC1091
+source "${CKAD_DRILL_ROOT}/lib/timer.sh"
 
+# ---------------------------------------------------------------------------
+# _drill_cleanup — SIGINT/SIGTERM trap handler for drill subcommand (DRIL-11)
+# Pitfall 5: session.json may not exist if Ctrl+C fires during scenario_setup.
+# Check session file first; fall back to SCENARIO_NAMESPACE if setup was partial.
+# ---------------------------------------------------------------------------
+_drill_cleanup() {
+  trap - INT TERM EXIT  # prevent re-entry
+  if [[ -f "${CKAD_SESSION_FILE}" ]]; then
+    session_read 2>/dev/null && scenario_cleanup
+    session_clear
+  elif [[ -n "${SCENARIO_NAMESPACE:-}" ]]; then
+    # Setup was in progress — namespace may have been partially created
+    kubectl delete namespace "${SCENARIO_NAMESPACE}" --ignore-not-found=true 2>/dev/null || true
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# _drill_display FILE — display the scenario task card
+# Prints header, metadata lines, and description for a loaded scenario file.
+# Caller must have called scenario_load FILE first (sets SCENARIO_* globals).
+# ---------------------------------------------------------------------------
+_drill_display() {
+  local file="$1"
+  header "${SCENARIO_TITLE}"
+  info "Domain:     ${SCENARIO_DOMAIN}"
+  info "Difficulty: ${SCENARIO_DIFFICULTY}"
+  info "Time Limit: ${SCENARIO_TIME_LIMIT}s"
+  info "Namespace:  ${SCENARIO_NAMESPACE}"
+  info ""
+  yq -r '.description // "No description available."' "${file}"
+  info ""
+  info "Run: source <(ckad-drill env) to start timer and set up exam environment"
+}
+
+# ---------------------------------------------------------------------------
+# _drill_start [FILTER_DOMAIN] [FILTER_DIFFICULTY] [EXTERNAL_PATH]
+# Core drill flow: discover → filter → pick random → setup → write session → display.
+# All three arguments are optional (pass empty string to skip).
+# ---------------------------------------------------------------------------
+_drill_start() {
+  local domain_filter="$1"
+  local diff_filter="$2"
+  local external_path="$3"
+
+  # Discover scenarios
+  local -a all_files=()
+  mapfile -t all_files < <(scenario_discover "${external_path}")
+
+  if [[ "${#all_files[@]}" -eq 0 ]]; then
+    error "No scenario files found in ${CKAD_DRILL_ROOT}/scenarios/ or external path."
+    exit "${EXIT_ERROR}"
+  fi
+
+  # Filter by domain/difficulty if provided
+  local -a filtered_files=()
+  if [[ -n "${domain_filter}" || -n "${diff_filter}" ]]; then
+    FILTER_DOMAIN="${domain_filter}" FILTER_DIFFICULTY="${diff_filter}" \
+      mapfile -t filtered_files < <(scenario_filter "${all_files[@]}")
+  else
+    filtered_files=("${all_files[@]}")
+  fi
+
+  # Pitfall 7: check filtered array not empty
+  if [[ "${#filtered_files[@]}" -eq 0 ]]; then
+    error "No scenarios found matching the specified filters."
+    exit "${EXIT_ERROR}"
+  fi
+
+  # Pick a random scenario
+  local picked_file
+  picked_file="${filtered_files[RANDOM % ${#filtered_files[@]}]}"
+
+  # Install cleanup trap before setup (DRIL-11)
+  trap '_drill_cleanup' INT TERM EXIT
+
+  # Setup: creates namespace, loads SCENARIO_* globals
+  scenario_setup "${picked_file}" || exit "${EXIT_ERROR}"
+
+  # Write session
+  session_write "drill" \
+    "${SCENARIO_ID}" \
+    "${SCENARIO_FILE}" \
+    "${SCENARIO_NAMESPACE}" \
+    "${SCENARIO_TIME_LIMIT}"
+
+  # Display the scenario task card
+  _drill_display "${picked_file}"
+
+  # Remove EXIT trap — session is established, we don't want auto-cleanup on normal exit
+  trap - EXIT
+}
+
+# ---------------------------------------------------------------------------
 # Subcommand dispatch
+# ---------------------------------------------------------------------------
 case "${1:-}" in
   start)
     cluster_start
@@ -26,14 +126,140 @@ case "${1:-}" in
   reset)
     cluster_reset
     ;;
+
+  # -------------------------------------------------------------------------
+  drill)  # DRIL-01, DRIL-02
+    shift
+    # Parse flags
+    domain_filter=""
+    diff_filter=""
+    external_path=""
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --domain)
+          domain_filter="$2"
+          shift 2
+          ;;
+        --difficulty)
+          diff_filter="$2"
+          shift 2
+          ;;
+        --external)
+          external_path="$2"
+          shift 2
+          ;;
+        *)
+          error "Unknown flag: $1"
+          exit "${EXIT_ERROR}"
+          ;;
+      esac
+    done
+    cluster_check_active || exit "${EXIT_NO_CLUSTER}"
+    _drill_start "${domain_filter}" "${diff_filter}" "${external_path}"
+    ;;
+
+  # -------------------------------------------------------------------------
+  check)  # DRIL-03
+    session_require
+    if [[ "${SESSION_MODE}" != "drill" ]]; then
+      error "Active session is not a drill session (mode: ${SESSION_MODE})."
+      exit "${EXIT_ERROR}"
+    fi
+    # Run validator
+    validator_run_checks "${SESSION_SCENARIO_FILE}" "${SESSION_NAMESPACE}"
+    validator_exit=$?
+    if [[ "${validator_exit}" -eq 0 ]]; then
+      passed="true"
+    else
+      passed="false"
+    fi
+    # Compute elapsed time: start_epoch = end_at - time_limit
+    elapsed=$(( $(date +%s) - ( SESSION_END_AT - SESSION_TIME_LIMIT ) ))
+    # Read domain from scenario file
+    domain=$(yq -r '.domain // empty' "${SESSION_SCENARIO_FILE}")
+    progress_record "${SESSION_SCENARIO_ID}" "${domain}" "${passed}" "${elapsed}"
+    ;;
+
+  # -------------------------------------------------------------------------
+  hint)  # DRIL-04
+    session_require
+    yq -r '.hint // "No hint available."' "${SESSION_SCENARIO_FILE}"
+    ;;
+
+  # -------------------------------------------------------------------------
+  solution)  # DRIL-05
+    session_require
+    header "Solution"
+    local_step=1
+    while IFS= read -r step; do
+      printf '%d. %s\n' "${local_step}" "${step}"
+      (( local_step++ )) || true
+    done < <(yq -r '.solution.steps[]' "${SESSION_SCENARIO_FILE}" 2>/dev/null)
+    ;;
+
+  # -------------------------------------------------------------------------
+  current)  # DRIL-08
+    session_require
+    scenario_load "${SESSION_SCENARIO_FILE}"
+    _drill_display "${SESSION_SCENARIO_FILE}"
+    ;;
+
+  # -------------------------------------------------------------------------
+  next)  # DRIL-06
+    session_require
+    scenario_cleanup
+    session_clear
+    # Start a new drill with no filters
+    cluster_check_active || exit "${EXIT_NO_CLUSTER}"
+    _drill_start "" "" ""
+    ;;
+
+  # -------------------------------------------------------------------------
+  skip)  # DRIL-07
+    session_require
+    scenario_cleanup
+    session_clear
+    info "Skipped. Run 'ckad-drill drill' for next scenario."
+    ;;
+
+  # -------------------------------------------------------------------------
+  env)
+    if [[ "${2:-}" == "--reset" ]]; then
+      timer_env_reset_output
+    else
+      session_require
+      timer_env_output "${SESSION_END_AT}"
+    fi
+    ;;
+
+  # -------------------------------------------------------------------------
+  timer)
+    session_require
+    timer_remaining
+    ;;
+
+  # -------------------------------------------------------------------------
   *)
     warn "Unknown command: '${1:-}'"
-    info "Usage: ckad-drill <command>"
+    info "Usage: ckad-drill <command> [options]"
     info ""
     info "Available commands:"
-    info "  start   Create and configure the ckad-drill kind cluster"
-    info "  stop    Delete the ckad-drill cluster"
-    info "  reset   Tear down and recreate the cluster from scratch"
+    info "  start                  Create and configure the ckad-drill kind cluster"
+    info "  stop                   Delete the ckad-drill cluster"
+    info "  reset                  Tear down and recreate the cluster from scratch"
+    info ""
+    info "  drill [--domain N] [--difficulty LEVEL] [--external PATH]"
+    info "                         Pick a random scenario and start a drill session"
+    info "  check                  Run validations on current scenario"
+    info "  hint                   Show hint for current scenario"
+    info "  solution               Show solution steps for current scenario"
+    info "  current                Reprint current scenario description"
+    info "  next                   Clean up current scenario and start a new one"
+    info "  skip                   Clean up current scenario without checking"
+    info ""
+    info "  env                    Output timer + exam env shell code (use: source <(ckad-drill env))"
+    info "  env --reset            Output shell code to restore original prompt"
+    info "  timer                  Print remaining time (MM:SS) for current session"
     exit 1
     ;;
 esac
