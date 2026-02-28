@@ -49,17 +49,17 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **DRIL-06**: User can run `ckad-drill next` to clean up and get a new scenario
 - [ ] **DRIL-07**: User can run `ckad-drill skip` to skip without checking
 - [ ] **DRIL-08**: User can run `ckad-drill current` to reprint the active scenario
-- [ ] **DRIL-09**: Session state persists in session.json (active scenario, namespace, time)
-- [ ] **DRIL-10**: Strict exam environment on session start: `alias k=kubectl`, completion, `EDITOR=vim`, nothing else
+- [x] **DRIL-09**: Session state persists in session.json (active scenario, namespace, time)
+- [x] **DRIL-10**: Strict exam environment on session start: `alias k=kubectl`, completion, `EDITOR=vim`, nothing else
 - [ ] **DRIL-11**: SIGINT/SIGTERM triggers cleanup via trap handler
 
 ### Timer & Progress
 
-- [ ] **TIMR-01**: `source <(ckad-drill env)` sets up PROMPT_COMMAND with countdown `[MM:SS]` in prompt
-- [ ] **TIMR-02**: Timer shows `[TIME UP]` when time expires
-- [ ] **TIMR-03**: `ckad-drill env --reset` cleanly restores original prompt
-- [ ] **TIMR-04**: `ckad-drill timer` prints remaining time for users who don't source env
-- [ ] **TIMR-05**: env output is safe for user's shell (no set -euo pipefail, idempotent)
+- [x] **TIMR-01**: `source <(ckad-drill env)` sets up PROMPT_COMMAND with countdown `[MM:SS]` in prompt
+- [x] **TIMR-02**: Timer shows `[TIME UP]` when time expires
+- [x] **TIMR-03**: `ckad-drill env --reset` cleanly restores original prompt
+- [x] **TIMR-04**: `ckad-drill timer` prints remaining time for users who don't source env
+- [x] **TIMR-05**: env output is safe for user's shell (no set -euo pipefail, idempotent)
 - [x] **PROG-01**: Drill results are recorded to progress.json (passed, time, attempts)
 - [ ] **PROG-02**: `ckad-drill status` shows per-domain pass rates, exam history, streak, weak area recommendation
 - [x] **PROG-03**: Progress schema is additive-only — missing fields get defaults on read
@@ -179,14 +179,14 @@ Requirements for initial release. Each maps to roadmap phases.
 | DRIL-06 | Phase 3 | Pending |
 | DRIL-07 | Phase 3 | Pending |
 | DRIL-08 | Phase 3 | Pending |
-| DRIL-09 | Phase 3 | Pending |
-| DRIL-10 | Phase 3 | Pending |
+| DRIL-09 | Phase 3 | Complete |
+| DRIL-10 | Phase 3 | Complete |
 | DRIL-11 | Phase 3 | Pending |
-| TIMR-01 | Phase 3 | Pending |
-| TIMR-02 | Phase 3 | Pending |
-| TIMR-03 | Phase 3 | Pending |
-| TIMR-04 | Phase 3 | Pending |
-| TIMR-05 | Phase 3 | Pending |
+| TIMR-01 | Phase 3 | Complete |
+| TIMR-02 | Phase 3 | Complete |
+| TIMR-03 | Phase 3 | Complete |
+| TIMR-04 | Phase 3 | Complete |
+| TIMR-05 | Phase 3 | Complete |
 | PROG-01 | Phase 3 | Complete |
 | PROG-02 | Phase 3 | Pending |
 | PROG-03 | Phase 3 | Complete |
