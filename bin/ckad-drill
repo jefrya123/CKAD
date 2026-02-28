@@ -29,7 +29,9 @@ source "${CKAD_DRILL_ROOT}/lib/timer.sh"
 _drill_cleanup() {
   trap - INT TERM EXIT  # prevent re-entry
   if [[ -f "${CKAD_SESSION_FILE}" ]]; then
-    session_read 2>/dev/null && scenario_cleanup
+    session_read 2>/dev/null || true
+    SCENARIO_NAMESPACE="${SESSION_NAMESPACE:-}"
+    scenario_cleanup
     session_clear
   elif [[ -n "${SCENARIO_NAMESPACE:-}" ]]; then
     # Setup was in progress — namespace may have been partially created
@@ -254,6 +256,22 @@ _validate_single_scenario() {
 }
 
 # ---------------------------------------------------------------------------
+# _cmd_solution — display solution steps using index-based yq extraction (DRIL-05)
+# Extracts as a helper function so 'local' keyword is valid in bash.
+# Handles multi-line heredoc steps correctly (each index is a complete step).
+# ---------------------------------------------------------------------------
+_cmd_solution() {
+  session_require
+  header "Solution"
+  local step_count step_i step
+  step_count=$(yq -r '.solution.steps | length' "${SESSION_SCENARIO_FILE}" 2>/dev/null || echo "0")
+  for (( step_i = 0; step_i < step_count; step_i++ )); do
+    step=$(yq -r ".solution.steps[${step_i}]" "${SESSION_SCENARIO_FILE}" 2>/dev/null)
+    printf '%d. %s\n' "$(( step_i + 1 ))" "${step}"
+  done
+}
+
+# ---------------------------------------------------------------------------
 # Subcommand dispatch
 # ---------------------------------------------------------------------------
 case "${1:-}" in
@@ -305,9 +323,9 @@ case "${1:-}" in
       error "Active session is not a drill session (mode: ${SESSION_MODE})."
       exit "${EXIT_ERROR}"
     fi
-    # Run validator
-    validator_run_checks "${SESSION_SCENARIO_FILE}" "${SESSION_NAMESPACE}"
-    validator_exit=$?
+    # Run validator — use || pattern to capture non-zero exit under set -e
+    validator_exit=0
+    validator_run_checks "${SESSION_SCENARIO_FILE}" "${SESSION_NAMESPACE}" || validator_exit=$?
     if [[ "${validator_exit}" -eq 0 ]]; then
       passed="true"
     else
@@ -328,13 +346,7 @@ case "${1:-}" in
 
   # -------------------------------------------------------------------------
   solution)  # DRIL-05
-    session_require
-    header "Solution"
-    local_step=1
-    while IFS= read -r step; do
-      printf '%d. %s\n' "${local_step}" "${step}"
-      (( local_step++ )) || true
-    done < <(yq -r '.solution.steps[]' "${SESSION_SCENARIO_FILE}" 2>/dev/null)
+    _cmd_solution
     ;;
 
   # -------------------------------------------------------------------------
@@ -347,6 +359,7 @@ case "${1:-}" in
   # -------------------------------------------------------------------------
   next)  # DRIL-06
     session_require
+    SCENARIO_NAMESPACE="${SESSION_NAMESPACE}"
     scenario_cleanup
     session_clear
     # Start a new drill with no filters
@@ -357,6 +370,7 @@ case "${1:-}" in
   # -------------------------------------------------------------------------
   skip)  # DRIL-07
     session_require
+    SCENARIO_NAMESPACE="${SESSION_NAMESPACE}"
     scenario_cleanup
     session_clear
     info "Skipped. Run 'ckad-drill drill' for next scenario."
