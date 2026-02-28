@@ -83,7 +83,10 @@ Plans:
   2. `ckad-drill next` and `ckad-drill skip` delete the scenario namespace from the cluster before moving on
   3. Pressing Ctrl+C during a drill session deletes the scenario namespace from the cluster
   4. `ckad-drill solution` displays multi-line heredoc steps as complete numbered steps (not split across lines)
-**Plans:** 0/TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 03.1-01-PLAN.md — Fix 4 defects in bin/ckad-drill (set-e guard, namespace bridge, trap fix, solution display) + regression tests
 
 ### Phase 4: Exam Mode
 **Goal**: A user can run a full 2-hour mock exam with multiple questions, navigation, and graded results
@@ -144,7 +147,7 @@ Phase 6 (Content Migration) depends on Phase 2 (YAML schema) and Phase 3 (valida
 | 1. Foundation + Cluster | 2/2 | Complete | 2026-02-28 |
 | 2. Scenario + Validation Engine | 2/2 | Complete | 2026-02-28 |
 | 3. CLI + Drill Mode | 6/6 | Complete   | 2026-02-28 |
-| 3.1 Drill Integration Fixes | 0/TBD | Not started | - |
+| 3.1 Drill Integration Fixes | 0/1 | Not started | - |
 | 4. Exam Mode | 0/TBD | Not started | - |
 | 5. Learn Mode | 0/TBD | Not started | - |
 | 6. Content Migration | 0/TBD | Not started | - |
