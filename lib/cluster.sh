@@ -104,9 +104,10 @@ _cluster_install_metrics_server() {
     --type='json' \
     --patch='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--kubelet-insecure-tls"}]'
 
-  kubectl wait --namespace kube-system \
-    --for=condition=ready pod \
-    --selector=k8s-app=metrics-server \
+  # Wait for rollout (not pods) — patch triggers a new ReplicaSet and the old pods
+  # would cause kubectl wait --selector to match stale terminating pods
+  kubectl rollout status deployment/metrics-server \
+    --namespace kube-system \
     --timeout=60s
 }
 
