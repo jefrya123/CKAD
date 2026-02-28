@@ -32,7 +32,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Running `ckad-drill reset` tears down and recreates the cluster from scratch
   4. Running `ckad-drill start` a second time reuses the existing cluster without error
   5. Running `ckad-drill start` without Docker or kind installed prints a clear error with installation instructions
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 01-01-PLAN.md — Project scaffold, shared libs, and cluster lifecycle implementation
@@ -117,7 +117,7 @@ Phase 6 (Content Migration) depends on Phase 2 (YAML schema) and Phase 3 (valida
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation + Cluster | 0/2 | Planning complete | - |
+| 1. Foundation + Cluster | 1/2 | In Progress|  |
 | 2. Scenario + Validation Engine | 0/TBD | Not started | - |
 | 3. CLI + Drill Mode | 0/TBD | Not started | - |
 | 4. Exam Mode | 0/TBD | Not started | - |

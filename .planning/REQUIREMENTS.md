@@ -9,11 +9,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Cluster Management
 
-- [ ] **CLST-01**: User can create a kind cluster with `ckad-drill start` that includes Calico CNI, nginx ingress, and metrics-server
-- [ ] **CLST-02**: User can destroy the kind cluster with `ckad-drill stop`
-- [ ] **CLST-03**: User can recreate the cluster from scratch with `ckad-drill reset`
-- [ ] **CLST-04**: Tool detects if cluster already exists and reuses it (idempotent create)
-- [ ] **CLST-05**: Tool shows clear error with instructions if Docker or kind is not installed
+- [x] **CLST-01**: User can create a kind cluster with `ckad-drill start` that includes Calico CNI, nginx ingress, and metrics-server
+- [x] **CLST-02**: User can destroy the kind cluster with `ckad-drill stop`
+- [x] **CLST-03**: User can recreate the cluster from scratch with `ckad-drill reset`
+- [x] **CLST-04**: Tool detects if cluster already exists and reuses it (idempotent create)
+- [x] **CLST-05**: Tool shows clear error with instructions if Docker or kind is not installed
 
 ### Scenario Engine
 
@@ -148,11 +148,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CLST-01 | Phase 1 | Pending |
-| CLST-02 | Phase 1 | Pending |
-| CLST-03 | Phase 1 | Pending |
-| CLST-04 | Phase 1 | Pending |
-| CLST-05 | Phase 1 | Pending |
+| CLST-01 | Phase 1 | Complete |
+| CLST-02 | Phase 1 | Complete |
+| CLST-03 | Phase 1 | Complete |
+| CLST-04 | Phase 1 | Complete |
+| CLST-05 | Phase 1 | Complete |
 | SCEN-01 | Phase 2 | Pending |
 | SCEN-02 | Phase 2 | Pending |
 | SCEN-03 | Phase 2 | Pending |
