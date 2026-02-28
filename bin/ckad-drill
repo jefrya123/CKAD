@@ -114,6 +114,140 @@ _drill_start() {
 }
 
 # ---------------------------------------------------------------------------
+# _cmd_status — display per-domain progress, streak, and weak area (PROG-02)
+# ---------------------------------------------------------------------------
+_cmd_status() {
+  progress_init
+  header "Drill Progress"
+  local domain_rates streak weak_domain
+  domain_rates=$(progress_read_domain_rates)
+  streak=$(progress_read_streak)
+  weak_domain=$(progress_recommend_weak_domain)
+
+  if [[ -z "${domain_rates}" ]]; then
+    info "No drill results yet. Run 'ckad-drill drill' to get started."
+    return 0
+  fi
+
+  printf '%-8s %-12s %-10s\n' "Domain" "Pass Rate" "Attempts"
+  printf '%-8s %-12s %-10s\n' "------" "---------" "--------"
+  local domain_pair dom pct attempts
+  for domain_pair in ${domain_rates}; do
+    dom="${domain_pair%%:*}"
+    pct="${domain_pair##*:}"
+    attempts=$(jq -r --argjson d "${dom}" \
+      '[.scenarios | to_entries[] | select(.value.domain == $d)] | length' \
+      "${CKAD_PROGRESS_FILE}" 2>/dev/null || echo "0")
+    printf '%-8s %-12s %-10s\n' "${dom}" "${pct}%" "${attempts}"
+  done
+  info ""
+  info "Current streak: ${streak} day(s)"
+  info ""
+
+  local exams exam_count
+  exams=$(progress_read_exam_history)
+  exam_count=$(printf '%s' "${exams}" | jq 'length' 2>/dev/null || echo "0")
+  if [[ "${exam_count}" -gt 0 ]]; then
+    info "Exam history: ${exam_count} exam(s) recorded"
+  fi
+
+  if [[ -n "${weak_domain}" ]]; then
+    info "Weak area: Domain ${weak_domain} — focus your next drills here"
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# _cmd_validate_scenario TARGET — validate a single file or all .yaml in dir
+# ---------------------------------------------------------------------------
+_cmd_validate_scenario() {
+  local target="$1"
+  if [[ -z "${target}" ]]; then
+    error "Usage: ckad-drill validate-scenario <file|dir>"
+    exit "${EXIT_ERROR}"
+  fi
+
+  if [[ -d "${target}" ]]; then
+    # Directory mode (DIST-04): validate all .yaml files
+    local pass_count=0 fail_count=0 total_count=0
+    local yaml_file
+    while IFS= read -r yaml_file; do
+      (( total_count++ )) || true
+      if _validate_single_scenario "${yaml_file}"; then
+        (( pass_count++ )) || true
+      else
+        (( fail_count++ )) || true
+      fi
+    done < <(find "${target}" -name "*.yaml" -type f | sort)
+    info ""
+    info "Validation complete: ${pass_count} passed, ${fail_count} failed of ${total_count} scenarios"
+    [[ "${fail_count}" -eq 0 ]]
+  elif [[ -f "${target}" ]]; then
+    # Single file mode (DIST-03)
+    _validate_single_scenario "${target}"
+  else
+    error "Target not found: ${target}"
+    exit "${EXIT_ERROR}"
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# _validate_single_scenario FILE — run full lifecycle on one scenario file
+# Loads, sets up, applies solution steps, validates, then cleans up.
+# Always cleans up namespace even on failure (Pitfall from research doc).
+# Returns 0 on PASS, 1 on FAIL.
+# ---------------------------------------------------------------------------
+_validate_single_scenario() {
+  local file="$1"
+  info "Validating: ${file}..."
+
+  local cleanup_needed=false
+  local result=0
+
+  # Parse
+  if ! scenario_load "${file}"; then
+    fail "parse" "valid YAML" "parse error"
+    return 1
+  fi
+
+  # Setup: creates namespace
+  if ! scenario_setup "${file}"; then
+    fail "setup" "namespace created" "setup failed"
+    return 1
+  fi
+  cleanup_needed=true
+
+  # Set namespace context (Pitfall 8 from research)
+  kubectl config set-context --current --namespace="${SCENARIO_NAMESPACE}" 2>/dev/null || true
+
+  # Apply solution steps
+  local step
+  while IFS= read -r step; do
+    if [[ -n "${step}" ]]; then
+      eval "${step}" 2>/dev/null || true
+    fi
+  done < <(yq -r '.solution.steps[]' "${file}" 2>/dev/null)
+
+  # Validate
+  validator_run_checks "${file}" "${SCENARIO_NAMESPACE}" || result=1
+
+  # Always clean up — even on validation failure
+  if [[ "${cleanup_needed}" == "true" ]]; then
+    scenario_cleanup
+  fi
+
+  # Reset namespace context
+  kubectl config set-context --current --namespace=default 2>/dev/null || true
+
+  if [[ "${result}" -eq 0 ]]; then
+    pass "${SCENARIO_TITLE}"
+    return 0
+  else
+    fail "${SCENARIO_TITLE}" "all checks pass" "some checks failed"
+    return 1
+  fi
+}
+
+# ---------------------------------------------------------------------------
 # Subcommand dispatch
 # ---------------------------------------------------------------------------
 case "${1:-}" in
@@ -239,6 +373,16 @@ case "${1:-}" in
     ;;
 
   # -------------------------------------------------------------------------
+  status)  # PROG-02
+    _cmd_status
+    ;;
+
+  # -------------------------------------------------------------------------
+  validate-scenario)  # DIST-03, DIST-04
+    _cmd_validate_scenario "${2:-}"
+    ;;
+
+  # -------------------------------------------------------------------------
   *)
     warn "Unknown command: '${1:-}'"
     info "Usage: ckad-drill <command> [options]"
@@ -260,6 +404,10 @@ case "${1:-}" in
     info "  env                    Output timer + exam env shell code (use: source <(ckad-drill env))"
     info "  env --reset            Output shell code to restore original prompt"
     info "  timer                  Print remaining time (MM:SS) for current session"
+    info ""
+    info "  status                 Show per-domain pass rates, streak, and weak area recommendation"
+    info "  validate-scenario <file|dir>"
+    info "                         Run full parse/setup/validate/cleanup lifecycle on scenario(s)"
     exit 1
     ;;
 esac
