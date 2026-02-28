@@ -60,3 +60,13 @@ success() {
     printf '[OK] %s\n' "$*"
   fi
 }
+
+# cluster_check_active — verify the ckad-drill kind cluster is running
+# Returns EXIT_NO_CLUSTER if cluster not found; prints error message.
+# Callers should || return or || exit on non-zero return.
+cluster_check_active() {
+  if ! kind get clusters 2>/dev/null | grep -q "^${CKAD_CLUSTER_NAME}$"; then
+    error "No active cluster. Run 'ckad-drill start' first."
+    return "${EXIT_NO_CLUSTER}"
+  fi
+}
