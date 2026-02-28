@@ -6,8 +6,14 @@ export CKAD_DRILL_ROOT
 
 # shellcheck source=lib/common.sh
 source "${CKAD_DRILL_ROOT}/lib/common.sh"
+# shellcheck source=lib/display.sh disable=SC1091
+source "${CKAD_DRILL_ROOT}/lib/display.sh"
 # shellcheck source=lib/cluster.sh disable=SC1091
 source "${CKAD_DRILL_ROOT}/lib/cluster.sh"
+# shellcheck source=lib/scenario.sh disable=SC1091
+source "${CKAD_DRILL_ROOT}/lib/scenario.sh"
+# shellcheck source=lib/validator.sh disable=SC1091
+source "${CKAD_DRILL_ROOT}/lib/validator.sh"
 
 # Subcommand dispatch
 case "${1:-}" in
