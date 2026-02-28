@@ -148,13 +148,92 @@ Requirements for initial release. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (Populated during roadmap creation) | | |
+| CLST-01 | Phase 1 | Pending |
+| CLST-02 | Phase 1 | Pending |
+| CLST-03 | Phase 1 | Pending |
+| CLST-04 | Phase 1 | Pending |
+| CLST-05 | Phase 1 | Pending |
+| SCEN-01 | Phase 2 | Pending |
+| SCEN-02 | Phase 2 | Pending |
+| SCEN-03 | Phase 2 | Pending |
+| SCEN-04 | Phase 2 | Pending |
+| SCEN-05 | Phase 2 | Pending |
+| SCEN-06 | Phase 2 | Pending |
+| VALD-01 | Phase 2 | Pending |
+| VALD-02 | Phase 2 | Pending |
+| VALD-03 | Phase 2 | Pending |
+| VALD-04 | Phase 2 | Pending |
+| VALD-05 | Phase 2 | Pending |
+| VALD-06 | Phase 2 | Pending |
+| VALD-07 | Phase 2 | Pending |
+| VALD-08 | Phase 2 | Pending |
+| VALD-09 | Phase 2 | Pending |
+| VALD-10 | Phase 2 | Pending |
+| VALD-11 | Phase 2 | Pending |
+| VALD-12 | Phase 2 | Pending |
+| DRIL-01 | Phase 3 | Pending |
+| DRIL-02 | Phase 3 | Pending |
+| DRIL-03 | Phase 3 | Pending |
+| DRIL-04 | Phase 3 | Pending |
+| DRIL-05 | Phase 3 | Pending |
+| DRIL-06 | Phase 3 | Pending |
+| DRIL-07 | Phase 3 | Pending |
+| DRIL-08 | Phase 3 | Pending |
+| DRIL-09 | Phase 3 | Pending |
+| DRIL-10 | Phase 3 | Pending |
+| DRIL-11 | Phase 3 | Pending |
+| TIMR-01 | Phase 3 | Pending |
+| TIMR-02 | Phase 3 | Pending |
+| TIMR-03 | Phase 3 | Pending |
+| TIMR-04 | Phase 3 | Pending |
+| TIMR-05 | Phase 3 | Pending |
+| PROG-01 | Phase 3 | Pending |
+| PROG-02 | Phase 3 | Pending |
+| PROG-03 | Phase 3 | Pending |
+| PROG-04 | Phase 3 | Pending |
+| DIST-03 | Phase 3 | Pending |
+| DIST-04 | Phase 3 | Pending |
+| EXAM-01 | Phase 4 | Pending |
+| EXAM-02 | Phase 4 | Pending |
+| EXAM-03 | Phase 4 | Pending |
+| EXAM-04 | Phase 4 | Pending |
+| EXAM-05 | Phase 4 | Pending |
+| EXAM-06 | Phase 4 | Pending |
+| EXAM-07 | Phase 4 | Pending |
+| EXAM-08 | Phase 4 | Pending |
+| EXAM-09 | Phase 4 | Pending |
+| EXAM-10 | Phase 4 | Pending |
+| EXAM-11 | Phase 4 | Pending |
+| EXAM-12 | Phase 4 | Pending |
+| LERN-01 | Phase 5 | Pending |
+| LERN-02 | Phase 5 | Pending |
+| LERN-03 | Phase 5 | Pending |
+| LERN-04 | Phase 5 | Pending |
+| LERN-05 | Phase 5 | Pending |
+| CONT-01 | Phase 6 | Pending |
+| CONT-02 | Phase 6 | Pending |
+| CONT-03 | Phase 6 | Pending |
+| CONT-04 | Phase 6 | Pending |
+| CONT-05 | Phase 6 | Pending |
+| CONT-06 | Phase 6 | Pending |
+| CONT-07 | Phase 6 | Pending |
+| CONT-08 | Phase 6 | Pending |
+| TEST-01 | Phase 7 | Pending |
+| TEST-02 | Phase 7 | Pending |
+| TEST-03 | Phase 7 | Pending |
+| TEST-04 | Phase 7 | Pending |
+| CICD-01 | Phase 7 | Pending |
+| CICD-02 | Phase 7 | Pending |
+| DIST-01 | Phase 7 | Pending |
+| DIST-02 | Phase 7 | Pending |
+| DOCS-01 | Phase 7 | Pending |
+| DOCS-02 | Phase 7 | Pending |
 
 **Coverage:**
 - v1 requirements: 66 total
-- Mapped to phases: 0
-- Unmapped: 66
+- Mapped to phases: 66
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-28*
-*Last updated: 2026-02-28 after initial definition*
+*Last updated: 2026-02-28 after roadmap creation*
