@@ -23,11 +23,11 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 ## Current Position
 
 Phase: 3 of 7 (CLI Drill Mode) — In Progress
-Plan: 1 of 4 in current phase (03-01 complete)
-Status: Phase 3 in progress — 1/4 plans done
-Last activity: 2026-02-28 — Plan 03-01 complete: session.sh, timer.sh, 43 unit tests total passing
+Plan: 4 of 4 in current phase (03-03 complete)
+Status: Phase 3 in progress — 3/4 plans done
+Last activity: 2026-02-28 — Plan 03-03 complete: bin/ckad-drill drill subcommands integrated
 
-Progress: [████░░░░░░] ~30%
+Progress: [██████░░░░] ~55%
 
 ## Performance Metrics
 
@@ -84,6 +84,9 @@ Key decisions affecting current work:
 - [Phase 03-cli-drill-mode]: jq atomic write pattern (tmp + mv) used in progress.sh for all file updates
 - [Phase 03-01]: SC2016 disabled at file level in timer.sh — single-quoted printf strings intentionally emit unexpanded shell code for user's shell sourcing
 - [Phase 03-01]: Epoch-based end_at in session.json for cross-platform date arithmetic (no date -d or date -j needed)
+- [Phase 03-03]: cluster_check_active added to common.sh (not cluster.sh) — guard utility used by drill subcommands, not cluster lifecycle
+- [Phase 03-03]: EXIT trap installed before scenario_setup, removed after session_write — protects partial setup from Ctrl+C without auto-cleanup on normal exit
+- [Phase 03-03]: Elapsed time computed as (now - (end_at - time_limit)) — avoids parsing started_at ISO string using epoch arithmetic only
 
 ### Pending Todos
 
@@ -97,5 +100,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 03-01-PLAN.md — session.sh, timer.sh, 43 unit tests total passing. Phase 3 plan 1 complete.
+Stopped at: Completed 03-03-PLAN.md — bin/ckad-drill drill subcommands (drill, check, hint, solution, current, next, skip, env, timer) integrated. Phase 3 plan 3 complete.
 Resume file: None

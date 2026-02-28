@@ -41,17 +41,17 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### CLI & Drill Mode
 
-- [ ] **DRIL-01**: User can run `ckad-drill drill` to get a random scenario with task displayed
-- [ ] **DRIL-02**: User can run `ckad-drill drill --domain N --difficulty LEVEL` to filter scenarios
-- [ ] **DRIL-03**: User can run `ckad-drill check` to validate their work against the cluster
-- [ ] **DRIL-04**: User can run `ckad-drill hint` to see the scenario hint
-- [ ] **DRIL-05**: User can run `ckad-drill solution` to see the solution
-- [ ] **DRIL-06**: User can run `ckad-drill next` to clean up and get a new scenario
-- [ ] **DRIL-07**: User can run `ckad-drill skip` to skip without checking
-- [ ] **DRIL-08**: User can run `ckad-drill current` to reprint the active scenario
+- [x] **DRIL-01**: User can run `ckad-drill drill` to get a random scenario with task displayed
+- [x] **DRIL-02**: User can run `ckad-drill drill --domain N --difficulty LEVEL` to filter scenarios
+- [x] **DRIL-03**: User can run `ckad-drill check` to validate their work against the cluster
+- [x] **DRIL-04**: User can run `ckad-drill hint` to see the scenario hint
+- [x] **DRIL-05**: User can run `ckad-drill solution` to see the solution
+- [x] **DRIL-06**: User can run `ckad-drill next` to clean up and get a new scenario
+- [x] **DRIL-07**: User can run `ckad-drill skip` to skip without checking
+- [x] **DRIL-08**: User can run `ckad-drill current` to reprint the active scenario
 - [x] **DRIL-09**: Session state persists in session.json (active scenario, namespace, time)
 - [x] **DRIL-10**: Strict exam environment on session start: `alias k=kubectl`, completion, `EDITOR=vim`, nothing else
-- [ ] **DRIL-11**: SIGINT/SIGTERM triggers cleanup via trap handler
+- [x] **DRIL-11**: SIGINT/SIGTERM triggers cleanup via trap handler
 
 ### Timer & Progress
 
@@ -171,17 +171,17 @@ Requirements for initial release. Each maps to roadmap phases.
 | VALD-10 | Phase 2 | Complete |
 | VALD-11 | Phase 2 | Complete |
 | VALD-12 | Phase 2 | Complete |
-| DRIL-01 | Phase 3 | Pending |
-| DRIL-02 | Phase 3 | Pending |
-| DRIL-03 | Phase 3 | Pending |
-| DRIL-04 | Phase 3 | Pending |
-| DRIL-05 | Phase 3 | Pending |
-| DRIL-06 | Phase 3 | Pending |
-| DRIL-07 | Phase 3 | Pending |
-| DRIL-08 | Phase 3 | Pending |
+| DRIL-01 | Phase 3 | Complete |
+| DRIL-02 | Phase 3 | Complete |
+| DRIL-03 | Phase 3 | Complete |
+| DRIL-04 | Phase 3 | Complete |
+| DRIL-05 | Phase 3 | Complete |
+| DRIL-06 | Phase 3 | Complete |
+| DRIL-07 | Phase 3 | Complete |
+| DRIL-08 | Phase 3 | Complete |
 | DRIL-09 | Phase 3 | Complete |
 | DRIL-10 | Phase 3 | Complete |
-| DRIL-11 | Phase 3 | Pending |
+| DRIL-11 | Phase 3 | Complete |
 | TIMR-01 | Phase 3 | Complete |
 | TIMR-02 | Phase 3 | Complete |
 | TIMR-03 | Phase 3 | Complete |
