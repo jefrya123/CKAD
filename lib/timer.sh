@@ -8,34 +8,51 @@
 #       The emitted code must NOT contain set -euo pipefail (TIMR-05).
 
 # timer_env_output END_AT
-# Prints shell code that sets up the PROMPT_COMMAND countdown timer and exam environment.
+# Prints shell code that sets up the countdown timer and exam environment.
 # Caller should pipe to: source <(ckad-drill env)
+# The emitted code detects the user's shell (bash vs zsh) at source-time via ZSH_VERSION.
 # The emitted code is safe for user shells — no set -e, errors are silent.
 timer_env_output() {
   local end_at="$1"
 
   printf '%s\n' \
     '# ckad-drill exam environment — source this into your shell' \
-    '# Save originals for restoration later' \
-    'export CKAD_DRILL_ORIGINAL_PS1="${PS1:-}"' \
-    'export CKAD_DRILL_ORIGINAL_PROMPT_COMMAND="${PROMPT_COMMAND:-}"' \
     "export CKAD_DRILL_END=${end_at}" \
     '' \
-    '# Timer function — called by PROMPT_COMMAND on every prompt' \
+    '# Timer function — updates prompt on every command' \
     '__ckad_drill_timer() {' \
     '  local remaining' \
     '  remaining=$(( CKAD_DRILL_END - $(date +%s) ))' \
+    '  local label' \
     '  if (( remaining <= 0 )); then' \
-    '    PS1="[TIME UP] ${CKAD_DRILL_ORIGINAL_PS1}"' \
+    '    label="[TIME UP]"' \
     '  else' \
-    "    PS1=\"[\$(printf '%02d:%02d' \$((remaining/60)) \$((remaining%60)))] \${CKAD_DRILL_ORIGINAL_PS1}\"" \
+    "    label=\"[\$(printf '%02d:%02d' \$((remaining/60)) \$((remaining%60)))]\"" \
+    '  fi' \
+    '  if [ -n "${ZSH_VERSION:-}" ]; then' \
+    '    PROMPT="${label} ${CKAD_DRILL_ORIGINAL_PROMPT:-}"' \
+    '  else' \
+    '    PS1="${label} ${CKAD_DRILL_ORIGINAL_PS1:-}"' \
     '  fi' \
     '}' \
-    "export PROMPT_COMMAND='__ckad_drill_timer'" \
+    '' \
+    '# Shell detection: zsh uses precmd hooks; bash uses PROMPT_COMMAND' \
+    'if [ -n "${ZSH_VERSION:-}" ]; then' \
+    '  # zsh branch' \
+    '  export CKAD_DRILL_ORIGINAL_PROMPT="${PROMPT:-}"' \
+    '  autoload -Uz add-zsh-hook' \
+    '  add-zsh-hook precmd __ckad_drill_timer' \
+    '  source <(kubectl completion zsh) 2>/dev/null || true' \
+    'else' \
+    '  # bash branch' \
+    '  export CKAD_DRILL_ORIGINAL_PS1="${PS1:-}"' \
+    '  export CKAD_DRILL_ORIGINAL_PROMPT_COMMAND="${PROMPT_COMMAND:-}"' \
+    "  export PROMPT_COMMAND='__ckad_drill_timer'" \
+    '  source <(kubectl completion bash) 2>/dev/null || true' \
+    'fi' \
     '' \
     '# Exam environment setup (DRIL-10)' \
     'alias k=kubectl' \
-    'source <(kubectl completion bash) 2>/dev/null || true' \
     'export EDITOR=vim'
 }
 
@@ -45,12 +62,18 @@ timer_env_output() {
 timer_env_reset_output() {
   printf '%s\n' \
     '# ckad-drill exam environment reset' \
-    'export PS1="${CKAD_DRILL_ORIGINAL_PS1}"' \
-    'export PROMPT_COMMAND="${CKAD_DRILL_ORIGINAL_PROMPT_COMMAND}"' \
+    'if [ -n "${ZSH_VERSION:-}" ]; then' \
+    '  PROMPT="${CKAD_DRILL_ORIGINAL_PROMPT:-}"' \
+    '  unset CKAD_DRILL_ORIGINAL_PROMPT' \
+    '  add-zsh-hook -d precmd __ckad_drill_timer 2>/dev/null || true' \
+    'else' \
+    '  PS1="${CKAD_DRILL_ORIGINAL_PS1}"' \
+    '  PROMPT_COMMAND="${CKAD_DRILL_ORIGINAL_PROMPT_COMMAND}"' \
+    '  unset CKAD_DRILL_ORIGINAL_PS1' \
+    '  unset CKAD_DRILL_ORIGINAL_PROMPT_COMMAND' \
+    'fi' \
     'unset CKAD_DRILL_END' \
-    'unset CKAD_DRILL_ORIGINAL_PS1' \
-    'unset CKAD_DRILL_ORIGINAL_PROMPT_COMMAND' \
-    'unset -f __ckad_drill_timer'
+    'unset -f __ckad_drill_timer 2>/dev/null || true'
 }
 
 # timer_remaining
