@@ -1,9 +1,9 @@
 ---
-status: diagnosed
+status: resolved
 phase: 03-cli-drill-mode
 source: 03-01-SUMMARY.md, 03-02-SUMMARY.md, 03-03-SUMMARY.md, 03-04-SUMMARY.md
 started: 2026-02-28T23:10:00Z
-updated: 2026-02-28T23:25:00Z
+updated: 2026-02-28T23:55:00Z
 ---
 
 ## Current Test
@@ -68,7 +68,7 @@ skipped: 0
 ## Gaps
 
 - truth: "Timer countdown appears in prompt after sourcing env output"
-  status: failed
+  status: resolved
   reason: "User reported: Timer didn't show in prompt. Uses PROMPT_COMMAND which is bash-only, user shell is zsh."
   severity: major
   test: 9
@@ -83,7 +83,7 @@ skipped: 0
   debug_session: ""
 
 - truth: "validate-scenario applies solution steps before running validation checks"
-  status: failed
+  status: resolved
   reason: "User reported: Lifecycle ran (setup, validate, cleanup, report) but solution steps were not applied — all checks failed. Solution should be applied before validation."
   severity: major
   test: 10
