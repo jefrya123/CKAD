@@ -1,6 +1,29 @@
+# kind cluster configuration for ckad-drill
+# Source: https://docs.tigera.io/calico/latest/getting-started/kubernetes/kind
+#
+# 1 control-plane + 2 worker nodes to match CKAD exam environment.
+# Calico CNI requires disableDefaultCNI: true and podSubnet: 192.168.0.0/16.
+# Control-plane node gets ingress-ready label and extraPortMappings for ingress-nginx.
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
+name: ckad-drill
 nodes:
 - role: control-plane
+  kubeadmConfigPatches:
+  - |
+    kind: InitConfiguration
+    nodeRegistration:
+      kubeletExtraArgs:
+        node-labels: "ingress-ready=true"
+  extraPortMappings:
+  - containerPort: 80
+    hostPort: 80
+    protocol: TCP
+  - containerPort: 443
+    hostPort: 443
+    protocol: TCP
 - role: worker
 - role: worker
+networking:
+  disableDefaultCNI: true
+  podSubnet: 192.168.0.0/16

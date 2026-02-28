@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+CKAD_DRILL_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+export CKAD_DRILL_ROOT
+
+# shellcheck source=lib/common.sh
+source "${CKAD_DRILL_ROOT}/lib/common.sh"
+# shellcheck source=lib/cluster.sh disable=SC1091
+source "${CKAD_DRILL_ROOT}/lib/cluster.sh"
+
+# Subcommand dispatch
+case "${1:-}" in
+  start)
+    cluster_start
+    ;;
+  stop)
+    cluster_stop
+    ;;
+  reset)
+    cluster_reset
+    ;;
+  *)
+    warn "Unknown command: '${1:-}'"
+    info "Usage: ckad-drill <command>"
+    info ""
+    info "Available commands:"
+    info "  start   Create and configure the ckad-drill kind cluster"
+    info "  stop    Delete the ckad-drill cluster"
+    info "  reset   Tear down and recreate the cluster from scratch"
+    exit 1
+    ;;
+esac
