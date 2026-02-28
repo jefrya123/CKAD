@@ -1,0 +1,10 @@
+id: test-missing-domain
+title: "Missing Domain scenario"
+difficulty: easy
+time_limit: 60
+description: "This scenario is invalid because it has no domain field."
+
+validations:
+  - name: check
+    type: resource_exists
+    resource: pod/test
