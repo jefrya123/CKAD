@@ -219,13 +219,19 @@ _validate_single_scenario() {
   # Set namespace context (Pitfall 8 from research)
   kubectl config set-context --current --namespace="${SCENARIO_NAMESPACE}" 2>/dev/null || true
 
-  # Apply solution steps
-  local step
-  while IFS= read -r step; do
+  # Apply solution steps — use index-based extraction to handle multi-line heredoc steps
+  local step_count
+  step_count=$(yq -r '.solution.steps | length' "${file}" 2>/dev/null || echo "0")
+  local sol_i
+  for (( sol_i = 0; sol_i < step_count; sol_i++ )); do
+    local step
+    step=$(yq -r ".solution.steps[${sol_i}]" "${file}" 2>/dev/null)
     if [[ -n "${step}" ]]; then
-      eval "${step}" 2>/dev/null || true
+      if ! eval "${step}"; then
+        warn "Solution step $((sol_i + 1)) failed — validation results may be incomplete"
+      fi
     fi
-  done < <(yq -r '.solution.steps[]' "${file}" 2>/dev/null)
+  done
 
   # Validate
   validator_run_checks "${file}" "${SCENARIO_NAMESPACE}" || result=1
