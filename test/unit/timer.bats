@@ -59,14 +59,14 @@ _load_timer() {
   assert_output --partial "__ckad_drill_timer"
 }
 
-@test "timer_env_output: contains [MM:SS] countdown pattern" {
+@test "timer_env_output: contains MM:SS printf format for countdown" {
   _load_timer
   local end_at
   end_at=$(( $(date +%s) + 180 ))
   run timer_env_output "${end_at}"
-  assert_output --partial "MM:SS\|%02d:%02d\|printf"
-  # Actually check the function body logic — contains printf for formatting
-  [[ "${output}" =~ (%02d|MM:SS|printf.*02d) ]] || [[ "${output}" =~ "TIME UP" ]]
+  assert_success
+  # The function body must contain the MM:SS format via printf '%02d:%02d'
+  assert_output --partial "%02d:%02d"
 }
 
 @test "timer_env_output: contains [TIME UP] logic for expired time" {
