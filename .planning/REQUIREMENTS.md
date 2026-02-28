@@ -26,18 +26,18 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Validation Engine
 
-- [ ] **VALD-01**: `resource_exists` check verifies a resource exists in the correct namespace
-- [ ] **VALD-02**: `resource_field` check verifies any field via jsonpath matches expected value
-- [ ] **VALD-03**: `container_count` check verifies the number of containers in a pod
-- [ ] **VALD-04**: `container_image` check verifies the correct image is used by a named container
-- [ ] **VALD-05**: `container_env` check verifies an env var exists with the correct value
-- [ ] **VALD-06**: `volume_mount` check verifies a volume is mounted at the correct path
-- [ ] **VALD-07**: `container_running` check verifies a container is in Running state
-- [ ] **VALD-08**: `label_selector` check verifies resources exist matching label selector
-- [ ] **VALD-09**: `resource_count` check verifies the count of resources matching a selector
-- [ ] **VALD-10**: `command_output` check runs a command and checks output contains/matches/equals expected
-- [ ] **VALD-11**: Each validation runs once with no retry (exam-realistic)
-- [ ] **VALD-12**: Validation results show specific expected-vs-actual feedback for failures
+- [x] **VALD-01**: `resource_exists` check verifies a resource exists in the correct namespace
+- [x] **VALD-02**: `resource_field` check verifies any field via jsonpath matches expected value
+- [x] **VALD-03**: `container_count` check verifies the number of containers in a pod
+- [x] **VALD-04**: `container_image` check verifies the correct image is used by a named container
+- [x] **VALD-05**: `container_env` check verifies an env var exists with the correct value
+- [x] **VALD-06**: `volume_mount` check verifies a volume is mounted at the correct path
+- [x] **VALD-07**: `container_running` check verifies a container is in Running state
+- [x] **VALD-08**: `label_selector` check verifies resources exist matching label selector
+- [x] **VALD-09**: `resource_count` check verifies the count of resources matching a selector
+- [x] **VALD-10**: `command_output` check runs a command and checks output contains/matches/equals expected
+- [x] **VALD-11**: Each validation runs once with no retry (exam-realistic)
+- [x] **VALD-12**: Validation results show specific expected-vs-actual feedback for failures
 
 ### CLI & Drill Mode
 
@@ -159,18 +159,18 @@ Requirements for initial release. Each maps to roadmap phases.
 | SCEN-04 | Phase 2 | Complete |
 | SCEN-05 | Phase 2 | Complete |
 | SCEN-06 | Phase 2 | Complete |
-| VALD-01 | Phase 2 | Pending |
-| VALD-02 | Phase 2 | Pending |
-| VALD-03 | Phase 2 | Pending |
-| VALD-04 | Phase 2 | Pending |
-| VALD-05 | Phase 2 | Pending |
-| VALD-06 | Phase 2 | Pending |
-| VALD-07 | Phase 2 | Pending |
-| VALD-08 | Phase 2 | Pending |
-| VALD-09 | Phase 2 | Pending |
-| VALD-10 | Phase 2 | Pending |
-| VALD-11 | Phase 2 | Pending |
-| VALD-12 | Phase 2 | Pending |
+| VALD-01 | Phase 2 | Complete |
+| VALD-02 | Phase 2 | Complete |
+| VALD-03 | Phase 2 | Complete |
+| VALD-04 | Phase 2 | Complete |
+| VALD-05 | Phase 2 | Complete |
+| VALD-06 | Phase 2 | Complete |
+| VALD-07 | Phase 2 | Complete |
+| VALD-08 | Phase 2 | Complete |
+| VALD-09 | Phase 2 | Complete |
+| VALD-10 | Phase 2 | Complete |
+| VALD-11 | Phase 2 | Complete |
+| VALD-12 | Phase 2 | Complete |
 | DRIL-01 | Phase 3 | Pending |
 | DRIL-02 | Phase 3 | Pending |
 | DRIL-03 | Phase 3 | Pending |
