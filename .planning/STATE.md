@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-02-28T22:07:10.830Z"
+last_updated: "2026-02-28T22:26:27.060Z"
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 8
-  completed_plans: 6
+  completed_plans: 8
 ---
 
 # Project State
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Unlimited, free, real-cluster CKAD practice with automated validation
-**Current focus:** Phase 3 - CLI Drill Mode
+**Current focus:** Phase 4 - Exam Mode
 
 ## Current Position
 
-Phase: 3 of 7 (CLI Drill Mode) — In Progress
-Plan: 4 of 4 in current phase (03-03 complete)
-Status: Phase 3 in progress — 3/4 plans done
-Last activity: 2026-02-28 — Plan 03-03 complete: bin/ckad-drill drill subcommands integrated
+Phase: 3 of 7 (CLI Drill Mode) — Complete
+Plan: 4 of 4 in current phase (03-04 complete)
+Status: Phase 3 complete — 4/4 plans done
+Last activity: 2026-02-28 — Plan 03-04 complete: status and validate-scenario subcommands + drill.bats tests
 
-Progress: [██████░░░░] ~55%
+Progress: [███████░░░] ~65%
 
 ## Performance Metrics
 
@@ -51,6 +51,7 @@ Progress: [██████░░░░] ~55%
 | Phase 02-scenario-validation-engine P02 | 6 min | 2 tasks | 3 files |
 | Phase 03-cli-drill-mode P02 | 3 | 2 tasks | 5 files |
 | Phase 03-cli-drill-mode P01 | 3 | 2 tasks | 4 files |
+| Phase 03-cli-drill-mode P04 | 8 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -87,6 +88,9 @@ Key decisions affecting current work:
 - [Phase 03-03]: cluster_check_active added to common.sh (not cluster.sh) — guard utility used by drill subcommands, not cluster lifecycle
 - [Phase 03-03]: EXIT trap installed before scenario_setup, removed after session_write — protects partial setup from Ctrl+C without auto-cleanup on normal exit
 - [Phase 03-03]: Elapsed time computed as (now - (end_at - time_limit)) — avoids parsing started_at ISO string using epoch arithmetic only
+- [Phase 03-cli-drill-mode]: Delegate case arms to _cmd_* helpers: local keyword cannot be used at top-level case scope in bash
+- [Phase 03-cli-drill-mode]: yaml_file loop variable instead of scenario_file to avoid SC2153 shellcheck false positive with SCENARIO_FILE global
+- [Phase 03-cli-drill-mode]: Reset kubectl context to default after validate-scenario to avoid surprising the user
 
 ### Pending Todos
 
@@ -100,5 +104,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 03-03-PLAN.md — bin/ckad-drill drill subcommands (drill, check, hint, solution, current, next, skip, env, timer) integrated. Phase 3 plan 3 complete.
+Stopped at: Completed 03-04-PLAN.md — status and validate-scenario subcommands added to bin/ckad-drill + drill.bats 13 unit tests. Phase 3 complete.
 Resume file: None

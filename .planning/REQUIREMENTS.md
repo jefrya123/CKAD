@@ -61,7 +61,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **TIMR-04**: `ckad-drill timer` prints remaining time for users who don't source env
 - [x] **TIMR-05**: env output is safe for user's shell (no set -euo pipefail, idempotent)
 - [x] **PROG-01**: Drill results are recorded to progress.json (passed, time, attempts)
-- [ ] **PROG-02**: `ckad-drill status` shows per-domain pass rates, exam history, streak, weak area recommendation
+- [x] **PROG-02**: `ckad-drill status` shows per-domain pass rates, exam history, streak, weak area recommendation
 - [x] **PROG-03**: Progress schema is additive-only — missing fields get defaults on read
 - [x] **PROG-04**: Progress file survives tool upgrades
 
@@ -103,8 +103,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [ ] **DIST-01**: `scripts/install.sh` installs ckad-drill via curl-pipe-sh (checks Docker, kubectl, installs kind/yq/jq)
 - [ ] **DIST-02**: `scripts/dev-setup.sh` installs bats-core and shellcheck for developers
-- [ ] **DIST-03**: `ckad-drill validate-scenario <file>` runs full end-to-end validation (parse, setup, apply solution, validate, cleanup)
-- [ ] **DIST-04**: `ckad-drill validate-scenario <dir>` validates all scenarios in directory
+- [x] **DIST-03**: `ckad-drill validate-scenario <file>` runs full end-to-end validation (parse, setup, apply solution, validate, cleanup)
+- [x] **DIST-04**: `ckad-drill validate-scenario <dir>` validates all scenarios in directory
 - [ ] **TEST-01**: bats unit tests exist for all lib functions (no cluster required)
 - [ ] **TEST-02**: bats integration tests cover full scenario lifecycle against real cluster
 - [ ] **TEST-03**: Schema tests validate known-good and known-bad YAML files
@@ -188,11 +188,11 @@ Requirements for initial release. Each maps to roadmap phases.
 | TIMR-04 | Phase 3 | Complete |
 | TIMR-05 | Phase 3 | Complete |
 | PROG-01 | Phase 3 | Complete |
-| PROG-02 | Phase 3 | Pending |
+| PROG-02 | Phase 3 | Complete |
 | PROG-03 | Phase 3 | Complete |
 | PROG-04 | Phase 3 | Complete |
-| DIST-03 | Phase 3 | Pending |
-| DIST-04 | Phase 3 | Pending |
+| DIST-03 | Phase 3 | Complete |
+| DIST-04 | Phase 3 | Complete |
 | EXAM-01 | Phase 4 | Pending |
 | EXAM-02 | Phase 4 | Pending |
 | EXAM-03 | Phase 4 | Pending |

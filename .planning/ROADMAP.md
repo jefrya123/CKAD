@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation + Cluster** - Project scaffold, shared lib files, kind cluster management
 - [x] **Phase 2: Scenario + Validation Engine** - YAML scenario loading and all 10 typed validation checks
-- [ ] **Phase 3: CLI + Drill Mode** - Main entry point, drill subcommands, timer, progress tracking, scenario validator tool
+- [x] **Phase 3: CLI + Drill Mode** - Main entry point, drill subcommands, timer, progress tracking, scenario validator tool (completed 2026-02-28)
 - [ ] **Phase 4: Exam Mode** - Multi-scenario timed exam session with navigation, flagging, and scoring
 - [ ] **Phase 5: Learn Mode** - Progressive guided lessons with concept text and completion tracking
 - [ ] **Phase 6: Content Migration** - Convert 31 existing scenarios, 12 labs, tutorials, and exercises to YAML
@@ -64,7 +64,7 @@ Plans:
   3. `ckad-drill check` runs validations and prints pass/fail per check; `ckad-drill hint` and `ckad-drill solution` display their content; `ckad-drill next` cleans up and starts a new scenario
   4. `ckad-drill status` shows per-domain pass rates, exam history, streak, and a weak domain recommendation
   5. `ckad-drill validate-scenario <file>` runs parse, setup, solution apply, validation, and cleanup and reports the result
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 - [ ] 03-01-PLAN.md — Session management (session.sh) and timer (timer.sh) with unit tests
@@ -129,7 +129,7 @@ Phase 6 (Content Migration) depends on Phase 2 (YAML schema) and Phase 3 (valida
 |-------|----------------|--------|-----------|
 | 1. Foundation + Cluster | 2/2 | Complete | 2026-02-28 |
 | 2. Scenario + Validation Engine | 2/2 | Complete | 2026-02-28 |
-| 3. CLI + Drill Mode | 3/4 | In Progress|  |
+| 3. CLI + Drill Mode | 4/4 | Complete   | 2026-02-28 |
 | 4. Exam Mode | 0/TBD | Not started | - |
 | 5. Learn Mode | 0/TBD | Not started | - |
 | 6. Content Migration | 0/TBD | Not started | - |
