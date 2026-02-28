@@ -1,1 +1,3 @@
 .claude/
+test/helpers/bats-support/
+test/helpers/bats-assert/

@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# scripts/dev-setup.sh — install development tooling for ckad-drill
+# Sets up bats-core, shellcheck, and bats helper libraries
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+echo "Setting up ckad-drill development environment..."
+echo ""
+
+# --- bats-core ---
+if command -v bats &>/dev/null; then
+  echo "bats already installed: $(bats --version)"
+else
+  echo "Installing bats-core..."
+  if [[ "$(uname)" == "Darwin" ]]; then
+    brew install bats-core
+  elif command -v npm &>/dev/null; then
+    npm install -g bats
+  else
+    git clone https://github.com/bats-core/bats-core.git /tmp/bats-core
+    cd /tmp/bats-core
+    sudo ./install.sh /usr/local
+    cd "${REPO_ROOT}"
+  fi
+  echo "bats installed: $(bats --version)"
+fi
+
+# --- shellcheck ---
+if command -v shellcheck &>/dev/null; then
+  echo "shellcheck already installed: $(shellcheck --version | head -2 | tail -1)"
+else
+  echo "Installing shellcheck..."
+  if [[ "$(uname)" == "Darwin" ]]; then
+    brew install shellcheck
+  elif command -v apt-get &>/dev/null; then
+    sudo apt-get install -y shellcheck
+  else
+    echo "shellcheck not available via package manager." >&2
+    echo "Download from: https://github.com/koalaman/shellcheck/releases" >&2
+    exit 1
+  fi
+  echo "shellcheck installed: $(shellcheck --version | head -2 | tail -1)"
+fi
+
+# --- bats helper libraries ---
+echo ""
+echo "Installing bats helper libraries into test/helpers/..."
+
+if [[ ! -d "${REPO_ROOT}/test/helpers/bats-support" ]]; then
+  echo "Cloning bats-support..."
+  git clone --depth 1 https://github.com/bats-core/bats-support.git \
+    "${REPO_ROOT}/test/helpers/bats-support"
+else
+  echo "bats-support already present"
+fi
+
+if [[ ! -d "${REPO_ROOT}/test/helpers/bats-assert" ]]; then
+  echo "Cloning bats-assert..."
+  git clone --depth 1 https://github.com/bats-core/bats-assert.git \
+    "${REPO_ROOT}/test/helpers/bats-assert"
+else
+  echo "bats-assert already present"
+fi
+
+echo ""
+echo "Development environment ready."
+echo ""
+echo "Next steps:"
+echo "  make shellcheck    — lint all bash files"
+echo "  make test-unit     — run unit tests (no cluster required)"
