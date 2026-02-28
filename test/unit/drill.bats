@@ -201,3 +201,63 @@ teardown() {
   assert_failure
   assert_output --partial "Usage:"
 }
+
+# ---------------------------------------------------------------------------
+# validate-scenario: solution step extraction (yq index-based, no cluster needed)
+# ---------------------------------------------------------------------------
+
+@test "validate-scenario: gracefully handles scenario with no solution steps" {
+  # Create a minimal scenario YAML with no solution key
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  cat > "${tmpdir}/no-solution.yaml" <<'SCENEOF'
+id: test-no-solution
+domain: 1
+title: "No Solution Test"
+difficulty: easy
+time_limit: 60
+namespace: test-ns-nosol
+description: "Test scenario with no solution steps"
+validations: []
+SCENEOF
+  # Verify yq returns 0 for missing solution.steps — no cluster needed
+  run bash -c "
+    count=\$(yq -r '.solution.steps | length' '${tmpdir}/no-solution.yaml' 2>/dev/null || echo 0)
+    echo \"step_count=\${count}\"
+  "
+  assert_success
+  assert_output --partial "step_count=0"
+  rm -rf "${tmpdir}"
+}
+
+@test "validate-scenario: step_count returns correct count for scenario with steps" {
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  cat > "${tmpdir}/with-steps.yaml" <<'SCENEOF'
+id: test-with-steps
+domain: 1
+title: "Steps Test"
+difficulty: easy
+time_limit: 60
+namespace: test-ns-steps
+description: "Test scenario with solution steps"
+validations: []
+solution:
+  steps:
+    - "echo step-one"
+    - "echo step-two"
+SCENEOF
+  run bash -c "
+    count=\$(yq -r '.solution.steps | length' '${tmpdir}/with-steps.yaml' 2>/dev/null || echo 0)
+    step0=\$(yq -r '.solution.steps[0]' '${tmpdir}/with-steps.yaml' 2>/dev/null)
+    step1=\$(yq -r '.solution.steps[1]' '${tmpdir}/with-steps.yaml' 2>/dev/null)
+    echo \"count=\${count}\"
+    echo \"step0=\${step0}\"
+    echo \"step1=\${step1}\"
+  "
+  assert_success
+  assert_output --partial "count=2"
+  assert_output --partial "step0=echo step-one"
+  assert_output --partial "step1=echo step-two"
+  rm -rf "${tmpdir}"
+}
