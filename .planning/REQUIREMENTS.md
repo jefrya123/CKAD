@@ -43,15 +43,15 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **DRIL-01**: User can run `ckad-drill drill` to get a random scenario with task displayed
 - [x] **DRIL-02**: User can run `ckad-drill drill --domain N --difficulty LEVEL` to filter scenarios
-- [x] **DRIL-03**: User can run `ckad-drill check` to validate their work against the cluster
+- [ ] **DRIL-03**: User can run `ckad-drill check` to validate their work against the cluster
 - [x] **DRIL-04**: User can run `ckad-drill hint` to see the scenario hint
-- [x] **DRIL-05**: User can run `ckad-drill solution` to see the solution
-- [x] **DRIL-06**: User can run `ckad-drill next` to clean up and get a new scenario
-- [x] **DRIL-07**: User can run `ckad-drill skip` to skip without checking
+- [ ] **DRIL-05**: User can run `ckad-drill solution` to see the solution
+- [ ] **DRIL-06**: User can run `ckad-drill next` to clean up and get a new scenario
+- [ ] **DRIL-07**: User can run `ckad-drill skip` to skip without checking
 - [x] **DRIL-08**: User can run `ckad-drill current` to reprint the active scenario
 - [x] **DRIL-09**: Session state persists in session.json (active scenario, namespace, time)
 - [x] **DRIL-10**: Strict exam environment on session start: `alias k=kubectl`, completion, `EDITOR=vim`, nothing else
-- [x] **DRIL-11**: SIGINT/SIGTERM triggers cleanup via trap handler
+- [ ] **DRIL-11**: SIGINT/SIGTERM triggers cleanup via trap handler
 
 ### Timer & Progress
 
@@ -60,7 +60,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **TIMR-03**: `ckad-drill env --reset` cleanly restores original prompt
 - [x] **TIMR-04**: `ckad-drill timer` prints remaining time for users who don't source env
 - [x] **TIMR-05**: env output is safe for user's shell (no set -euo pipefail, idempotent)
-- [x] **PROG-01**: Drill results are recorded to progress.json (passed, time, attempts)
+- [ ] **PROG-01**: Drill results are recorded to progress.json (passed, time, attempts)
 - [x] **PROG-02**: `ckad-drill status` shows per-domain pass rates, exam history, streak, weak area recommendation
 - [x] **PROG-03**: Progress schema is additive-only — missing fields get defaults on read
 - [x] **PROG-04**: Progress file survives tool upgrades
@@ -173,21 +173,21 @@ Requirements for initial release. Each maps to roadmap phases.
 | VALD-12 | Phase 2 | Complete |
 | DRIL-01 | Phase 3 | Complete |
 | DRIL-02 | Phase 3 | Complete |
-| DRIL-03 | Phase 3 | Complete |
+| DRIL-03 | Phase 3.1 | Pending |
 | DRIL-04 | Phase 3 | Complete |
-| DRIL-05 | Phase 3 | Complete |
-| DRIL-06 | Phase 3 | Complete |
-| DRIL-07 | Phase 3 | Complete |
+| DRIL-05 | Phase 3.1 | Pending |
+| DRIL-06 | Phase 3.1 | Pending |
+| DRIL-07 | Phase 3.1 | Pending |
 | DRIL-08 | Phase 3 | Complete |
 | DRIL-09 | Phase 3 | Complete |
 | DRIL-10 | Phase 3 | Complete |
-| DRIL-11 | Phase 3 | Complete |
+| DRIL-11 | Phase 3.1 | Pending |
 | TIMR-01 | Phase 3 | Complete |
 | TIMR-02 | Phase 3 | Complete |
 | TIMR-03 | Phase 3 | Complete |
 | TIMR-04 | Phase 3 | Complete |
 | TIMR-05 | Phase 3 | Complete |
-| PROG-01 | Phase 3 | Complete |
+| PROG-01 | Phase 3.1 | Pending |
 | PROG-02 | Phase 3 | Complete |
 | PROG-03 | Phase 3 | Complete |
 | PROG-04 | Phase 3 | Complete |

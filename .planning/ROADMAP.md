@@ -15,6 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation + Cluster** - Project scaffold, shared lib files, kind cluster management
 - [x] **Phase 2: Scenario + Validation Engine** - YAML scenario loading and all 10 typed validation checks
 - [x] **Phase 3: CLI + Drill Mode** - Main entry point, drill subcommands, timer, progress tracking, scenario validator tool (completed 2026-02-28)
+- [ ] **Phase 3.1: Drill Integration Fixes** - INSERTED: Gap closure for namespace cleanup, set -e exit handling, solution display (audit v1.0)
 - [ ] **Phase 4: Exam Mode** - Multi-scenario timed exam session with navigation, flagging, and scoring
 - [ ] **Phase 5: Learn Mode** - Progressive guided lessons with concept text and completion tracking
 - [ ] **Phase 6: Content Migration** - Convert 31 existing scenarios, 12 labs, tutorials, and exercises to YAML
@@ -72,6 +73,18 @@ Plans:
 - [ ] 03-03-PLAN.md — Wire drill subcommands into bin/ckad-drill (drill, check, hint, solution, current, next, skip, env, timer)
 - [ ] 03-04-PLAN.md — Status display, validate-scenario tool, and drill dispatch unit tests
 
+### Phase 3.1: Drill Integration Fixes (INSERTED — Gap Closure)
+**Goal**: Fix 3 integration breaks found by v1.0 milestone audit so drill sessions work correctly end-to-end
+**Depends on**: Phase 3
+**Requirements**: DRIL-03, DRIL-05, DRIL-06, DRIL-07, DRIL-11, PROG-01
+**Gap Closure**: Closes all gaps from v1.0-MILESTONE-AUDIT.md
+**Success Criteria** (what must be TRUE):
+  1. `ckad-drill check` on a failing scenario captures the exit code, prints pass/fail results, and records the attempt to progress.json (does not exit silently)
+  2. `ckad-drill next` and `ckad-drill skip` delete the scenario namespace from the cluster before moving on
+  3. Pressing Ctrl+C during a drill session deletes the scenario namespace from the cluster
+  4. `ckad-drill solution` displays multi-line heredoc steps as complete numbered steps (not split across lines)
+**Plans:** 0/TBD
+
 ### Phase 4: Exam Mode
 **Goal**: A user can run a full 2-hour mock exam with multiple questions, navigation, and graded results
 **Depends on**: Phase 3
@@ -121,15 +134,17 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
+Phases execute in numeric order: 1 → 2 → 3 → 3.1 → 4 → 5 → 6 → 7
+Phase 3.1 is a gap closure phase that must complete before Phase 4.
 Note: Phase 5 (Learn Mode) depends on Phase 3 only, so it can run in parallel with Phase 4 if desired.
-Phase 6 (Content Migration) depends on Phase 2 (YAML schema) and Phase 3 (validate-scenario tool) and can begin as soon as Phase 3 completes.
+Phase 6 (Content Migration) depends on Phase 2 (YAML schema) and Phase 3 (validate-scenario tool) and can begin as soon as Phase 3.1 completes.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation + Cluster | 2/2 | Complete | 2026-02-28 |
 | 2. Scenario + Validation Engine | 2/2 | Complete | 2026-02-28 |
 | 3. CLI + Drill Mode | 6/6 | Complete   | 2026-02-28 |
+| 3.1 Drill Integration Fixes | 0/TBD | Not started | - |
 | 4. Exam Mode | 0/TBD | Not started | - |
 | 5. Learn Mode | 0/TBD | Not started | - |
 | 6. Content Migration | 0/TBD | Not started | - |
