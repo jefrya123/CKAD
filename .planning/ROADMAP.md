@@ -48,7 +48,7 @@ Plans:
   3. All 10 typed validation checks (`resource_exists`, `resource_field`, `container_count`, `container_image`, `container_env`, `volume_mount`, `container_running`, `label_selector`, `resource_count`, `command_output`) produce pass/fail results against a live cluster
   4. Each failed validation shows the specific expected value versus the actual value found
   5. Validations run exactly once with no retry; a pending pod does not cause a wait
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 02-01-PLAN.md — display.sh, scenario.sh, test fixtures, and scenario unit tests
@@ -122,7 +122,7 @@ Phase 6 (Content Migration) depends on Phase 2 (YAML schema) and Phase 3 (valida
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation + Cluster | 2/2 | Complete | 2026-02-28 |
-| 2. Scenario + Validation Engine | 0/2 | Planned | - |
+| 2. Scenario + Validation Engine | 1/2 | In Progress|  |
 | 3. CLI + Drill Mode | 0/TBD | Not started | - |
 | 4. Exam Mode | 0/TBD | Not started | - |
 | 5. Learn Mode | 0/TBD | Not started | - |

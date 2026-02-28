@@ -17,12 +17,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Scenario Engine
 
-- [ ] **SCEN-01**: Scenarios are defined in YAML format with required fields: id, domain, title, difficulty, time_limit, description, validations, solution
-- [ ] **SCEN-02**: Scenario namespaces are created on setup and deleted on cleanup
-- [ ] **SCEN-03**: Scenarios can be filtered by domain (1-5) and difficulty (easy/medium/hard)
-- [ ] **SCEN-04**: External scenarios can be loaded from a user-provided directory path
-- [ ] **SCEN-05**: Duplicate scenario IDs across built-in and external sources produce a warning (first-loaded wins)
-- [ ] **SCEN-06**: Scenarios with `tags: [helm]` check for Helm and show clear error if not installed
+- [x] **SCEN-01**: Scenarios are defined in YAML format with required fields: id, domain, title, difficulty, time_limit, description, validations, solution
+- [x] **SCEN-02**: Scenario namespaces are created on setup and deleted on cleanup
+- [x] **SCEN-03**: Scenarios can be filtered by domain (1-5) and difficulty (easy/medium/hard)
+- [x] **SCEN-04**: External scenarios can be loaded from a user-provided directory path
+- [x] **SCEN-05**: Duplicate scenario IDs across built-in and external sources produce a warning (first-loaded wins)
+- [x] **SCEN-06**: Scenarios with `tags: [helm]` check for Helm and show clear error if not installed
 
 ### Validation Engine
 
@@ -153,12 +153,12 @@ Requirements for initial release. Each maps to roadmap phases.
 | CLST-03 | Phase 1 | Complete |
 | CLST-04 | Phase 1 | Complete |
 | CLST-05 | Phase 1 | Complete |
-| SCEN-01 | Phase 2 | Pending |
-| SCEN-02 | Phase 2 | Pending |
-| SCEN-03 | Phase 2 | Pending |
-| SCEN-04 | Phase 2 | Pending |
-| SCEN-05 | Phase 2 | Pending |
-| SCEN-06 | Phase 2 | Pending |
+| SCEN-01 | Phase 2 | Complete |
+| SCEN-02 | Phase 2 | Complete |
+| SCEN-03 | Phase 2 | Complete |
+| SCEN-04 | Phase 2 | Complete |
+| SCEN-05 | Phase 2 | Complete |
+| SCEN-06 | Phase 2 | Complete |
 | VALD-01 | Phase 2 | Pending |
 | VALD-02 | Phase 2 | Pending |
 | VALD-03 | Phase 2 | Pending |
