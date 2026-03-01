@@ -5,8 +5,66 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+KIND_VERSION="v0.25.0"
+YQ_VERSION="v4.44.6"
+JQ_VERSION="1.7.1"
+
 echo "Setting up ckad-drill development environment..."
 echo ""
+
+# --- jq ---
+if command -v jq &>/dev/null; then
+  echo "jq already installed: $(jq --version)"
+else
+  echo "Installing jq..."
+  if [[ "$(uname)" == "Darwin" ]]; then
+    brew install jq
+  elif command -v apt-get &>/dev/null; then
+    sudo apt-get install -y jq
+  elif command -v dnf &>/dev/null; then
+    sudo dnf install -y jq
+  else
+    echo "jq not available via package manager. Install from: https://jqlang.github.io/jq/download/" >&2
+    exit 1
+  fi
+  echo "jq installed: $(jq --version)"
+fi
+
+# --- yq ---
+if command -v yq &>/dev/null; then
+  echo "yq already installed: $(yq --version)"
+else
+  echo "Installing yq ${YQ_VERSION}..."
+  local_bin="${HOME}/.local/bin"
+  mkdir -p "${local_bin}"
+  os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+  arch="$(uname -m)"
+  case "${arch}" in
+    x86_64) arch="amd64" ;;
+    aarch64) arch="arm64" ;;
+  esac
+  curl -sSL "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_${os}_${arch}" -o "${local_bin}/yq"
+  chmod +x "${local_bin}/yq"
+  echo "yq installed: $(yq --version 2>/dev/null || echo "${YQ_VERSION}")"
+fi
+
+# --- kind ---
+if command -v kind &>/dev/null; then
+  echo "kind already installed: $(kind --version)"
+else
+  echo "Installing kind ${KIND_VERSION}..."
+  local_bin="${HOME}/.local/bin"
+  mkdir -p "${local_bin}"
+  os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+  arch="$(uname -m)"
+  case "${arch}" in
+    x86_64) arch="amd64" ;;
+    aarch64) arch="arm64" ;;
+  esac
+  curl -sSL "https://kind.sigs.k8s.io/dl/${KIND_VERSION}/kind-${os}-${arch}" -o "${local_bin}/kind"
+  chmod +x "${local_bin}/kind"
+  echo "kind installed: $(kind --version 2>/dev/null || echo "${KIND_VERSION}")"
+fi
 
 # --- bats-core ---
 if command -v bats &>/dev/null; then
@@ -72,7 +130,10 @@ fi
 # --- Summary ---------------------------------------------------------------
 echo ""
 echo "Installed versions:"
-printf "  %-15s %s\n" "bats:"      "$(bats --version 2>/dev/null || echo 'not found')"
+printf "  %-15s %s\n" "jq:"         "$(jq --version 2>/dev/null || echo 'not found')"
+printf "  %-15s %s\n" "yq:"         "$(yq --version 2>/dev/null || echo 'not found')"
+printf "  %-15s %s\n" "kind:"       "$(kind --version 2>/dev/null || echo 'not found')"
+printf "  %-15s %s\n" "bats:"       "$(bats --version 2>/dev/null || echo 'not found')"
 printf "  %-15s %s\n" "shellcheck:" "$(shellcheck --version 2>/dev/null | grep 'version:' | awk '{print $2}' || echo 'not found')"
 
 if [[ -d "${REPO_ROOT}/test/helpers/bats-support/.git" ]]; then

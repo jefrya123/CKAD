@@ -2,7 +2,7 @@
 
 Free, open-source CKAD exam practice with real cluster validation.
 
-[![CI](https://github.com/USER/ckad-drill/actions/workflows/ci.yml/badge.svg)](https://github.com/USER/ckad-drill/actions/workflows/ci.yml)
+[![CI](https://github.com/jefrya123/CKAD/actions/workflows/ci.yml/badge.svg)](https://github.com/jefrya123/CKAD/actions/workflows/ci.yml)
 
 ## What is this?
 
@@ -16,7 +16,7 @@ Prerequisites: Docker, kubectl
 
 ```bash
 # Install ckad-drill and its dependencies (kind, yq, jq)
-curl -sSL https://raw.githubusercontent.com/USER/ckad-drill/main/scripts/install.sh | sh
+curl -sSL https://raw.githubusercontent.com/jefrya123/CKAD/main/scripts/install.sh | sh
 
 # Create the practice cluster (one-time setup, ~3 minutes)
 ckad-drill start
@@ -129,7 +129,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for full contributor instructions.
 
 ```bash
 # Clone and set up dev environment
-git clone https://github.com/USER/ckad-drill.git
+git clone https://github.com/jefrya123/CKAD.git
 cd ckad-drill
 scripts/dev-setup.sh
 

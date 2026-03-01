@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # scripts/install.sh — install ckad-drill and its runtime dependencies
-# Usage: curl -sSL https://raw.githubusercontent.com/USER/ckad-drill/main/scripts/install.sh | sh
+# Usage: curl -sSL https://raw.githubusercontent.com/jefrya123/CKAD/main/scripts/install.sh | sh
 set -euo pipefail
 
 # ---- Configuration --------------------------------------------------------
-GITHUB_REPO="${GITHUB_REPO:-your-username/ckad-drill}"
+GITHUB_REPO="${GITHUB_REPO:-jefrya123/CKAD}"
 INSTALL_DIR="${CKAD_DRILL_HOME:-${HOME}/.local/share/ckad-drill}"
 BIN_DIR="${HOME}/.local/bin"
 KIND_VERSION="v0.25.0"
