@@ -541,6 +541,163 @@ KUBEOF
 # Uses XDG_CONFIG_HOME for session file.
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Exam mode: hint and solution blocked (EXAM-08)
+# ---------------------------------------------------------------------------
+
+@test "hint: blocked with error when session mode is exam" {
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  mkdir -p "${tmpdir}/ckad-drill"
+
+  local end_at
+  end_at=$(( $(date +%s) + 7200 ))
+  # Write a minimal exam session.json (mode=exam)
+  cat > "${tmpdir}/ckad-drill/session.json" <<SESSIONEOF
+{
+  "mode": "exam",
+  "started_at": "2026-01-01T00:00:00Z",
+  "end_at": ${end_at},
+  "time_limit": 7200,
+  "current_question": 0,
+  "questions": []
+}
+SESSIONEOF
+
+  run bash -c "
+    XDG_CONFIG_HOME='${tmpdir}'
+    export XDG_CONFIG_HOME
+    bash '${CKAD_DRILL_ROOT}/bin/ckad-drill' hint 2>&1
+  "
+  assert_failure
+  assert_output --partial "Hints are not available during exam mode"
+  rm -rf "${tmpdir}"
+}
+
+@test "solution: blocked with error when session mode is exam" {
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  mkdir -p "${tmpdir}/ckad-drill"
+
+  local end_at
+  end_at=$(( $(date +%s) + 7200 ))
+  cat > "${tmpdir}/ckad-drill/session.json" <<SESSIONEOF
+{
+  "mode": "exam",
+  "started_at": "2026-01-01T00:00:00Z",
+  "end_at": ${end_at},
+  "time_limit": 7200,
+  "current_question": 0,
+  "questions": []
+}
+SESSIONEOF
+
+  run bash -c "
+    XDG_CONFIG_HOME='${tmpdir}'
+    export XDG_CONFIG_HOME
+    bash '${CKAD_DRILL_ROOT}/bin/ckad-drill' solution 2>&1
+  "
+  assert_failure
+  assert_output --partial "Solutions are not available during exam mode"
+  rm -rf "${tmpdir}"
+}
+
+# ---------------------------------------------------------------------------
+# Exam mode: check updates question status (EXAM-07)
+# ---------------------------------------------------------------------------
+
+@test "check: updates question status to failed in exam mode when validation fails" {
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  mkdir -p "${tmpdir}/ckad-drill" "${tmpdir}/bin"
+  local scenario_file="${tmpdir}/exam-scenario.yaml"
+
+  cat > "${scenario_file}" <<'SCENEOF'
+id: exam-q-001
+domain: 1
+title: "Exam Question 1"
+difficulty: easy
+time_limit: 300
+namespace: exam-test-ns
+description: "Test exam check behavior"
+validations:
+  - name: pod_exists
+    type: resource_exists
+    resource: pod/fake-pod
+SCENEOF
+
+  local end_at
+  end_at=$(( $(date +%s) + 7200 ))
+  # Write exam session with one question
+  cat > "${tmpdir}/ckad-drill/session.json" <<SESSIONEOF
+{
+  "mode": "exam",
+  "started_at": "2026-01-01T00:00:00Z",
+  "end_at": ${end_at},
+  "time_limit": 7200,
+  "current_question": 0,
+  "questions": [
+    {
+      "id": "exam-q-001",
+      "file": "${scenario_file}",
+      "namespace": "exam-test-ns",
+      "domain": 1,
+      "status": "pending",
+      "flagged": false
+    }
+  ]
+}
+SESSIONEOF
+
+  # Fake kubectl: always fail (resource not found)
+  cat > "${tmpdir}/bin/kubectl" <<'KUBEOF'
+#!/usr/bin/env bash
+exit 1
+KUBEOF
+  chmod +x "${tmpdir}/bin/kubectl"
+
+  run bash -c "
+    XDG_CONFIG_HOME='${tmpdir}'
+    PATH='${tmpdir}/bin:${PATH}'
+    export XDG_CONFIG_HOME PATH
+    bash '${CKAD_DRILL_ROOT}/bin/ckad-drill' check 2>&1
+  "
+
+  # check must exit 0 even on validation failure
+  assert_success
+
+  # Question status must be updated to 'failed'
+  local status
+  status=$(jq -r '.questions[0].status' "${tmpdir}/ckad-drill/session.json")
+  [[ "${status}" == "failed" ]] \
+    || fail "Expected status=failed in exam session.json, got: ${status}"
+
+  # No drill progress.json should be created by exam check
+  [[ ! -f "${tmpdir}/ckad-drill/progress.json" ]] \
+    || fail "progress.json should NOT be created by exam check"
+
+  rm -rf "${tmpdir}"
+}
+
+# ---------------------------------------------------------------------------
+# Exam help text (EXAM-01)
+# ---------------------------------------------------------------------------
+
+@test "no args shows exam command in help" {
+  run bash -c "
+    CKAD_CONFIG_DIR='${TEST_CONFIG_DIR}'
+    CKAD_SESSION_FILE='${TEST_CONFIG_DIR}/session.json'
+    CKAD_PROGRESS_FILE='${TEST_CONFIG_DIR}/progress.json'
+    bash '${CKAD_DRILL_ROOT}/bin/ckad-drill' 2>&1
+  "
+  assert_failure
+  assert_output --partial "exam"
+}
+
+# ---------------------------------------------------------------------------
+# Regression: solution: displays multi-line heredoc steps as complete numbered steps
+# ---------------------------------------------------------------------------
+
 @test "solution: displays multi-line heredoc steps as complete numbered steps" {
   local tmpdir
   tmpdir="$(mktemp -d)"

@@ -20,6 +20,8 @@ source "${CKAD_DRILL_ROOT}/lib/session.sh"
 source "${CKAD_DRILL_ROOT}/lib/progress.sh"
 # shellcheck source=lib/timer.sh disable=SC1091
 source "${CKAD_DRILL_ROOT}/lib/timer.sh"
+# shellcheck source=lib/exam.sh disable=SC1091
+source "${CKAD_DRILL_ROOT}/lib/exam.sh"
 
 # ---------------------------------------------------------------------------
 # _drill_cleanup — SIGINT/SIGTERM trap handler for drill subcommand (DRIL-11)
@@ -37,6 +39,113 @@ _drill_cleanup() {
     # Setup was in progress — namespace may have been partially created
     kubectl delete namespace "${SCENARIO_NAMESPACE}" --ignore-not-found=true 2>/dev/null || true
   fi
+}
+
+# ---------------------------------------------------------------------------
+# _exam_cleanup — SIGINT/SIGTERM trap handler for exam subcommand
+# Removes all exam namespaces and clears the exam session.
+# ---------------------------------------------------------------------------
+_exam_cleanup() {
+  trap - INT TERM EXIT  # prevent re-entry
+  exam_cleanup_all_namespaces 2>/dev/null || true
+}
+
+# ---------------------------------------------------------------------------
+# _exam_start [--time SECONDS] [--count N]
+# Core exam flow: discover → select weighted questions → write session → display.
+# Extracted as a function so local is valid.
+# ---------------------------------------------------------------------------
+_exam_start() {
+  local exam_time=7200
+  local exam_count=16
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --time)  exam_time="$2";  shift 2 ;;
+      --count) exam_count="$2"; shift 2 ;;
+      *)       error "Unknown flag: $1"; exit "${EXIT_ERROR}" ;;
+    esac
+  done
+
+  cluster_check_active || exit "${EXIT_NO_CLUSTER}"
+
+  # Discover all scenario files
+  local -a all_files=()
+  mapfile -t all_files < <(scenario_discover "")
+
+  if [[ "${#all_files[@]}" -eq 0 ]]; then
+    error "No scenarios available for exam."
+    exit "${EXIT_ERROR}"
+  fi
+
+  # Select questions with CKAD domain weighting
+  local -a question_files=()
+  mapfile -t question_files < <(exam_select_questions "${exam_count}" "${all_files[@]}")
+
+  if [[ "${#question_files[@]}" -eq 0 ]]; then
+    error "No scenarios available for exam."
+    exit "${EXIT_ERROR}"
+  fi
+
+  info "Starting exam with ${#question_files[@]} questions ($(( exam_time / 60 )) minute time limit)..."
+
+  # Install exam cleanup trap before namespace creation
+  trap '_exam_cleanup' INT TERM EXIT
+
+  # Write exam session
+  local exam_end_at
+  exam_end_at=$(( $(date +%s) + exam_time ))
+  exam_session_write "${exam_end_at}" "${question_files[@]}"
+
+  # Create all namespaces upfront (EXAM-02)
+  exam_setup_all_namespaces
+
+  # Display first question
+  exam_session_read
+  scenario_load "${EXAM_CURRENT_FILE}"
+  _drill_display "${EXAM_CURRENT_FILE}"
+
+  info ""
+  info "Exam started! ${#question_files[@]} questions, $(( exam_time / 60 )) minutes."
+  info "Commands: exam list | exam next | exam prev | exam jump N | exam flag | check | exam submit"
+  info "Run: source <(ckad-drill env) to start timer"
+
+  # Remove EXIT trap — session established, don't auto-cleanup on normal exit
+  trap - EXIT
+}
+
+# ---------------------------------------------------------------------------
+# _exam_submit — grade all exam questions, display PASS/FAIL, record, cleanup
+# ---------------------------------------------------------------------------
+_exam_submit() {
+  exam_session_read || { error "No active exam session."; exit "${EXIT_NO_SESSION}"; }
+
+  # Grade all questions
+  local grade_result
+  grade_result=$(exam_grade)
+
+  local score passed domain_results
+  score=$(printf '%s' "${grade_result}" | jq -r '.score')
+  passed=$(printf '%s' "${grade_result}" | jq -r '.passed')
+  domain_results=$(printf '%s' "${grade_result}" | jq -c '.domains')
+
+  # Display per-domain breakdown
+  header "Exam Results"
+  info ""
+  printf '%s' "${grade_result}" | jq -r '.domains[] | "  Domain \(.domain): \(.passed)/\(.total) (\(.percent)%)"'
+  info ""
+  info "Overall Score: ${score}%"
+  if [[ "${passed}" == "true" ]]; then
+    success "RESULT: PASS"
+  else
+    error "RESULT: FAIL (66% required)"
+  fi
+
+  # Record to progress.json (EXAM-11)
+  progress_record_exam "${score}" "${passed}" "${domain_results}"
+
+  # Cleanup all exam namespaces (EXAM-12)
+  exam_cleanup_all_namespaces
+  info "All exam namespaces cleaned up."
 }
 
 # ---------------------------------------------------------------------------
@@ -101,7 +210,8 @@ _drill_start() {
   # Setup: creates namespace, loads SCENARIO_* globals
   scenario_setup "${picked_file}" || exit "${EXIT_ERROR}"
 
-  # Write session
+  # Write session (SCENARIO_* globals set by scenario_setup above)
+  # shellcheck disable=SC2153  # SCENARIO_ID is set by scenario_setup, not a typo of scenario_id
   session_write "drill" \
     "${SCENARIO_ID}" \
     "${SCENARIO_FILE}" \
@@ -317,43 +427,71 @@ case "${1:-}" in
     ;;
 
   # -------------------------------------------------------------------------
-  check)  # DRIL-03
+  check)  # DRIL-03, EXAM-07
     session_require
-    if [[ "${SESSION_MODE}" != "drill" ]]; then
-      error "Active session is not a drill session (mode: ${SESSION_MODE})."
+    if [[ "${SESSION_MODE}" == "exam" ]]; then
+      # Exam mode: validate current question only, no hints/progress_record (EXAM-07)
+      exam_session_read
+      validator_exit=0
+      validator_run_checks "${EXAM_CURRENT_FILE}" "${EXAM_CURRENT_NAMESPACE}" || validator_exit=$?
+      if [[ "${validator_exit}" -eq 0 ]]; then
+        exam_update_question_status "${EXAM_CURRENT}" "passed"
+        success "Question $((EXAM_CURRENT + 1)) passed!"
+      else
+        exam_update_question_status "${EXAM_CURRENT}" "failed"
+        warn "Question $((EXAM_CURRENT + 1)) not yet correct."
+      fi
+    elif [[ "${SESSION_MODE}" == "drill" ]]; then
+      # Drill mode: run validator, record to progress.json (DRIL-03)
+      validator_exit=0
+      validator_run_checks "${SESSION_SCENARIO_FILE}" "${SESSION_NAMESPACE}" || validator_exit=$?
+      if [[ "${validator_exit}" -eq 0 ]]; then
+        passed="true"
+      else
+        passed="false"
+      fi
+      # Compute elapsed time: start_epoch = end_at - time_limit
+      elapsed=$(( $(date +%s) - ( SESSION_END_AT - SESSION_TIME_LIMIT ) ))
+      # Read domain from scenario file
+      domain=$(yq -r '.domain // empty' "${SESSION_SCENARIO_FILE}")
+      progress_record "${SESSION_SCENARIO_ID}" "${domain}" "${passed}" "${elapsed}"
+    else
+      error "Active session is not a drill or exam session (mode: ${SESSION_MODE})."
       exit "${EXIT_ERROR}"
     fi
-    # Run validator — use || pattern to capture non-zero exit under set -e
-    validator_exit=0
-    validator_run_checks "${SESSION_SCENARIO_FILE}" "${SESSION_NAMESPACE}" || validator_exit=$?
-    if [[ "${validator_exit}" -eq 0 ]]; then
-      passed="true"
-    else
-      passed="false"
-    fi
-    # Compute elapsed time: start_epoch = end_at - time_limit
-    elapsed=$(( $(date +%s) - ( SESSION_END_AT - SESSION_TIME_LIMIT ) ))
-    # Read domain from scenario file
-    domain=$(yq -r '.domain // empty' "${SESSION_SCENARIO_FILE}")
-    progress_record "${SESSION_SCENARIO_ID}" "${domain}" "${passed}" "${elapsed}"
     ;;
 
   # -------------------------------------------------------------------------
-  hint)  # DRIL-04
+  hint)  # DRIL-04, EXAM-08
     session_require
+    if [[ "${SESSION_MODE}" == "exam" ]]; then
+      error "Hints are not available during exam mode."
+      exit "${EXIT_ERROR}"
+    fi
     yq -r '.hint // "No hint available."' "${SESSION_SCENARIO_FILE}"
     ;;
 
   # -------------------------------------------------------------------------
-  solution)  # DRIL-05
+  solution)  # DRIL-05, EXAM-08
+    session_require
+    if [[ "${SESSION_MODE}" == "exam" ]]; then
+      error "Solutions are not available during exam mode."
+      exit "${EXIT_ERROR}"
+    fi
     _cmd_solution
     ;;
 
   # -------------------------------------------------------------------------
-  current)  # DRIL-08
+  current)  # DRIL-08, EXAM-05
     session_require
-    scenario_load "${SESSION_SCENARIO_FILE}"
-    _drill_display "${SESSION_SCENARIO_FILE}"
+    if [[ "${SESSION_MODE}" == "exam" ]]; then
+      exam_session_read
+      scenario_load "${EXAM_CURRENT_FILE}"
+      _drill_display "${EXAM_CURRENT_FILE}"
+    else
+      scenario_load "${SESSION_SCENARIO_FILE}"
+      _drill_display "${SESSION_SCENARIO_FILE}"
+    fi
     ;;
 
   # -------------------------------------------------------------------------
@@ -403,6 +541,61 @@ case "${1:-}" in
     ;;
 
   # -------------------------------------------------------------------------
+  exam)  # EXAM-01 through EXAM-12
+    shift
+    case "${1:-}" in
+      ""|start)
+        shift 2>/dev/null || true
+        _exam_start "$@"
+        ;;
+
+      list)   # EXAM-04
+        exam_list
+        ;;
+
+      next)   # EXAM-05
+        exam_navigate "next"
+        exam_session_read
+        scenario_load "${EXAM_CURRENT_FILE}"
+        _drill_display "${EXAM_CURRENT_FILE}"
+        ;;
+
+      prev)   # EXAM-05
+        exam_navigate "prev"
+        exam_session_read
+        scenario_load "${EXAM_CURRENT_FILE}"
+        _drill_display "${EXAM_CURRENT_FILE}"
+        ;;
+
+      jump)   # EXAM-05
+        if [[ -z "${2:-}" ]]; then
+          error "Usage: ckad-drill exam jump <number>"
+          exit "${EXIT_ERROR}"
+        fi
+        exam_navigate "${2}"
+        exam_session_read
+        scenario_load "${EXAM_CURRENT_FILE}"
+        _drill_display "${EXAM_CURRENT_FILE}"
+        ;;
+
+      flag)   # EXAM-06
+        exam_flag
+        info "Question flagged for review."
+        ;;
+
+      submit)  # EXAM-09, EXAM-10, EXAM-11, EXAM-12
+        _exam_submit
+        ;;
+
+      *)
+        error "Unknown exam subcommand: ${1:-}"
+        info "Usage: ckad-drill exam [start|list|next|prev|jump N|flag|submit]"
+        exit "${EXIT_ERROR}"
+        ;;
+    esac
+    ;;
+
+  # -------------------------------------------------------------------------
   *)
     warn "Unknown command: '${1:-}'"
     info "Usage: ckad-drill <command> [options]"
@@ -415,11 +608,20 @@ case "${1:-}" in
     info "  drill [--domain N] [--difficulty LEVEL] [--external PATH]"
     info "                         Pick a random scenario and start a drill session"
     info "  check                  Run validations on current scenario"
-    info "  hint                   Show hint for current scenario"
-    info "  solution               Show solution steps for current scenario"
+    info "  hint                   Show hint for current scenario (blocked in exam mode)"
+    info "  solution               Show solution steps for current scenario (blocked in exam mode)"
     info "  current                Reprint current scenario description"
     info "  next                   Clean up current scenario and start a new one"
     info "  skip                   Clean up current scenario without checking"
+    info ""
+    info "  exam [--time SECONDS] [--count N]"
+    info "                         Start a mock exam with CKAD domain-weighted questions"
+    info "  exam list              List all exam questions with status icons"
+    info "  exam next              Navigate to next question"
+    info "  exam prev              Navigate to previous question"
+    info "  exam jump N            Jump to question number N"
+    info "  exam flag              Flag current question for review"
+    info "  exam submit            Grade exam, show PASS/FAIL, cleanup namespaces"
     info ""
     info "  env                    Output timer + exam env shell code (use: source <(ckad-drill env))"
     info "  env --reset            Output shell code to restore original prompt"
