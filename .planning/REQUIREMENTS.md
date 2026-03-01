@@ -101,8 +101,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Distribution & Quality
 
-- [ ] **DIST-01**: `scripts/install.sh` installs ckad-drill via curl-pipe-sh (checks Docker, kubectl, installs kind/yq/jq)
-- [ ] **DIST-02**: `scripts/dev-setup.sh` installs bats-core and shellcheck for developers
+- [x] **DIST-01**: `scripts/install.sh` installs ckad-drill via curl-pipe-sh (checks Docker, kubectl, installs kind/yq/jq)
+- [x] **DIST-02**: `scripts/dev-setup.sh` installs bats-core and shellcheck for developers
 - [x] **DIST-03**: `ckad-drill validate-scenario <file>` runs full end-to-end validation (parse, setup, apply solution, validate, cleanup)
 - [x] **DIST-04**: `ckad-drill validate-scenario <dir>` validates all scenarios in directory
 - [ ] **TEST-01**: bats unit tests exist for all lib functions (no cluster required)
@@ -224,8 +224,8 @@ Requirements for initial release. Each maps to roadmap phases.
 | TEST-04 | Phase 7 | Pending |
 | CICD-01 | Phase 7 | Pending |
 | CICD-02 | Phase 7 | Pending |
-| DIST-01 | Phase 7 | Pending |
-| DIST-02 | Phase 7 | Pending |
+| DIST-01 | Phase 7 | Complete |
+| DIST-02 | Phase 7 | Complete |
 | DOCS-01 | Phase 7 | Pending |
 | DOCS-02 | Phase 7 | Pending |
 

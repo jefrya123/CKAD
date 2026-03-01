@@ -22,12 +22,12 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 
 ## Current Position
 
-Phase: 6 of 7 (Content Migration) — COMPLETE (gap closure 06-06 done)
-Plan: 6/6 complete (06-06 gap-closure: fixed invalid validation types and placeholder)
-Status: Phase 6 fully complete — all 70 scenarios use valid validation types, all solution steps are valid shell commands
-Last activity: 2026-02-28 — 06-06 complete: fixed 8 invalid validation type checks and removed bash placeholder from solution steps
+Phase: 7 of 7 (Testing, CI, Distribution, Docs) — IN PROGRESS
+Plan: 2/N complete (07-02 distribution scripts done)
+Status: Phase 7 in progress — scripts/install.sh created (DIST-01), scripts/dev-setup.sh updated with dnf support (DIST-02)
+Last activity: 2026-03-01 — 07-02 complete: curl-pipe-sh install.sh for Linux/macOS, dev-setup.sh extended with Fedora/RHEL support and version summary
 
-Progress: [#######---] 86% (6/7 phases complete — Phase 7 Distribution next)
+Progress: [########--] 90% (6/7 phases complete, Phase 7 in progress)
 
 ## Performance Metrics
 
@@ -91,6 +91,9 @@ Key decisions affecting v1.1 work:
 - [Phase 06-06-gap-closure]: validator.sh reads jsonpath: field (not path:) — all resource_field checks must use jsonpath: key name
 - [Phase 06-06-gap-closure]: pod_phase is not a valid validator type — use resource_field with .status.phase jsonpath
 - [Phase 06-06-gap-closure]: immutable pod fields (volumeMounts) require delete-then-apply, not apply alone — solution steps must separate delete and apply
+- [Phase 07-02]: install.sh uses ~/.local/share/ckad-drill for clone, symlinks to ~/.local/bin — no sudo required
+- [Phase 07-02]: GITHUB_REPO variable at top of install.sh for easy customization when published
+- [Phase 07-02]: dev-setup.sh dnf fallback added before npm for bats-core (apt-get first, dnf second, npm third)
 
 ### Pending Todos
 
@@ -103,6 +106,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-28
-Stopped at: Completed 06-06-PLAN.md — gap closure: fixed 8 invalid validation types (jsonpath/pod_phase -> resource_field) and placeholder bash error in debug-volume-mount.yaml; Phase 6 fully complete; Phase 7 Distribution is next
+Last session: 2026-03-01
+Stopped at: Completed 07-02-PLAN.md — distribution scripts: install.sh for curl-pipe-sh installs (DIST-01), dev-setup.sh with dnf/Fedora support and version summary (DIST-02)
 Resume file: None
