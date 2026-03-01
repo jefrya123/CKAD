@@ -1,0 +1,52 @@
+id: sc-rbac-clusterrole
+domain: 4
+title: "ClusterRole and ClusterRoleBinding"
+difficulty: hard
+time_limit: 300
+namespace: clusterrole-lab
+description: >
+  Create a ClusterRole named "node-reader" that allows get, list, and watch on nodes.
+  Create a ServiceAccount named "node-monitor" in the "clusterrole-lab" namespace.
+  Create a ClusterRoleBinding named "node-monitor-binding" that binds the "node-reader"
+  ClusterRole to the "node-monitor" ServiceAccount in the "clusterrole-lab" namespace.
+  Verify the service account can list nodes cluster-wide.
+
+hint: >
+  ClusterRoles and ClusterRoleBindings are cluster-scoped (not namespace-scoped).
+  Use: kubectl create clusterrole node-reader --verb=get,list,watch --resource=nodes
+  Use: kubectl create clusterrolebinding node-monitor-binding --clusterrole=node-reader
+    --serviceaccount=clusterrole-lab:node-monitor
+
+validations:
+  - name: namespace_exists
+    type: resource_exists
+    resource: namespace/clusterrole-lab
+    namespace: ""
+
+  - name: clusterrole_exists
+    type: resource_exists
+    resource: clusterrole/node-reader
+    namespace: ""
+
+  - name: serviceaccount_exists
+    type: resource_exists
+    resource: serviceaccount/node-monitor
+    namespace: clusterrole-lab
+
+  - name: clusterrolebinding_exists
+    type: resource_exists
+    resource: clusterrolebinding/node-monitor-binding
+    namespace: ""
+
+  - name: can_list_nodes
+    type: command_output
+    command: "kubectl auth can-i list nodes --as=system:serviceaccount:clusterrole-lab:node-monitor"
+    mode: exact
+    expected: "yes"
+
+solution:
+  steps:
+    - "kubectl create namespace clusterrole-lab --dry-run=client -o yaml | kubectl apply -f -"
+    - "kubectl create clusterrole node-reader --verb=get,list,watch --resource=nodes --dry-run=client -o yaml | kubectl apply -f -"
+    - "kubectl create serviceaccount node-monitor -n clusterrole-lab --dry-run=client -o yaml | kubectl apply -f -"
+    - "kubectl create clusterrolebinding node-monitor-binding --clusterrole=node-reader --serviceaccount=clusterrole-lab:node-monitor --dry-run=client -o yaml | kubectl apply -f -"

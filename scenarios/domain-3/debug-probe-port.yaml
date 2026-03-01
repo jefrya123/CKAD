@@ -1,0 +1,72 @@
+id: debug-probe-port
+domain: 3
+title: "Fix: Liveness Probe Wrong Port"
+difficulty: medium
+time_limit: 180
+namespace: debug-lab06
+description: >
+  A pod named lab06-pod keeps restarting. The nginx container starts successfully
+  but gets killed repeatedly. Diagnose why the pod is being restarted and fix it.
+
+setup:
+  manifest: |
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: lab06-pod
+      namespace: debug-lab06
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - containerPort: 80
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 3
+          periodSeconds: 3
+          failureThreshold: 2
+
+hint: >
+  Check kubectl describe pod lab06-pod -n debug-lab06 and look at the Events
+  section. The liveness probe is failing — compare the probe port to the
+  actual port the nginx container listens on (containerPort).
+
+validations:
+  - name: probe_port_correct
+    type: resource_field
+    resource: pod/lab06-pod
+    namespace: debug-lab06
+    field: ".spec.containers[0].livenessProbe.httpGet.port"
+    expected: "80"
+
+solution:
+  steps:
+    - "kubectl get pod lab06-pod -n debug-lab06  # Note RESTARTS count"
+    - "kubectl describe pod lab06-pod -n debug-lab06 | grep -A10 Liveness"
+    - "kubectl describe pod lab06-pod -n debug-lab06 | grep -A5 Events"
+    - "kubectl get pod lab06-pod -n debug-lab06 -o yaml | grep -A5 livenessProbe"
+    - |
+      kubectl delete pod lab06-pod -n debug-lab06
+      kubectl apply -f - <<EOF
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: lab06-pod
+        namespace: debug-lab06
+      spec:
+        containers:
+        - name: nginx
+          image: nginx
+          ports:
+          - containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+            failureThreshold: 2
+      EOF

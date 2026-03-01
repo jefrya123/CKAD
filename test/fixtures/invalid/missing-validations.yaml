@@ -1,0 +1,10 @@
+id: missing-validations
+domain: 1
+title: "Missing Validations"
+difficulty: easy
+time_limit: 120
+namespace: test-missing-val
+description: "This scenario has no validations field."
+solution:
+  steps:
+    - "echo done"

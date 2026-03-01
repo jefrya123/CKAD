@@ -1,0 +1,62 @@
+id: debug-job-restart-policy
+domain: 4
+title: "Fix: Job Invalid Restart Policy"
+difficulty: medium
+time_limit: 180
+namespace: debug-lab08
+description: >
+  A Job named lab08-job fails to create pods. The Job spec has an invalid
+  restartPolicy that is not allowed for Jobs. Diagnose and fix the configuration
+  so the Job completes successfully.
+
+setup:
+  manifest: |
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      name: lab08-job
+      namespace: debug-lab08
+    spec:
+      template:
+        spec:
+          containers:
+          - name: worker
+            image: busybox
+            command: ["echo", "done"]
+          restartPolicy: Always
+
+hint: >
+  Run kubectl describe job lab08-job -n debug-lab08 and check Events.
+  Jobs only support restartPolicy of Never or OnFailure. The Always policy
+  is reserved for Deployments and other long-running workloads.
+
+validations:
+  - name: job_complete
+    type: resource_field
+    resource: job/lab08-job
+    namespace: debug-lab08
+    field: ".spec.template.spec.restartPolicy"
+    expected: "Never"
+
+solution:
+  steps:
+    - "kubectl describe job lab08-job -n debug-lab08 | grep -A5 Events"
+    - "kubectl get job lab08-job -n debug-lab08 -o yaml | grep restartPolicy"
+    - "kubectl delete job lab08-job -n debug-lab08"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: lab08-job
+        namespace: debug-lab08
+      spec:
+        template:
+          spec:
+            containers:
+            - name: worker
+              image: busybox
+              command: ["echo", "done"]
+            restartPolicy: Never
+      EOF
+    - "kubectl get job lab08-job -n debug-lab08  # Verify Completions: 1/1"

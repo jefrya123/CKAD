@@ -1,0 +1,44 @@
+id: sc-logging
+domain: 3
+title: "View and Filter Container Logs"
+difficulty: easy
+time_limit: 120
+namespace: logging-ns
+description: >
+  In the "logging-ns" namespace, create a Deployment named "log-app" with 2 replicas
+  using the "busybox" image with the command: sh -c "while true; do echo INFO log message; sleep 5; done".
+  Then demonstrate log access: view logs from all pods using a label selector, view
+  the last 5 lines from one pod, and show how to follow logs from a pod.
+
+hint: >
+  Use kubectl logs -l app=log-app to view logs from all pods matching the label.
+  Use --tail=5 to limit to the last N lines. Use -f to follow/stream logs. Get
+  the first pod name using jsonpath.
+
+validations:
+  - name: deployment_exists
+    type: resource_exists
+    resource: deployment/log-app
+    namespace: logging-ns
+
+  - name: replicas_count
+    type: resource_field
+    resource: deployment/log-app
+    namespace: logging-ns
+    jsonpath: "{.spec.replicas}"
+    expected: "2"
+
+  - name: pods_running
+    type: label_selector
+    resource_type: pod
+    namespace: logging-ns
+    selector: "app=log-app"
+    min_count: 2
+
+solution:
+  steps:
+    - "kubectl create namespace logging-ns --dry-run=client -o yaml | kubectl apply -f -"
+    - "kubectl create deploy log-app --image=busybox --replicas=2 -n logging-ns -- sh -c 'while true; do echo INFO log message; sleep 5; done'"
+    - "kubectl rollout status deploy/log-app -n logging-ns"
+    - "kubectl logs -l app=log-app -n logging-ns"
+    - "kubectl logs $(kubectl get pods -l app=log-app -n logging-ns -o jsonpath='{.items[0].metadata.name}') --tail=5 -n logging-ns"

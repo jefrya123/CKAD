@@ -1,0 +1,63 @@
+id: sc-resource-quota
+domain: 4
+title: "Create a ResourceQuota and LimitRange"
+difficulty: medium
+time_limit: 240
+namespace: quota-ns
+description: >
+  In the "quota-ns" namespace, create a ResourceQuota named "compute-quota" that limits
+  the namespace to a maximum of 5 pods, 2 CPU in requests, and 2Gi memory in requests.
+  Also create a LimitRange named "default-limits" that sets default container CPU limit
+  to 200m and memory limit to 128Mi.
+
+hint: >
+  Use "kubectl create quota compute-quota --hard=pods=5,requests.cpu=2,requests.memory=2Gi"
+  for the ResourceQuota. The LimitRange requires a YAML manifest with spec.limits[].default
+  for limits and spec.limits[].defaultRequest for requests.
+
+validations:
+  - name: quota_exists
+    type: resource_exists
+    resource: resourcequota/compute-quota
+    namespace: quota-ns
+
+  - name: quota_pod_limit
+    type: resource_field
+    resource: resourcequota/compute-quota
+    namespace: quota-ns
+    jsonpath: "{.spec.hard.pods}"
+    expected: "5"
+
+  - name: limitrange_exists
+    type: resource_exists
+    resource: limitrange/default-limits
+    namespace: quota-ns
+
+  - name: quota_cpu_limit
+    type: resource_field
+    resource: resourcequota/compute-quota
+    namespace: quota-ns
+    jsonpath: "{.spec.hard.requests\\.cpu}"
+    expected: "2"
+
+solution:
+  steps:
+    - "kubectl create namespace quota-ns --dry-run=client -o yaml | kubectl apply -f -"
+    - "kubectl create quota compute-quota -n quota-ns --hard=pods=5,requests.cpu=2,requests.memory=2Gi"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: v1
+      kind: LimitRange
+      metadata:
+        name: default-limits
+        namespace: quota-ns
+      spec:
+        limits:
+          - type: Container
+            default:
+              cpu: "200m"
+              memory: "128Mi"
+            defaultRequest:
+              cpu: "100m"
+              memory: "64Mi"
+      EOF

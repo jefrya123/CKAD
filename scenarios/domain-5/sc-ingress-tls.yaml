@@ -1,0 +1,82 @@
+id: sc-ingress-tls
+domain: 5
+title: "Create an Ingress with TLS Termination"
+difficulty: hard
+time_limit: 300
+namespace: tls-ns
+description: >
+  In the "tls-ns" namespace, create a Deployment named "secure-web" with 2 replicas using
+  image "nginx:1.25". Expose it as a ClusterIP Service named "secure-web-svc" on port 80.
+  Create a TLS Secret named "secure-tls" (you may use a pre-generated or self-signed cert).
+  Create an Ingress named "secure-ingress" using ingressClassName "nginx" that terminates
+  TLS for "secure.example.com" using the "secure-tls" Secret, and routes all traffic at
+  path "/" to "secure-web-svc:80".
+
+hint: >
+  Generate a self-signed cert with: openssl req -x509 -nodes -days 365 -newkey rsa:2048
+  -keyout tls.key -out tls.crt -subj "/CN=secure.example.com". Then create the secret
+  with: kubectl create secret tls secure-tls --cert=tls.crt --key=tls.key. The Ingress
+  needs both a tls[] section and a rules[] section with the same host.
+
+validations:
+  - name: service_exists
+    type: resource_exists
+    resource: service/secure-web-svc
+    namespace: tls-ns
+
+  - name: tls_secret_exists
+    type: resource_exists
+    resource: secret/secure-tls
+    namespace: tls-ns
+
+  - name: tls_secret_type
+    type: resource_field
+    resource: secret/secure-tls
+    namespace: tls-ns
+    jsonpath: "{.type}"
+    expected: "kubernetes.io/tls"
+
+  - name: ingress_exists
+    type: resource_exists
+    resource: ingress/secure-ingress
+    namespace: tls-ns
+
+  - name: ingress_tls_secret
+    type: resource_field
+    resource: ingress/secure-ingress
+    namespace: tls-ns
+    jsonpath: "{.spec.tls[0].secretName}"
+    expected: "secure-tls"
+
+solution:
+  steps:
+    - "kubectl create namespace tls-ns --dry-run=client -o yaml | kubectl apply -f -"
+    - "kubectl create deployment secure-web --image=nginx:1.25 --replicas=2 -n tls-ns"
+    - "kubectl expose deployment secure-web --name=secure-web-svc --port=80 -n tls-ns"
+    - "openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /tmp/tls.key -out /tmp/tls.crt -subj \"/CN=secure.example.com\""
+    - "kubectl create secret tls secure-tls --cert=/tmp/tls.crt --key=/tmp/tls.key -n tls-ns"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: secure-ingress
+        namespace: tls-ns
+      spec:
+        ingressClassName: nginx
+        tls:
+          - hosts:
+              - secure.example.com
+            secretName: secure-tls
+        rules:
+          - host: secure.example.com
+            http:
+              paths:
+                - path: /
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: secure-web-svc
+                      port:
+                        number: 80
+      EOF

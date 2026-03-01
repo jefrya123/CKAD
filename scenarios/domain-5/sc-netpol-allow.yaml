@@ -1,0 +1,70 @@
+id: sc-netpol-allow
+domain: 5
+title: "Create a NetworkPolicy Allowing Specific Traffic"
+difficulty: hard
+time_limit: 300
+namespace: app-ns
+description: >
+  In the "app-ns" namespace, create three pods: "backend" (nginx:1.25, label role=backend),
+  "frontend" (busybox:1.36, sleep 3600, label role=frontend), and "rogue" (busybox:1.36,
+  sleep 3600, label role=rogue). Create a NetworkPolicy named "allow-frontend" that applies
+  to pods with label role=backend and only allows ingress from pods with label role=frontend
+  on port 80. Pods with other labels should be denied.
+
+hint: >
+  The podSelector in spec targets the backend pods. The from.podSelector in the ingress rule
+  targets only frontend pods. The ports list restricts to TCP port 80.
+
+validations:
+  - name: networkpolicy_exists
+    type: resource_exists
+    resource: networkpolicy/allow-frontend
+    namespace: app-ns
+
+  - name: policy_type_ingress
+    type: resource_field
+    resource: networkpolicy/allow-frontend
+    namespace: app-ns
+    jsonpath: "{.spec.policyTypes[0]}"
+    expected: "Ingress"
+
+  - name: pod_selector_matches_backend
+    type: resource_field
+    resource: networkpolicy/allow-frontend
+    namespace: app-ns
+    jsonpath: "{.spec.podSelector.matchLabels.role}"
+    expected: "backend"
+
+  - name: backend_pod_exists
+    type: resource_exists
+    resource: pod/backend
+    namespace: app-ns
+
+solution:
+  steps:
+    - "kubectl create namespace app-ns --dry-run=client -o yaml | kubectl apply -f -"
+    - "kubectl run backend --image=nginx:1.25 -n app-ns -l role=backend"
+    - "kubectl run frontend --image=busybox:1.36 -n app-ns -l role=frontend -- sleep 3600"
+    - "kubectl run rogue --image=busybox:1.36 -n app-ns -l role=rogue -- sleep 3600"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: allow-frontend
+        namespace: app-ns
+      spec:
+        podSelector:
+          matchLabels:
+            role: backend
+        policyTypes:
+          - Ingress
+        ingress:
+          - from:
+              - podSelector:
+                  matchLabels:
+                    role: frontend
+            ports:
+              - port: 80
+                protocol: TCP
+      EOF

@@ -1,0 +1,63 @@
+id: sc-resource-monitoring
+domain: 3
+title: "Resource Monitoring with kubectl top"
+difficulty: easy
+time_limit: 180
+namespace: monitoring-lab
+description: >
+  In the "monitoring-lab" namespace, create a deployment named "resource-app" with 2 replicas
+  using the "nginx" image with resource requests of 10m CPU and 16Mi memory. Then use
+  kubectl top to observe resource usage. Create the deployment with resource requests set
+  so the scheduler can make proper placement decisions.
+
+hint: >
+  Set resource requests (not limits) using the resources.requests field. After creating
+  the deployment, use 'kubectl top pods -n monitoring-lab' to see resource usage
+  (requires metrics-server). Use 'kubectl top nodes' to see node-level usage.
+
+validations:
+  - name: deployment_exists
+    type: resource_exists
+    resource: deployment/resource-app
+    namespace: monitoring-lab
+
+  - name: replicas_ready
+    type: command_output
+    command: "kubectl get deployment resource-app -n monitoring-lab -o jsonpath='{.spec.replicas}'"
+    mode: exact
+    expected: "2"
+
+  - name: cpu_request_set
+    type: command_output
+    command: "kubectl get deployment resource-app -n monitoring-lab -o jsonpath='{.spec.template.spec.containers[0].resources.requests.cpu}'"
+    mode: exact
+    expected: "10m"
+
+solution:
+  steps:
+    - "kubectl create namespace monitoring-lab --dry-run=client -o yaml | kubectl apply -f -"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: resource-app
+        namespace: monitoring-lab
+      spec:
+        replicas: 2
+        selector:
+          matchLabels:
+            app: resource-app
+        template:
+          metadata:
+            labels:
+              app: resource-app
+          spec:
+            containers:
+            - name: nginx
+              image: nginx
+              resources:
+                requests:
+                  cpu: "10m"
+                  memory: "16Mi"
+      EOF

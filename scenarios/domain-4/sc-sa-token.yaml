@@ -1,0 +1,74 @@
+id: sc-sa-token
+domain: 4
+title: "ServiceAccount with Disabled Token Automount"
+difficulty: medium
+time_limit: 240
+namespace: sa-lab
+description: >
+  In the "sa-lab" namespace, create a ServiceAccount named "app-sa" with token automounting
+  disabled (automountServiceAccountToken: false). Create a pod named "sa-pod" using the
+  "busybox" image with command ["sleep", "3600"] that uses this ServiceAccount and also
+  explicitly sets automountServiceAccountToken: false. Verify the token is not mounted
+  inside the pod.
+
+hint: >
+  By default Kubernetes mounts a service account token at /var/run/secrets/kubernetes.io/serviceaccount/.
+  Setting automountServiceAccountToken: false on both the ServiceAccount and the Pod prevents this.
+  Verify with: kubectl get pod sa-pod -n sa-lab -o jsonpath='{.spec.automountServiceAccountToken}'
+
+validations:
+  - name: serviceaccount_exists
+    type: resource_exists
+    resource: serviceaccount/app-sa
+    namespace: sa-lab
+
+  - name: pod_exists
+    type: resource_exists
+    resource: pod/sa-pod
+    namespace: sa-lab
+
+  - name: sa_assigned
+    type: command_output
+    command: "kubectl get pod sa-pod -n sa-lab -o jsonpath='{.spec.serviceAccountName}'"
+    mode: exact
+    expected: "app-sa"
+
+  - name: automount_disabled
+    type: command_output
+    command: "kubectl get pod sa-pod -n sa-lab -o jsonpath='{.spec.automountServiceAccountToken}'"
+    mode: exact
+    expected: "false"
+
+  - name: sa_automount_disabled
+    type: command_output
+    command: "kubectl get serviceaccount app-sa -n sa-lab -o jsonpath='{.automountServiceAccountToken}'"
+    mode: exact
+    expected: "false"
+
+solution:
+  steps:
+    - "kubectl create namespace sa-lab --dry-run=client -o yaml | kubectl apply -f -"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: app-sa
+        namespace: sa-lab
+      automountServiceAccountToken: false
+      EOF
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: sa-pod
+        namespace: sa-lab
+      spec:
+        serviceAccountName: app-sa
+        automountServiceAccountToken: false
+        containers:
+        - name: app
+          image: busybox
+          command: ["sleep", "3600"]
+      EOF

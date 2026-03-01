@@ -1,0 +1,96 @@
+id: test-all-checks
+domain: 1
+title: "Scenario with all check types"
+difficulty: hard
+time_limit: 300
+namespace: all-checks-ns
+description: "A test scenario that exercises all 10 validation check types."
+
+validations:
+  - name: pod_exists
+    type: resource_exists
+    resource: pod/web
+    namespace: all-checks-ns
+
+  - name: pod_field
+    type: resource_field
+    resource: pod/web
+    namespace: all-checks-ns
+    jsonpath: "{.metadata.labels.app}"
+    expected: "web"
+
+  - name: container_count
+    type: container_count
+    pod: web
+    namespace: all-checks-ns
+    expected: 1
+
+  - name: container_image
+    type: container_image
+    pod: web
+    container: web
+    namespace: all-checks-ns
+    expected: "nginx:latest"
+
+  - name: env_var
+    type: container_env
+    pod: web
+    container: web
+    namespace: all-checks-ns
+    env_var: ENV_MODE
+    expected: "production"
+
+  - name: volume_mount
+    type: volume_mount
+    pod: web
+    container: web
+    namespace: all-checks-ns
+    mount_path: "/data"
+
+  - name: container_running
+    type: container_running
+    pod: web
+    container: web
+    namespace: all-checks-ns
+
+  - name: label_match
+    type: label_selector
+    kind: pod
+    namespace: all-checks-ns
+    selector: "app=web"
+
+  - name: pod_count
+    type: resource_count
+    kind: pod
+    namespace: all-checks-ns
+    selector: "app=web"
+    expected: 1
+
+  - name: output_check
+    type: command_output
+    command: "echo hello"
+    mode: contains
+    expected: "hello"
+
+solution:
+  manifest: |
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: web
+      namespace: all-checks-ns
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: web
+          image: nginx:latest
+          env:
+            - name: ENV_MODE
+              value: production
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          emptyDir: {}

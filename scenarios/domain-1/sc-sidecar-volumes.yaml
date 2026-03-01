@@ -1,0 +1,79 @@
+id: sc-sidecar-volumes
+domain: 1
+title: "Sidecar with Shared Volume Logging"
+difficulty: medium
+time_limit: 300
+namespace: sidecar-vol-lab
+description: >
+  In the "sidecar-vol-lab" namespace, create a pod named "web-with-logging" that uses the
+  sidecar pattern for log aggregation. The pod should have two containers: a main container
+  named "nginx" using the "nginx" image and a sidecar container named "log-tailer" using
+  "busybox" that runs ["/bin/sh", "-c", "while true; do echo 'reading logs'; sleep 10; done"].
+  Both containers must share an emptyDir volume named "logs" mounted at "/var/log/nginx"
+  in the nginx container and "/var/log" in the log-tailer container.
+
+hint: >
+  Nginx writes access logs to /var/log/nginx/access.log. Mount a shared emptyDir volume
+  at /var/log/nginx in the nginx container and at /var/log in the sidecar.
+  The sidecar can then access the logs. Keep the sidecar command simple with a loop.
+
+validations:
+  - name: pod_exists
+    type: resource_exists
+    resource: pod/web-with-logging
+    namespace: sidecar-vol-lab
+
+  - name: two_containers
+    type: container_count
+    pod: web-with-logging
+    namespace: sidecar-vol-lab
+    expected: 2
+
+  - name: nginx_image
+    type: container_image
+    pod: web-with-logging
+    container: nginx
+    namespace: sidecar-vol-lab
+    expected: "nginx"
+
+  - name: sidecar_image
+    type: container_image
+    pod: web-with-logging
+    container: log-tailer
+    namespace: sidecar-vol-lab
+    expected: "busybox"
+
+  - name: nginx_volume_mount
+    type: volume_mount
+    pod: web-with-logging
+    container: nginx
+    namespace: sidecar-vol-lab
+    mount_path: /var/log/nginx
+
+solution:
+  steps:
+    - "kubectl create namespace sidecar-vol-lab --dry-run=client -o yaml | kubectl apply -f -"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: web-with-logging
+        namespace: sidecar-vol-lab
+      spec:
+        containers:
+        - name: nginx
+          image: nginx
+          volumeMounts:
+          - name: logs
+            mountPath: /var/log/nginx
+        - name: log-tailer
+          image: busybox
+          command: ["/bin/sh", "-c", "while true; do echo 'reading logs'; sleep 10; done"]
+          volumeMounts:
+          - name: logs
+            mountPath: /var/log
+        volumes:
+        - name: logs
+          emptyDir: {}
+      EOF

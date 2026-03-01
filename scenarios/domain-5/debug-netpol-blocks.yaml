@@ -1,0 +1,87 @@
+id: debug-netpol-blocks
+domain: 5
+title: "Fix: NetworkPolicy Blocks DNS Traffic"
+difficulty: hard
+time_limit: 300
+namespace: debug-lab11
+description: >
+  A NetworkPolicy named lab11-policy has been applied to pods with label app=restricted.
+  These pods can no longer resolve DNS or reach external services. The egress policy
+  is too restrictive. Fix the NetworkPolicy to allow DNS resolution while keeping
+  HTTPS traffic allowed.
+
+setup:
+  manifest: |
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: lab11-pod
+      namespace: debug-lab11
+      labels:
+        app: restricted
+    spec:
+      containers:
+      - name: app
+        image: busybox
+        command: ["sleep", "3600"]
+    ---
+    apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    metadata:
+      name: lab11-policy
+      namespace: debug-lab11
+    spec:
+      podSelector:
+        matchLabels:
+          app: restricted
+      policyTypes:
+      - Egress
+      egress:
+      - to: []
+        ports:
+        - port: 443
+          protocol: TCP
+
+hint: >
+  The NetworkPolicy only allows TCP port 443 egress. DNS queries use UDP port 53.
+  Without DNS egress, the pod cannot resolve any hostnames. Add an egress rule
+  that allows UDP port 53 to all destinations alongside the existing HTTPS rule.
+
+validations:
+  - name: dns_egress_rule
+    type: resource_field
+    resource: networkpolicy/lab11-policy
+    namespace: debug-lab11
+    field: ".spec.egress | length"
+    expected: "2"
+
+solution:
+  steps:
+    - "kubectl exec lab11-pod -n debug-lab11 -- nslookup kubernetes  # Should fail"
+    - "kubectl describe networkpolicy lab11-policy -n debug-lab11"
+    - "kubectl get networkpolicy lab11-policy -n debug-lab11 -o yaml | grep -A10 egress"
+    - "# DNS needs UDP port 53 — add an egress rule for it"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: lab11-policy
+        namespace: debug-lab11
+      spec:
+        podSelector:
+          matchLabels:
+            app: restricted
+        policyTypes:
+        - Egress
+        egress:
+        - to: []
+          ports:
+          - port: 53
+            protocol: UDP
+        - to: []
+          ports:
+          - port: 443
+            protocol: TCP
+      EOF
+    - "kubectl exec lab11-pod -n debug-lab11 -- nslookup kubernetes  # Should now succeed"

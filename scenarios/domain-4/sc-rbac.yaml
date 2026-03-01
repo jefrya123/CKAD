@@ -1,0 +1,45 @@
+id: sc-rbac
+domain: 4
+title: "Create ServiceAccount with RBAC Role and RoleBinding"
+difficulty: medium
+time_limit: 300
+namespace: rbac-test
+description: >
+  In the "rbac-test" namespace, create a ServiceAccount named "app-sa". Create a Role
+  named "pod-manager" that allows get, list, create, and delete on pods. Create a
+  RoleBinding named "app-sa-binding" that binds the "pod-manager" role to the "app-sa"
+  ServiceAccount. Verify the service account can create pods.
+
+hint: >
+  Use imperative commands: kubectl create serviceaccount, kubectl create role
+  (--verb=get,list,create,delete --resource=pods), and kubectl create rolebinding
+  (--role=pod-manager --serviceaccount=rbac-test:app-sa).
+
+validations:
+  - name: serviceaccount_exists
+    type: resource_exists
+    resource: serviceaccount/app-sa
+    namespace: rbac-test
+
+  - name: role_exists
+    type: resource_exists
+    resource: role/pod-manager
+    namespace: rbac-test
+
+  - name: rolebinding_exists
+    type: resource_exists
+    resource: rolebinding/app-sa-binding
+    namespace: rbac-test
+
+  - name: role_allows_create
+    type: command_output
+    command: "kubectl auth can-i create pods -n rbac-test --as=system:serviceaccount:rbac-test:app-sa"
+    mode: exact
+    expected: "yes"
+
+solution:
+  steps:
+    - "kubectl create namespace rbac-test --dry-run=client -o yaml | kubectl apply -f -"
+    - "kubectl create serviceaccount app-sa -n rbac-test"
+    - "kubectl create role pod-manager -n rbac-test --verb=get,list,create,delete --resource=pods"
+    - "kubectl create rolebinding app-sa-binding -n rbac-test --role=pod-manager --serviceaccount=rbac-test:app-sa"

@@ -1,0 +1,108 @@
+id: sc-canary
+domain: 2
+title: "Implement a Canary Deployment"
+difficulty: hard
+time_limit: 300
+namespace: canary-lab
+description: >
+  In the "canary-lab" namespace, implement a canary deployment pattern. Create a
+  Deployment named "app-stable" with 4 replicas using image "nginx:1.19" and labels
+  app=myapp and track=stable. Create a second Deployment named "app-canary" with 1
+  replica using image "nginx:1.21" and labels app=myapp and track=canary. Finally,
+  create a ClusterIP Service named "myapp" that selects pods with app=myapp (matching
+  both deployments), exposing port 80.
+
+hint: >
+  The service selector should only use app=myapp (the shared label), not track. This
+  causes the service to route traffic to both stable (4 pods) and canary (1 pod),
+  giving ~20% traffic to the canary. The selector in matchLabels must match exactly
+  what is in the pod template labels.
+
+validations:
+  - name: stable_deployment_exists
+    type: resource_exists
+    resource: deployment/app-stable
+    namespace: canary-lab
+
+  - name: canary_deployment_exists
+    type: resource_exists
+    resource: deployment/app-canary
+    namespace: canary-lab
+
+  - name: service_exists
+    type: resource_exists
+    resource: service/myapp
+    namespace: canary-lab
+
+  - name: stable_replicas
+    type: resource_field
+    resource: deployment/app-stable
+    namespace: canary-lab
+    jsonpath: "{.spec.replicas}"
+    expected: "4"
+
+  - name: canary_replicas
+    type: resource_field
+    resource: deployment/app-canary
+    namespace: canary-lab
+    jsonpath: "{.spec.replicas}"
+    expected: "1"
+
+solution:
+  steps:
+    - "kubectl create namespace canary-lab --dry-run=client -o yaml | kubectl apply -f -"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: app-stable
+        namespace: canary-lab
+      spec:
+        replicas: 4
+        selector:
+          matchLabels:
+            app: myapp
+            track: stable
+        template:
+          metadata:
+            labels:
+              app: myapp
+              track: stable
+          spec:
+            containers:
+            - name: nginx
+              image: nginx:1.19
+      ---
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: app-canary
+        namespace: canary-lab
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: myapp
+            track: canary
+        template:
+          metadata:
+            labels:
+              app: myapp
+              track: canary
+          spec:
+            containers:
+            - name: nginx
+              image: nginx:1.21
+      ---
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: myapp
+        namespace: canary-lab
+      spec:
+        selector:
+          app: myapp
+        ports:
+        - port: 80
+      EOF

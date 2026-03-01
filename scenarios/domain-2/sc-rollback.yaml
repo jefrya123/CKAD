@@ -1,0 +1,46 @@
+id: sc-rollback
+domain: 2
+title: "Rollback a Deployment to a Previous Revision"
+difficulty: medium
+time_limit: 120
+namespace: rollback-ns
+description: >
+  In the "rollback-ns" namespace, create a Deployment named "api-server" with 3
+  replicas using image "nginx:1.19". Update the image to "nginx:1.20", then update
+  again to "nginx:1.21". Use rollout history to inspect revisions, then rollback
+  to revision 1 (nginx:1.19). Verify the deployment is now running the original image.
+
+hint: >
+  Use kubectl rollout history to see available revisions and their details.
+  Use kubectl rollout undo --to-revision=1 to roll back to a specific revision.
+  Each kubectl set image creates a new revision.
+
+validations:
+  - name: deployment_exists
+    type: resource_exists
+    resource: deployment/api-server
+    namespace: rollback-ns
+
+  - name: replicas_count
+    type: resource_field
+    resource: deployment/api-server
+    namespace: rollback-ns
+    jsonpath: "{.spec.replicas}"
+    expected: "3"
+
+  - name: rolled_back_image
+    type: resource_field
+    resource: deployment/api-server
+    namespace: rollback-ns
+    jsonpath: "{.spec.template.spec.containers[0].image}"
+    expected: "nginx:1.19"
+
+solution:
+  steps:
+    - "kubectl create namespace rollback-ns --dry-run=client -o yaml | kubectl apply -f -"
+    - "kubectl create deploy api-server --image=nginx:1.19 --replicas=3 -n rollback-ns"
+    - "kubectl set image deploy/api-server nginx=nginx:1.20 -n rollback-ns"
+    - "kubectl set image deploy/api-server nginx=nginx:1.21 -n rollback-ns"
+    - "kubectl rollout history deploy/api-server -n rollback-ns"
+    - "kubectl rollout undo deploy/api-server --to-revision=1 -n rollback-ns"
+    - "kubectl rollout status deploy/api-server -n rollback-ns"

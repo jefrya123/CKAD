@@ -1,0 +1,79 @@
+id: sc-ingress
+domain: 5
+title: "Create an Ingress Resource with Path-Based Routing"
+difficulty: medium
+time_limit: 240
+namespace: ingress-ns
+description: >
+  In the "ingress-ns" namespace, create two deployments: "api" (image: nginx:1.25) and
+  "web" (image: httpd:2.4). Expose each as a ClusterIP service ("api-svc" and "web-svc")
+  on port 80. Create an Ingress named "app-ingress" using ingressClassName "nginx" with
+  host "myapp.example.com", routing path "/api" to "api-svc:80" and path "/web" to
+  "web-svc:80".
+
+hint: >
+  Use "kubectl create ingress app-ingress --rule=myapp.example.com/api=api-svc:80
+  --rule=myapp.example.com/web=web-svc:80 --class=nginx" or write a YAML manifest.
+
+validations:
+  - name: ingress_exists
+    type: resource_exists
+    resource: ingress/app-ingress
+    namespace: ingress-ns
+
+  - name: ingress_host
+    type: resource_field
+    resource: ingress/app-ingress
+    namespace: ingress-ns
+    jsonpath: "{.spec.rules[0].host}"
+    expected: "myapp.example.com"
+
+  - name: ingress_class
+    type: resource_field
+    resource: ingress/app-ingress
+    namespace: ingress-ns
+    jsonpath: "{.spec.ingressClassName}"
+    expected: "nginx"
+
+  - name: api_service_exists
+    type: resource_exists
+    resource: service/api-svc
+    namespace: ingress-ns
+
+solution:
+  steps:
+    - "kubectl create namespace ingress-ns --dry-run=client -o yaml | kubectl apply -f -"
+    - "kubectl create deployment api --image=nginx:1.25 -n ingress-ns"
+    - "kubectl expose deployment api --name=api-svc --port=80 -n ingress-ns"
+    - "kubectl create deployment web --image=httpd:2.4 -n ingress-ns"
+    - "kubectl expose deployment web --name=web-svc --port=80 -n ingress-ns"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: app-ingress
+        namespace: ingress-ns
+        annotations:
+          nginx.ingress.kubernetes.io/rewrite-target: /
+      spec:
+        ingressClassName: nginx
+        rules:
+          - host: myapp.example.com
+            http:
+              paths:
+                - path: /api
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: api-svc
+                      port:
+                        number: 80
+                - path: /web
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: web-svc
+                      port:
+                        number: 80
+      EOF

@@ -1,0 +1,73 @@
+id: sc-hpa
+domain: 2
+title: "Create a Horizontal Pod Autoscaler"
+difficulty: medium
+time_limit: 240
+namespace: autoscale-ns
+description: >
+  In the "autoscale-ns" namespace, create a Deployment named "cpu-app" with 1 replica
+  using the "nginx" image. Set CPU resource requests to 50m and memory requests to 64Mi
+  on the container. Then create a Horizontal Pod Autoscaler (HPA) for "cpu-app" that
+  maintains between 2 and 8 replicas, targeting 60% average CPU utilization. Verify
+  the HPA is created and the deployment scales to at least the minimum replica count.
+
+hint: >
+  The deployment must have CPU resource requests for the HPA to function. Use
+  kubectl autoscale deployment to create the HPA imperatively. The HPA will scale
+  up/down automatically based on CPU utilization relative to the target percentage.
+
+validations:
+  - name: deployment_exists
+    type: resource_exists
+    resource: deployment/cpu-app
+    namespace: autoscale-ns
+
+  - name: hpa_exists
+    type: resource_exists
+    resource: horizontalpodautoscaler/cpu-app
+    namespace: autoscale-ns
+
+  - name: hpa_min_replicas
+    type: resource_field
+    resource: horizontalpodautoscaler/cpu-app
+    namespace: autoscale-ns
+    jsonpath: "{.spec.minReplicas}"
+    expected: "2"
+
+  - name: hpa_max_replicas
+    type: resource_field
+    resource: horizontalpodautoscaler/cpu-app
+    namespace: autoscale-ns
+    jsonpath: "{.spec.maxReplicas}"
+    expected: "8"
+
+solution:
+  steps:
+    - "kubectl create namespace autoscale-ns --dry-run=client -o yaml | kubectl apply -f -"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: cpu-app
+        namespace: autoscale-ns
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: cpu-app
+        template:
+          metadata:
+            labels:
+              app: cpu-app
+          spec:
+            containers:
+            - name: nginx
+              image: nginx
+              resources:
+                requests:
+                  cpu: "50m"
+                  memory: "64Mi"
+      EOF
+    - "kubectl autoscale deploy cpu-app --min=2 --max=8 --cpu-percent=60 -n autoscale-ns"
+    - "kubectl get hpa cpu-app -n autoscale-ns"

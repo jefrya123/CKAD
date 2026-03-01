@@ -1,0 +1,84 @@
+id: learn-network-policies
+domain: 5
+title: "NetworkPolicy: Default Deny and Allow"
+difficulty: medium
+time_limit: 300
+namespace: learn-netpol
+learn_intro: >
+  By default all pods can reach all other pods. NetworkPolicies restrict this
+  using label selectors. They only work if your cluster's CNI supports them
+  (Calico, Cilium yes; Flannel no). Default deny pattern: empty podSelector {}
+  matches all pods; policyTypes with no rules means deny all. Then add
+  specific allow rules on top. Key distinction: when selectors within the same
+  from[] item are ANDed (pod must match both), when they are separate from[]
+  items they are ORed. When you deny all egress, DNS (port 53) is also blocked
+  — always add an egress rule allowing port 53 UDP/TCP or Service names will
+  not resolve.
+description: >
+  Create a namespace "learn-netpol". In it, create deployments "frontend"
+  (nginx, 1 replica, label app=frontend) and "backend" (nginx, 1 replica,
+  label app=backend). Expose each as a Service on port 80. Apply a default
+  deny-all ingress NetworkPolicy. Then apply a NetworkPolicy that allows only
+  frontend pods to reach backend on port 80. Verify the traffic flow.
+hint: >
+  Default deny: spec.podSelector: {}, policyTypes: [Ingress], no ingress rules.
+  Allow rule: spec.podSelector.matchLabels.app: backend, policyTypes: [Ingress],
+  ingress: [{from: [{podSelector: {matchLabels: {app: frontend}}}],
+  ports: [{port: 80}]}]. Test blocked traffic times out. Test allowed traffic
+  returns nginx response.
+validations:
+  - name: netpol_deny_exists
+    type: resource_exists
+    resource: networkpolicy/deny-all
+    namespace: learn-netpol
+  - name: frontend_deploy_exists
+    type: resource_exists
+    resource: deployment/frontend
+    namespace: learn-netpol
+  - name: backend_deploy_exists
+    type: resource_exists
+    resource: deployment/backend
+    namespace: learn-netpol
+solution:
+  steps:
+    - "kubectl create ns learn-netpol --dry-run=client -o yaml | kubectl apply -f -"
+    - "kubectl create deployment frontend --image=nginx --replicas=1 -n learn-netpol"
+    - "kubectl create deployment backend --image=nginx --replicas=1 -n learn-netpol"
+    - "kubectl expose deployment frontend --port=80 -n learn-netpol"
+    - "kubectl expose deployment backend --port=80 -n learn-netpol"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: deny-all
+        namespace: learn-netpol
+      spec:
+        podSelector: {}
+        policyTypes:
+        - Ingress
+      EOF
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: allow-frontend-to-backend
+        namespace: learn-netpol
+      spec:
+        podSelector:
+          matchLabels:
+            app: backend
+        policyTypes:
+        - Ingress
+        ingress:
+        - from:
+          - podSelector:
+              matchLabels:
+                app: frontend
+          ports:
+          - port: 80
+      EOF
+    - "kubectl get networkpolicies -n learn-netpol"
+    - "FRONTEND=$(kubectl get pod -n learn-netpol -l app=frontend -o jsonpath='{.items[0].metadata.name}')"
+    - "kubectl exec -n learn-netpol $FRONTEND -- wget -qO- --timeout=5 http://backend"

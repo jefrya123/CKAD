@@ -1,0 +1,16 @@
+id: test-minimal
+domain: 1
+title: "Run a minimal pod"
+difficulty: easy
+time_limit: 60
+description: "Create a simple pod named nginx running the nginx image."
+
+validations:
+  - name: pod_exists
+    type: resource_exists
+    resource: pod/nginx
+    namespace: drill-test-minimal
+
+solution:
+  steps:
+    - "kubectl run nginx --image=nginx"

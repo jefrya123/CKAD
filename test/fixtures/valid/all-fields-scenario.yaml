@@ -1,0 +1,19 @@
+id: all-fields-test
+domain: 1
+title: "All Fields Test Scenario"
+difficulty: easy
+time_limit: 120
+namespace: test-all-fields
+description: "A scenario with every possible field populated."
+learn_intro: |
+  This is concept text for the learn mode.
+hint: "Try using kubectl apply."
+tags: []
+setup:
+  - "kubectl create configmap test-cm --from-literal=key=value -n test-all-fields"
+validations:
+  - type: resource_exists
+    resource: configmap/test-cm
+solution:
+  steps:
+    - "kubectl create configmap test-cm --from-literal=key=value -n test-all-fields"

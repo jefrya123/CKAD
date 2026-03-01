@@ -1,0 +1,73 @@
+id: debug-volume-mount
+domain: 1
+title: "Fix: Missing Volume Mount"
+difficulty: easy
+time_limit: 120
+namespace: debug-lab03
+description: >
+  A pod named lab03-pod references a ConfigMap volume but cannot access the
+  configuration file at /config/app.conf. The pod starts but the command fails.
+  Diagnose the issue and fix the pod.
+
+setup:
+  manifest: |
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: lab03-config
+      namespace: debug-lab03
+    data:
+      app.conf: "setting=value"
+    ---
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: lab03-pod
+      namespace: debug-lab03
+    spec:
+      containers:
+      - name: app
+        image: busybox
+        command: ["sh", "-c", "cat /config/app.conf; sleep 3600"]
+      volumes:
+      - name: config
+        configMap:
+          name: lab03-config
+
+hint: >
+  The volume is declared at the pod level but not mounted into the container.
+  Check kubectl describe pod lab03-pod -n debug-lab03 and look at the Volumes
+  and Mounts sections. The container needs a volumeMounts entry.
+
+validations:
+  - name: pod_running
+    type: container_running
+    pod: lab03-pod
+    namespace: debug-lab03
+    container: app
+
+solution:
+  steps:
+    - "kubectl describe pod lab03-pod -n debug-lab03 | grep -A5 Mounts"
+    - "kubectl get pod lab03-pod -n debug-lab03 -o yaml | grep -A5 volumes"
+    - "kubectl delete pod lab03-pod -n debug-lab03"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: lab03-pod
+        namespace: debug-lab03
+      spec:
+        containers:
+        - name: app
+          image: busybox
+          command: ["sh", "-c", "cat /config/app.conf; sleep 3600"]
+          volumeMounts:
+          - name: config
+            mountPath: /config
+        volumes:
+        - name: config
+          configMap:
+            name: lab03-config
+      EOF

@@ -1,0 +1,74 @@
+id: sc-pod-with-pvc
+domain: 1
+title: "Create a PersistentVolumeClaim and Mount It in a Pod"
+difficulty: medium
+time_limit: 180
+namespace: storage-team
+description: >
+  In the "storage-team" namespace, create a PersistentVolumeClaim named "app-storage"
+  requesting 200Mi of storage with ReadWriteOnce access mode. Then create a Pod named
+  "storage-pod" using the "nginx" image that mounts the PVC at "/data" using a volume
+  named "data".
+
+hint: >
+  Create the PVC first, then create the Pod. In the Pod spec, define a volume using
+  persistentVolumeClaim.claimName referencing "app-storage", then mount it with
+  volumeMounts using the mount path /data.
+
+validations:
+  - name: pvc_exists
+    type: resource_exists
+    resource: persistentvolumeclaim/app-storage
+    namespace: storage-team
+
+  - name: pod_exists
+    type: resource_exists
+    resource: pod/storage-pod
+    namespace: storage-team
+
+  - name: pod_running
+    type: container_running
+    pod: storage-pod
+    namespace: storage-team
+
+  - name: volume_mounted
+    type: volume_mount
+    pod: storage-pod
+    container: nginx
+    namespace: storage-team
+    mount_path: /data
+
+solution:
+  steps:
+    - "kubectl create namespace storage-team --dry-run=client -o yaml | kubectl apply -f -"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: app-storage
+        namespace: storage-team
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 200Mi
+      ---
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: storage-pod
+        namespace: storage-team
+      spec:
+        containers:
+        - name: nginx
+          image: nginx
+          volumeMounts:
+          - name: data
+            mountPath: /data
+        volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: app-storage
+      EOF

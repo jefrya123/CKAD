@@ -1,0 +1,116 @@
+id: debug-multi-bug
+domain: 5
+title: "Fix: Multiple Bugs in One Manifest"
+difficulty: hard
+time_limit: 600
+namespace: debug-lab12
+description: >
+  A pod named lab12-app has been deployed with multiple bugs. The pod fails to
+  start or run correctly. Find and fix ALL of the following issues:
+  1. Wrong image name (typo)
+  2. Incorrect containerPort
+  3. Readiness probe checking wrong port
+  4. Volume name mismatch between volumeMount and volumes
+  5. Missing ConfigMap referenced by the pod
+  Diagnose systematically and fix every bug.
+
+setup:
+  manifest: |
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: lab12-app
+      namespace: debug-lab12
+      labels:
+        app: lab12
+    spec:
+      containers:
+      - name: web
+        image: ngnix:latest
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 3000
+          initialDelaySeconds: 5
+        env:
+        - name: CONFIG
+          valueFrom:
+            configMapKeyRef:
+              name: lab12-config
+              key: setting
+        volumeMounts:
+        - name: data
+          mountPath: /data
+      volumes:
+      - name: storage
+        emptyDir: {}
+
+hint: >
+  List the bugs systematically:
+  1. kubectl describe pod lab12-app to see image pull errors and probe failures
+  2. Check image name carefully (is ngnix correct?)
+  3. What port does nginx actually serve on? (not 8080)
+  4. The readiness probe checks /ready on port 3000 — does nginx have that?
+  5. kubectl get configmap -n debug-lab12 — does lab12-config exist?
+  6. Compare volumeMounts name with volumes name — do they match?
+  Fix each bug, then delete and recreate the pod.
+
+validations:
+  - name: configmap_exists
+    type: resource_exists
+    resource: configmap/lab12-config
+    namespace: debug-lab12
+  - name: pod_running
+    type: container_running
+    pod: lab12-app
+    namespace: debug-lab12
+    container: web
+
+solution:
+  steps:
+    - "kubectl describe pod lab12-app -n debug-lab12  # Read ALL events and conditions"
+    - "kubectl get configmap -n debug-lab12  # Bug 5: lab12-config missing"
+    - "kubectl create configmap lab12-config --from-literal=setting=value -n debug-lab12"
+    - "kubectl get pod lab12-app -n debug-lab12 -o yaml | grep -E 'image:|containerPort:|port:|name:'"
+    - "# Identified bugs:"
+    - "# Bug 1: image: ngnix:latest → nginx:latest"
+    - "# Bug 2: containerPort: 8080 → 80 (nginx default)"
+    - "# Bug 3: readinessProbe port: 3000 → 80, path: /ready → /"
+    - "# Bug 4: volumeMount name 'data' != volume name 'storage'"
+    - "kubectl delete pod lab12-app -n debug-lab12"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: lab12-app
+        namespace: debug-lab12
+        labels:
+          app: lab12
+      spec:
+        containers:
+        - name: web
+          image: nginx:latest
+          ports:
+          - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+          env:
+          - name: CONFIG
+            valueFrom:
+              configMapKeyRef:
+                name: lab12-config
+                key: setting
+          volumeMounts:
+          - name: data
+            mountPath: /data
+        volumes:
+        - name: data
+          emptyDir: {}
+      EOF
+    - "kubectl get pod lab12-app -n debug-lab12  # Verify Running"

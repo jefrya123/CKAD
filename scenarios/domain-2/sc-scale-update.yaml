@@ -1,0 +1,50 @@
+id: sc-scale-update
+domain: 2
+title: "Scale a Deployment and Update Its Image"
+difficulty: easy
+time_limit: 120
+namespace: frontend-ns
+description: >
+  In the "frontend-ns" namespace, create a Deployment named "frontend" with 2 replicas
+  using image "httpd:2.4". Scale the deployment to 5 replicas, then update the image
+  to "httpd:2.4-alpine". Verify the rollout completes and all 5 pods are running the
+  alpine image.
+
+hint: >
+  Use kubectl scale to change the replica count and kubectl set image to update the
+  container image. Run kubectl rollout status to confirm the update has finished.
+
+validations:
+  - name: deployment_exists
+    type: resource_exists
+    resource: deployment/frontend
+    namespace: frontend-ns
+
+  - name: replicas_count
+    type: resource_field
+    resource: deployment/frontend
+    namespace: frontend-ns
+    jsonpath: "{.spec.replicas}"
+    expected: "5"
+
+  - name: updated_image
+    type: resource_field
+    resource: deployment/frontend
+    namespace: frontend-ns
+    jsonpath: "{.spec.template.spec.containers[0].image}"
+    expected: "httpd:2.4-alpine"
+
+  - name: pods_running
+    type: label_selector
+    resource_type: pod
+    namespace: frontend-ns
+    selector: "app=frontend"
+    min_count: 5
+
+solution:
+  steps:
+    - "kubectl create namespace frontend-ns --dry-run=client -o yaml | kubectl apply -f -"
+    - "kubectl create deploy frontend --image=httpd:2.4 --replicas=2 -n frontend-ns"
+    - "kubectl scale deploy frontend --replicas=5 -n frontend-ns"
+    - "kubectl set image deploy/frontend httpd=httpd:2.4-alpine -n frontend-ns"
+    - "kubectl rollout status deploy/frontend -n frontend-ns"

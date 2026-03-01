@@ -1,0 +1,68 @@
+id: debug-api-version
+domain: 2
+title: "Fix: Wrong API Version for Ingress"
+difficulty: medium
+time_limit: 180
+namespace: debug-lab04
+description: >
+  An Ingress resource named lab04-ingress was created using a deprecated API version
+  and old backend format. The cluster rejects this manifest. Update the Ingress to use
+  the correct API version and modern backend format.
+
+setup:
+  manifest: |
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: web-svc
+      namespace: debug-lab04
+    spec:
+      selector:
+        app: web
+      ports:
+      - port: 80
+
+hint: >
+  The Ingress uses extensions/v1beta1 which was removed in Kubernetes 1.22.
+  The correct API is networking.k8s.io/v1. The backend format also changed —
+  use service.name and service.port.number instead of serviceName/servicePort.
+  Also add pathType: Prefix.
+
+validations:
+  - name: ingress_exists
+    type: resource_exists
+    resource: ingress/lab04-ingress
+    namespace: debug-lab04
+  - name: correct_api_version
+    type: resource_field
+    resource: ingress/lab04-ingress
+    namespace: debug-lab04
+    field: ".apiVersion"
+    expected: "networking.k8s.io/v1"
+
+solution:
+  steps:
+    - "kubectl get ingress lab04-ingress -n debug-lab04 -o yaml | grep apiVersion"
+    - "kubectl api-resources | grep ingress"
+    - "kubectl api-versions | grep networking"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: lab04-ingress
+        namespace: debug-lab04
+      spec:
+        ingressClassName: nginx
+        rules:
+        - host: app.example.com
+          http:
+            paths:
+            - path: /
+              pathType: Prefix
+              backend:
+                service:
+                  name: web-svc
+                  port:
+                    number: 80
+      EOF

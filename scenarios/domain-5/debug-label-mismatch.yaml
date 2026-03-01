@@ -1,0 +1,56 @@
+id: debug-label-mismatch
+domain: 5
+title: "Fix: Service Label Selector Mismatch"
+difficulty: medium
+time_limit: 180
+namespace: debug-lab05
+description: >
+  A pod named lab05-pod is running but the service lab05-svc has no endpoints.
+  Traffic cannot reach the pod. Diagnose the selector mismatch and fix the service.
+
+setup:
+  manifest: |
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: lab05-pod
+      namespace: debug-lab05
+      labels:
+        app: backend
+        tier: api
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: lab05-svc
+      namespace: debug-lab05
+    spec:
+      selector:
+        app: frontend
+      ports:
+      - port: 80
+
+hint: >
+  Check kubectl get endpoints lab05-svc -n debug-lab05. If it shows <none>,
+  the selector doesn't match any pod labels. Compare the service selector
+  with the pod's actual labels using kubectl get pod lab05-pod -n debug-lab05 --show-labels.
+
+validations:
+  - name: endpoints_exist
+    type: resource_field
+    resource: service/lab05-svc
+    namespace: debug-lab05
+    field: ".spec.selector.app"
+    expected: "backend"
+
+solution:
+  steps:
+    - "kubectl get endpoints lab05-svc -n debug-lab05"
+    - "kubectl get pod lab05-pod -n debug-lab05 --show-labels"
+    - "kubectl describe service lab05-svc -n debug-lab05 | grep Selector"
+    - "kubectl patch service lab05-svc -n debug-lab05 --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/selector/app\", \"value\": \"backend\"}]'"
+    - "kubectl get endpoints lab05-svc -n debug-lab05  # Verify endpoints now show the pod IP"

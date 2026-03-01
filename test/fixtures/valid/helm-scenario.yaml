@@ -1,0 +1,19 @@
+id: test-helm
+domain: 3
+title: "Deploy with Helm"
+difficulty: medium
+time_limit: 120
+description: "Install a Helm chart and verify the deployment."
+tags:
+  - helm
+
+validations:
+  - name: release_exists
+    type: command_output
+    command: "helm list -n drill-test-helm"
+    mode: contains
+    expected: "my-release"
+
+solution:
+  steps:
+    - "helm install my-release bitnami/nginx -n drill-test-helm"

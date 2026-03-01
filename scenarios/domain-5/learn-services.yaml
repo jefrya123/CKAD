@@ -1,0 +1,48 @@
+id: learn-services
+domain: 5
+title: "Services: ClusterIP and NodePort"
+difficulty: easy
+time_limit: 180
+namespace: learn-svc
+learn_intro: >
+  Pods are ephemeral — they get new IPs on every restart. A Service provides a
+  stable DNS name and virtual IP that automatically routes to whichever pods
+  currently match its label selector. ClusterIP (default) is internal-only,
+  used for pod-to-pod communication. NodePort exposes the Service on a static
+  port (30000-32767) on every node. Port terminology: port (the Service listens
+  here), targetPort (forwarded to this port on the pod), nodePort (NodePort
+  type only). Create fast: kubectl expose deploy name --port=80 --type=ClusterIP.
+  Test from inside the cluster: kubectl run tmp --image=busybox --rm -it
+  --restart=Never -- wget -qO- http://svc-name.
+description: >
+  Create a Deployment named "backend" in the learn-svc namespace using nginx
+  with 2 replicas. Expose it as a ClusterIP Service named "backend-svc" on
+  port 80. Verify connectivity from a temporary pod using wget.
+hint: >
+  kubectl create deployment backend --image=nginx --replicas=2 -n learn-svc,
+  then kubectl expose deployment backend --name=backend-svc --port=80
+  -n learn-svc. Test with: kubectl run tmp --image=busybox --rm -it
+  --restart=Never -n learn-svc -- wget -qO- http://backend-svc.
+validations:
+  - name: deployment_exists
+    type: resource_exists
+    resource: deployment/backend
+    namespace: learn-svc
+  - name: service_exists
+    type: resource_exists
+    resource: service/backend-svc
+    namespace: learn-svc
+  - name: service_type
+    type: resource_field
+    resource: service/backend-svc
+    namespace: learn-svc
+    jsonpath: "{.spec.type}"
+    expected: "ClusterIP"
+solution:
+  steps:
+    - "kubectl create ns learn-svc --dry-run=client -o yaml | kubectl apply -f -"
+    - "kubectl create deployment backend --image=nginx --replicas=2 -n learn-svc"
+    - "kubectl expose deployment backend --name=backend-svc --port=80 -n learn-svc"
+    - "kubectl get service backend-svc -n learn-svc"
+    - "kubectl get endpoints backend-svc -n learn-svc"
+    - "kubectl run tmp --image=busybox --rm -it --restart=Never -n learn-svc -- wget -qO- http://backend-svc"

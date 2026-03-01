@@ -1,0 +1,39 @@
+id: learn-logging
+domain: 3
+title: "Container Logging with kubectl logs"
+difficulty: easy
+time_limit: 180
+namespace: learn-logs
+learn_intro: >
+  Kubernetes captures everything a container writes to stdout and stderr.
+  kubectl logs reads those captured streams. Key flags to know:
+  -c container (target specific container in multi-container pod),
+  --previous (logs from crashed container before current run),
+  -f (follow/stream logs live), --tail=N (last N lines),
+  --since=1h or --since=5m (time-based filter),
+  --all-containers (all containers in the pod),
+  -l app=web (logs from all pods matching a label selector).
+  Pod logs disappear when the pod is deleted — use --previous for the last
+  crashed run, but once the pod is gone the logs are gone.
+description: >
+  Create a pod named "log-gen" in the learn-logs namespace using busybox that
+  prints "Log line N: <date>" every 2 seconds in a loop. Use kubectl logs to
+  view the last 5 lines, then view logs from only the last 15 seconds.
+hint: >
+  kubectl run log-gen --image=busybox -n learn-logs -- /bin/sh -c
+  'i=0; while true; do echo "Log line $i: $(date)"; i=$((i+1)); sleep 2; done'.
+  Then: kubectl logs log-gen -n learn-logs --tail=5 and
+  kubectl logs log-gen -n learn-logs --since=15s.
+validations:
+  - name: pod_exists
+    type: resource_exists
+    resource: pod/log-gen
+    namespace: learn-logs
+solution:
+  steps:
+    - "kubectl create ns learn-logs --dry-run=client -o yaml | kubectl apply -f -"
+    - "kubectl run log-gen --image=busybox -n learn-logs -- /bin/sh -c 'i=0; while true; do echo \"Log line $i: $(date)\"; i=$((i+1)); sleep 2; done'"
+    - "sleep 10"
+    - "kubectl logs log-gen -n learn-logs --tail=5"
+    - "kubectl logs log-gen -n learn-logs --since=15s"
+    - "kubectl logs log-gen -n learn-logs -f  # Ctrl+C to stop following"

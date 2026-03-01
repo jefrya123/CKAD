@@ -1,0 +1,58 @@
+id: learn-debugging
+domain: 3
+title: "Debugging Failing Pods"
+difficulty: medium
+time_limit: 240
+namespace: learn-debug
+learn_intro: >
+  When a pod is not working, use this systematic triage sequence: (1) kubectl
+  get pod name — check the status; (2) kubectl describe pod name — check Events
+  section at the bottom for scheduling, image pull, and probe failures;
+  (3) kubectl logs name — check what the app said; (4) kubectl exec -it name
+  -- /bin/sh — poke around inside. Common failure states: ImagePullBackOff
+  (wrong image name or tag), CrashLoopBackOff (app error, bad command, missing
+  config), Pending (insufficient resources or unschedulable), Running but not
+  Ready (readiness probe failing). For containers without debugging tools:
+  kubectl debug pod -it --image=busybox.
+description: >
+  A pod named "broken" will be deployed to the learn-debug namespace with a
+  deliberately bad image tag. Diagnose the failure using kubectl describe, fix
+  the image to use nginx:latest, and verify the pod runs.
+hint: >
+  Apply the broken pod manifest first. Run kubectl get pod broken -n learn-debug
+  to see ImagePullBackOff. Run kubectl describe pod broken -n learn-debug and
+  read the Events section. Fix with: kubectl set image pod/broken
+  broken=nginx:latest -n learn-debug, or delete and recreate with the correct
+  image.
+validations:
+  - name: pod_exists
+    type: resource_exists
+    resource: pod/broken
+    namespace: learn-debug
+  - name: pod_running
+    type: resource_field
+    resource: pod/broken
+    namespace: learn-debug
+    jsonpath: "{.status.phase}"
+    expected: "Running"
+solution:
+  steps:
+    - "kubectl create ns learn-debug --dry-run=client -o yaml | kubectl apply -f -"
+    - |
+      # Deploy the broken pod first to see the failure
+      kubectl apply -n learn-debug -f - <<EOF
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: broken
+        namespace: learn-debug
+      spec:
+        containers:
+        - name: broken
+          image: nginx:nonexistent
+      EOF
+    - "kubectl get pod broken -n learn-debug"
+    - "kubectl describe pod broken -n learn-debug | tail -20"
+    - "kubectl delete pod broken -n learn-debug"
+    - "kubectl run broken --image=nginx:latest -n learn-debug"
+    - "kubectl get pod broken -n learn-debug"

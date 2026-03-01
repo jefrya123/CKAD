@@ -1,0 +1,66 @@
+id: learn-init-containers
+domain: 1
+title: "Init Containers"
+difficulty: easy
+time_limit: 180
+namespace: learn-init
+learn_intro: >
+  Init containers run before your regular containers start, in order, and must
+  exit 0 before the next one begins. They are defined in spec.initContainers
+  (same schema as regular containers). If any init container fails the pod
+  restarts it. Init containers share volumes with regular containers — this is
+  how they pass data: init writes a file to a shared emptyDir, the app reads
+  it. Watch progress with kubectl get pod -w; you will see Init:0/1 then
+  PodInitializing then Running.
+description: >
+  Create a pod named "init-web" in the learn-init namespace. Add an init
+  container named "setup" using busybox that writes "<h1>Hello from init</h1>"
+  to /work/index.html. Add a main container named "nginx" using nginx that
+  mounts the same volume at /usr/share/nginx/html. Use an emptyDir volume
+  named "web".
+hint: >
+  Use spec.initContainers for the busybox setup container with
+  command: ['sh', '-c', 'echo "<h1>Hello from init</h1>" > /work/index.html'].
+  Both containers mount the same volume named "web" but the init container
+  mounts at /work, the nginx container at /usr/share/nginx/html.
+validations:
+  - name: pod_exists
+    type: resource_exists
+    resource: pod/init-web
+    namespace: learn-init
+  - name: nginx_running
+    type: container_image
+    pod: init-web
+    container: nginx
+    namespace: learn-init
+    expected: "nginx"
+solution:
+  steps:
+    - "kubectl create ns learn-init --dry-run=client -o yaml | kubectl apply -f -"
+    - |
+      kubectl apply -n learn-init -f - <<EOF
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: init-web
+        namespace: learn-init
+      spec:
+        initContainers:
+        - name: setup
+          image: busybox
+          command: ['sh', '-c', 'echo "<h1>Hello from init</h1>" > /work/index.html']
+          volumeMounts:
+          - name: web
+            mountPath: /work
+        containers:
+        - name: nginx
+          image: nginx
+          volumeMounts:
+          - name: web
+            mountPath: /usr/share/nginx/html
+        volumes:
+        - name: web
+          emptyDir: {}
+      EOF
+    - "kubectl get pod init-web -n learn-init -w"
+    - "kubectl exec init-web -n learn-init -- cat /usr/share/nginx/html/index.html"

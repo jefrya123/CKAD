@@ -1,0 +1,80 @@
+id: sc-readiness-probe
+domain: 3
+title: "Configure Liveness, Readiness, and Startup Probes"
+difficulty: medium
+time_limit: 240
+namespace: probe-lab
+description: >
+  In the "probe-lab" namespace, create a Pod named "probe-pod" using the "nginx"
+  image. Configure three probes: a liveness probe checking HTTP GET "/healthz" on
+  port 80 with periodSeconds=10; a readiness probe checking HTTP GET "/ready" on
+  port 80 with initialDelaySeconds=5 and periodSeconds=5; and a startup probe
+  checking HTTP GET "/" on port 80 with failureThreshold=30 and periodSeconds=10.
+
+hint: >
+  All three probes go at the same indentation level under the container spec.
+  The startup probe must succeed before liveness and readiness probes begin.
+  A high failureThreshold on the startup probe gives slow-starting containers
+  enough time without failing liveness checks prematurely.
+
+validations:
+  - name: pod_exists
+    type: resource_exists
+    resource: pod/probe-pod
+    namespace: probe-lab
+
+  - name: liveness_probe_path
+    type: resource_field
+    resource: pod/probe-pod
+    namespace: probe-lab
+    jsonpath: "{.spec.containers[0].livenessProbe.httpGet.path}"
+    expected: "/healthz"
+
+  - name: readiness_probe_path
+    type: resource_field
+    resource: pod/probe-pod
+    namespace: probe-lab
+    jsonpath: "{.spec.containers[0].readinessProbe.httpGet.path}"
+    expected: "/ready"
+
+  - name: startup_failure_threshold
+    type: resource_field
+    resource: pod/probe-pod
+    namespace: probe-lab
+    jsonpath: "{.spec.containers[0].startupProbe.failureThreshold}"
+    expected: "30"
+
+solution:
+  steps:
+    - "kubectl create namespace probe-lab --dry-run=client -o yaml | kubectl apply -f -"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: probe-pod
+        namespace: probe-lab
+      spec:
+        containers:
+        - name: nginx
+          image: nginx
+          ports:
+          - containerPort: 80
+          startupProbe:
+            httpGet:
+              path: /
+              port: 80
+            failureThreshold: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      EOF

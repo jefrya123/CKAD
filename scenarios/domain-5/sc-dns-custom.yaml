@@ -1,0 +1,81 @@
+id: sc-dns-custom
+domain: 5
+title: "DNS Resolution and Custom DNS Configuration"
+difficulty: medium
+time_limit: 300
+namespace: dns-lab
+description: >
+  In the "dns-lab" namespace, create a deployment named "dns-app" with 1 replica using
+  the "nginx" image and expose it as a ClusterIP service named "dns-svc" on port 80.
+  Then create a pod named "dns-tester" using "busybox" with command ["sleep", "3600"]
+  that has custom DNS configuration: set dnsPolicy to "None" and provide a dnsConfig
+  with nameservers ["8.8.8.8", "8.8.4.4"] and searches ["dns-lab.svc.cluster.local",
+  "svc.cluster.local", "cluster.local"]. This demonstrates how to override pod DNS settings.
+
+hint: >
+  Use dnsPolicy: None with dnsConfig to fully control DNS settings in a pod.
+  The dnsConfig.nameservers list sets custom DNS servers.
+  The dnsConfig.searches list sets the DNS search domains.
+  Without dnsPolicy: None, you cannot use dnsConfig.nameservers.
+
+validations:
+  - name: deployment_exists
+    type: resource_exists
+    resource: deployment/dns-app
+    namespace: dns-lab
+
+  - name: service_exists
+    type: resource_exists
+    resource: service/dns-svc
+    namespace: dns-lab
+
+  - name: dns_tester_exists
+    type: resource_exists
+    resource: pod/dns-tester
+    namespace: dns-lab
+
+  - name: dns_policy_none
+    type: command_output
+    command: "kubectl get pod dns-tester -n dns-lab -o jsonpath='{.spec.dnsPolicy}'"
+    mode: contains
+    expected: "None"
+
+  - name: custom_nameserver
+    type: command_output
+    command: "kubectl get pod dns-tester -n dns-lab -o jsonpath='{.spec.dnsConfig.nameservers[0]}'"
+    mode: contains
+    expected: "8.8.8.8"
+
+  - name: custom_search_domain
+    type: command_output
+    command: "kubectl get pod dns-tester -n dns-lab -o jsonpath='{.spec.dnsConfig.searches[0]}'"
+    mode: contains
+    expected: "dns-lab.svc.cluster.local"
+
+solution:
+  steps:
+    - "kubectl create namespace dns-lab --dry-run=client -o yaml | kubectl apply -f -"
+    - "kubectl create deployment dns-app --image=nginx --replicas=1 -n dns-lab"
+    - "kubectl expose deployment dns-app --name=dns-svc --port=80 -n dns-lab"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: dns-tester
+        namespace: dns-lab
+      spec:
+        dnsPolicy: "None"
+        dnsConfig:
+          nameservers:
+          - 8.8.8.8
+          - 8.8.4.4
+          searches:
+          - dns-lab.svc.cluster.local
+          - svc.cluster.local
+          - cluster.local
+        containers:
+        - name: app
+          image: busybox
+          command: ["sleep", "3600"]
+      EOF

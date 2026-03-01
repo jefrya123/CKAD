@@ -1,0 +1,50 @@
+id: sc-netpol-deny
+domain: 5
+title: "Deny All Ingress with a NetworkPolicy"
+difficulty: hard
+time_limit: 300
+namespace: secure-ns
+description: >
+  In the "secure-ns" namespace, create a NetworkPolicy named "deny-all-ingress" that
+  selects all pods (empty podSelector) and denies all ingress traffic. This is the
+  baseline security posture — no pod in the namespace should accept incoming connections
+  unless explicitly allowed by another policy.
+
+hint: >
+  A deny-all NetworkPolicy has an empty podSelector (matches all pods) and an empty
+  ingress array (no rules = no ingress allowed). The policyTypes must include "Ingress".
+
+validations:
+  - name: networkpolicy_exists
+    type: resource_exists
+    resource: networkpolicy/deny-all-ingress
+    namespace: secure-ns
+
+  - name: policy_type_ingress
+    type: resource_field
+    resource: networkpolicy/deny-all-ingress
+    namespace: secure-ns
+    jsonpath: "{.spec.policyTypes[0]}"
+    expected: "Ingress"
+
+  - name: empty_pod_selector
+    type: command_output
+    command: "kubectl get networkpolicy deny-all-ingress -n secure-ns -o jsonpath='{.spec.podSelector}'"
+    mode: contains
+    expected: "{}"
+
+solution:
+  steps:
+    - "kubectl create namespace secure-ns --dry-run=client -o yaml | kubectl apply -f -"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      metadata:
+        name: deny-all-ingress
+        namespace: secure-ns
+      spec:
+        podSelector: {}
+        policyTypes:
+          - Ingress
+      EOF
