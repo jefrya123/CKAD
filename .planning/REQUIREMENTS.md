@@ -85,7 +85,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **LERN-01**: `ckad-drill learn` lists learn-mode scenarios by domain with completion status
 - [x] **LERN-02**: `ckad-drill learn --domain N` presents lessons in progressive order (easy first)
 - [x] **LERN-03**: Concept text displayed before the task description
-- [ ] **LERN-04**: Completing a lesson offers the next lesson in the domain
+- [x] **LERN-04**: Completing a lesson offers the next lesson in the domain
 - [x] **LERN-05**: Completion tracked per-lesson in progress.json
 
 ### Content
@@ -208,7 +208,7 @@ Requirements for initial release. Each maps to roadmap phases.
 | LERN-01 | Phase 5 | Complete |
 | LERN-02 | Phase 5 | Complete |
 | LERN-03 | Phase 5 | Complete |
-| LERN-04 | Phase 5 | Pending |
+| LERN-04 | Phase 5 | Complete |
 | LERN-05 | Phase 5 | Complete |
 | CONT-01 | Phase 6 | Pending |
 | CONT-02 | Phase 6 | Pending |
