@@ -22,6 +22,8 @@ source "${CKAD_DRILL_ROOT}/lib/progress.sh"
 source "${CKAD_DRILL_ROOT}/lib/timer.sh"
 # shellcheck source=lib/exam.sh disable=SC1091
 source "${CKAD_DRILL_ROOT}/lib/exam.sh"
+# shellcheck source=lib/learn.sh disable=SC1091
+source "${CKAD_DRILL_ROOT}/lib/learn.sh"
 
 # ---------------------------------------------------------------------------
 # _drill_cleanup — SIGINT/SIGTERM trap handler for drill subcommand (DRIL-11)
@@ -146,6 +148,84 @@ _exam_submit() {
   # Cleanup all exam namespaces (EXAM-12)
   exam_cleanup_all_namespaces
   info "All exam namespaces cleaned up."
+}
+
+# ---------------------------------------------------------------------------
+# _learn_list — list all 5 domains with learn scenario counts and completion status
+# ---------------------------------------------------------------------------
+_learn_list() {
+  progress_init
+  header "Learn Mode — All Domains"
+  info ""
+  local domain
+  for domain in 1 2 3 4 5; do
+    info "Domain ${domain}:"
+    local domain_output
+    domain_output=$(learn_list_domain "${domain}")
+    if [[ -z "${domain_output}" ]]; then
+      info "  No lessons available yet"
+    else
+      while IFS= read -r line; do
+        info "  ${line}"
+      done <<< "${domain_output}"
+    fi
+    info ""
+  done
+  info "Run: ckad-drill learn --domain N to start a lesson"
+}
+
+# ---------------------------------------------------------------------------
+# _learn_start DOMAIN [EXTERNAL_PATH]
+# Core learn flow: find next uncompleted lesson → setup → show concept → show task.
+# Extracted as a function so local is valid.
+# ---------------------------------------------------------------------------
+_learn_start() {
+  local domain="$1"
+  local external_path="${2:-}"
+
+  # Cluster must be active before any lesson work
+  cluster_check_active || exit "${EXIT_NO_CLUSTER}"
+
+  # Find next uncompleted lesson
+  local lesson_file
+  lesson_file=$(learn_next_lesson "${domain}")
+
+  if [[ -z "${lesson_file}" ]]; then
+    info "All lessons in Domain ${domain} complete! Well done."
+    return 0
+  fi
+
+  # Install cleanup trap before scenario_setup
+  trap '_drill_cleanup' INT TERM EXIT
+
+  # Setup scenario (creates namespace, sets SCENARIO_* globals)
+  scenario_setup "${lesson_file}" || exit "${EXIT_ERROR}"
+
+  # Write session with mode=learn
+  # shellcheck disable=SC2153  # SCENARIO_ID set by scenario_setup
+  session_write "learn" \
+    "${SCENARIO_ID}" \
+    "${SCENARIO_FILE}" \
+    "${SCENARIO_NAMESPACE}" \
+    "${SCENARIO_TIME_LIMIT}"
+
+  # Display concept text (learn_intro) before task
+  local intro
+  intro=$(learn_show_intro "${lesson_file}")
+  if [[ -n "${intro}" ]]; then
+    header "Concepts"
+    printf '%s\n' "${intro}"
+    info ""
+  fi
+
+  # Display the scenario task card
+  _drill_display "${lesson_file}"
+
+  info ""
+  info "Run: ckad-drill check when ready. Hints and solutions are available."
+
+  # Remove EXIT trap — session established
+  trap - EXIT
 }
 
 # ---------------------------------------------------------------------------
@@ -455,6 +535,25 @@ case "${1:-}" in
       # Read domain from scenario file
       domain=$(yq -r '.domain // empty' "${SESSION_SCENARIO_FILE}")
       progress_record "${SESSION_SCENARIO_ID}" "${domain}" "${passed}" "${elapsed}"
+    elif [[ "${SESSION_MODE}" == "learn" ]]; then
+      # Learn mode: validate, record completion on pass, suggest next lesson (LERN-04, LERN-05)
+      validator_exit=0
+      validator_run_checks "${SESSION_SCENARIO_FILE}" "${SESSION_NAMESPACE}" || validator_exit=$?
+      if [[ "${validator_exit}" -eq 0 ]]; then
+        progress_record_learn "${SESSION_SCENARIO_ID}"
+        success "Correct! Lesson complete."
+        # Find next lesson in the same domain (no local — case block restriction)
+        learn_domain=$(yq -r '.domain // empty' "${SESSION_SCENARIO_FILE}")
+        next_lesson_file=$(learn_next_lesson "${learn_domain}")
+        if [[ -n "${next_lesson_file}" ]]; then
+          next_lesson_title=$(yq -r '.title // empty' "${next_lesson_file}")
+          info "Next lesson: ${next_lesson_title}. Run: ckad-drill learn --domain ${learn_domain}"
+        else
+          info "All lessons in Domain ${learn_domain} complete!"
+        fi
+      else
+        warn "Not yet correct. Keep trying! Hints and solutions are available."
+      fi
     else
       error "Active session is not a drill or exam session (mode: ${SESSION_MODE})."
       exit "${EXIT_ERROR}"
@@ -596,6 +695,23 @@ case "${1:-}" in
     ;;
 
   # -------------------------------------------------------------------------
+  learn)  # LERN-01, LERN-02, LERN-03
+    shift
+    domain_filter=""
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --domain) domain_filter="$2"; shift 2 ;;
+        *) error "Unknown flag: $1"; exit "${EXIT_ERROR}" ;;
+      esac
+    done
+    if [[ -n "${domain_filter}" ]]; then
+      _learn_start "${domain_filter}" ""
+    else
+      _learn_list
+    fi
+    ;;
+
+  # -------------------------------------------------------------------------
   *)
     warn "Unknown command: '${1:-}'"
     info "Usage: ckad-drill <command> [options]"
@@ -613,6 +729,9 @@ case "${1:-}" in
     info "  current                Reprint current scenario description"
     info "  next                   Clean up current scenario and start a new one"
     info "  skip                   Clean up current scenario without checking"
+    info ""
+    info "  learn                  List all domains with lesson completion status"
+    info "  learn --domain N       Start the next lesson in domain N"
     info ""
     info "  exam [--time SECONDS] [--count N]"
     info "                         Start a mock exam with CKAD domain-weighted questions"
