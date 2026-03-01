@@ -1,0 +1,78 @@
+id: learn-ingress
+domain: 5
+title: "Ingress: HTTP Routing"
+difficulty: medium
+time_limit: 240
+namespace: learn-ingress
+learn_intro: >
+  Ingress provides a single entry point that routes HTTP/HTTPS traffic to
+  different Services based on hostname and URL path. Without Ingress, every
+  Service you expose externally needs its own LoadBalancer. Ingress requires
+  two things: (1) an Ingress resource (the routing rules you define), and
+  (2) an Ingress controller (software like NGINX that reads the rules).
+  pathType values: Prefix matches path and subpaths (/api matches /api/users),
+  Exact matches only that exact path. Generate Ingress scaffold:
+  kubectl create ingress name --rule="host/path=svc:80" --dry-run=client -o yaml.
+  The apiVersion is networking.k8s.io/v1 (not the deprecated extensions/v1beta1).
+description: >
+  Create two deployments in the learn-ingress namespace: "frontend" (nginx,
+  2 replicas) and "api" (nginx, 2 replicas). Expose each as a ClusterIP Service
+  on port 80. Create an Ingress named "app-ingress" that routes
+  myapp.local/ to the frontend service and myapp.local/api to the api service
+  using pathType: Prefix.
+hint: >
+  Create both deployments and expose them as Services. Then create the Ingress
+  with spec.rules[].host: myapp.local and two paths in http.paths. Put /api
+  before / since more-specific paths should be listed first. Use
+  ingressClassName: nginx if your cluster has an nginx controller.
+validations:
+  - name: ingress_exists
+    type: resource_exists
+    resource: ingress/app-ingress
+    namespace: learn-ingress
+  - name: frontend_service_exists
+    type: resource_exists
+    resource: service/frontend
+    namespace: learn-ingress
+  - name: api_service_exists
+    type: resource_exists
+    resource: service/api
+    namespace: learn-ingress
+solution:
+  steps:
+    - "kubectl create ns learn-ingress --dry-run=client -o yaml | kubectl apply -f -"
+    - "kubectl create deployment frontend --image=nginx --replicas=2 -n learn-ingress"
+    - "kubectl create deployment api --image=nginx --replicas=2 -n learn-ingress"
+    - "kubectl expose deployment frontend --port=80 -n learn-ingress"
+    - "kubectl expose deployment api --port=80 -n learn-ingress"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: app-ingress
+        namespace: learn-ingress
+        annotations:
+          nginx.ingress.kubernetes.io/rewrite-target: /
+      spec:
+        rules:
+        - host: myapp.local
+          http:
+            paths:
+            - path: /api
+              pathType: Prefix
+              backend:
+                service:
+                  name: api
+                  port:
+                    number: 80
+            - path: /
+              pathType: Prefix
+              backend:
+                service:
+                  name: frontend
+                  port:
+                    number: 80
+      EOF
+    - "kubectl get ingress app-ingress -n learn-ingress"
+    - "kubectl describe ingress app-ingress -n learn-ingress"

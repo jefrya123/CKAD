@@ -1,0 +1,76 @@
+id: learn-security-context
+domain: 4
+title: "SecurityContext Basics"
+difficulty: medium
+time_limit: 240
+namespace: learn-security
+learn_intro: >
+  By default containers run as root, which is a security risk. SecurityContext
+  controls what a container is allowed to do at two levels: pod level
+  (spec.securityContext) applies to all containers in the pod — use for
+  runAsUser, runAsGroup, fsGroup. Container level
+  (spec.containers[].securityContext) applies to one container — use for
+  capabilities, readOnlyRootFilesystem, allowPrivilegeEscalation. If
+  readOnlyRootFilesystem: true, the container needs emptyDir volumes for any
+  paths it writes to (like /tmp). runAsNonRoot: true rejects containers that
+  would run as UID 0 — useful but the image must support non-root execution.
+description: >
+  Create a pod named "secure-app" in the learn-security namespace using busybox
+  (sleep 3600). Set the pod-level securityContext to run as user 1000 and group
+  3000. Set the container-level securityContext with readOnlyRootFilesystem true
+  and allowPrivilegeEscalation false. Add an emptyDir volume mounted at /tmp
+  so the container can still write temporary files. Verify with kubectl exec.
+hint: >
+  spec.securityContext sets runAsUser: 1000 and runAsGroup: 3000 (pod level).
+  spec.containers[].securityContext sets readOnlyRootFilesystem: true and
+  allowPrivilegeEscalation: false (container level). Mount emptyDir at /tmp.
+  Verify: kubectl exec secure-app -n learn-security -- id (should show uid=1000)
+  and kubectl exec ... -- touch /test (should fail: read-only file system).
+validations:
+  - name: pod_exists
+    type: resource_exists
+    resource: pod/secure-app
+    namespace: learn-security
+  - name: run_as_user
+    type: jsonpath
+    resource: pod/secure-app
+    namespace: learn-security
+    path: "{.spec.securityContext.runAsUser}"
+    expected: "1000"
+  - name: readonly_filesystem
+    type: jsonpath
+    resource: pod/secure-app
+    namespace: learn-security
+    path: "{.spec.containers[0].securityContext.readOnlyRootFilesystem}"
+    expected: "true"
+solution:
+  steps:
+    - "kubectl create ns learn-security --dry-run=client -o yaml | kubectl apply -f -"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: secure-app
+        namespace: learn-security
+      spec:
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 3000
+        containers:
+        - name: app
+          image: busybox
+          command: ["sleep", "3600"]
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+          volumeMounts:
+          - name: tmp
+            mountPath: /tmp
+        volumes:
+        - name: tmp
+          emptyDir: {}
+      EOF
+    - "kubectl exec secure-app -n learn-security -- id"
+    - "kubectl exec secure-app -n learn-security -- touch /tmp/ok  # should work"
+    - "kubectl exec secure-app -n learn-security -- touch /test  # should fail: read-only"
