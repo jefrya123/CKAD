@@ -496,18 +496,30 @@ _write_exam_session() {
 }
 
 @test "exam_grade: 11/16 questions passed gives pass=true (68.75%)" {
-  # Create 16 questions across domains
+  # Create exactly 16 questions — select using exam_select_questions
   _load_exam
   local end_at
   end_at=$(( $(date +%s) + 7200 ))
+  local -a all_files=()
+  while IFS= read -r f; do
+    all_files+=("$f")
+  done < <(_make_question_files)
+
+  # Select 16 weighted files
   local -a files=()
   while IFS= read -r f; do
+    [[ -z "${f}" ]] && continue
     files+=("$f")
-  done < <(_make_question_files)
+  done < <(exam_select_questions 16 "${all_files[@]}")
 
   exam_session_write "${end_at}" "${files[@]}"
 
-  # Mark 11 as passed
+  # Verify we have exactly 16 questions
+  local q_count
+  q_count=$(jq '.questions | length' "${CKAD_SESSION_FILE}")
+  [[ "${q_count}" -eq 16 ]]
+
+  # Mark 11 as passed (68.75% — should pass)
   local tmp="${CKAD_SESSION_FILE}.tmp"
   jq '
     reduce range(11) as $i (
@@ -527,10 +539,17 @@ _write_exam_session() {
   _load_exam
   local end_at
   end_at=$(( $(date +%s) + 7200 ))
+  local -a all_files=()
+  while IFS= read -r f; do
+    all_files+=("$f")
+  done < <(_make_question_files)
+
+  # Select 16 weighted files
   local -a files=()
   while IFS= read -r f; do
+    [[ -z "${f}" ]] && continue
     files+=("$f")
-  done < <(_make_question_files)
+  done < <(exam_select_questions 16 "${all_files[@]}")
 
   exam_session_write "${end_at}" "${files[@]}"
 
