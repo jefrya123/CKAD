@@ -144,7 +144,12 @@ Plans:
   3. `curl -sSL .../install.sh | sh` installs ckad-drill with all dependencies on a clean Linux or macOS machine
   4. CI runs shellcheck and unit tests on every PR; CI runs full test suite on merge to main
   5. README provides a working quick-start and CONTRIBUTING.md explains how to write and validate a new scenario YAML
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 07-01-PLAN.md — Test suite: schema validation tests, integration test scaffolding, unit test + shellcheck audit
+- [ ] 07-02-PLAN.md — Distribution: install.sh for curl-pipe-sh, dev-setup.sh audit
+- [ ] 07-03-PLAN.md — CI/CD workflows, README.md, CONTRIBUTING.md
 
 ## Progress
 
@@ -163,4 +168,4 @@ Phase 7 begins after Phase 6 completes.
 | 4. Exam Mode | v1.1 | 2/2 | Complete | 2026-03-01 |
 | 5. Learn Mode | v1.1 | 2/2 | Complete | 2026-03-01 |
 | 6. Content Migration | 5/5 | Complete   | 2026-03-01 | - |
-| 7. Testing, CI, Distribution, Docs | v1.1 | 0/TBD | Not started | - |
+| 7. Testing, CI, Distribution, Docs | v1.1 | 0/3 | Not started | - |
