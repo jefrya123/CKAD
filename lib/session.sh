@@ -70,7 +70,7 @@ session_clear() {
 # Calls session_read. If no session exists, prints error and exits EXIT_NO_SESSION.
 session_require() {
   if ! session_read; then
-    error "No active drill session. Run 'ckad-drill drill' first."
+    error "No active session. Run 'ckad-drill drill' or 'ckad-drill exam start' first."
     exit "${EXIT_NO_SESSION}"
   fi
 }

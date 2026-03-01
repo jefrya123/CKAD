@@ -4,7 +4,7 @@
 # shellcheck disable=SC2034  # EXAM_* globals are used by sourcing scripts
 # Provides: exam_select_questions, exam_session_write, exam_session_read,
 #           exam_list, exam_navigate, exam_flag, exam_grade,
-#           exam_current_question, exam_update_question_status,
+#           exam_update_question_status,
 #           exam_setup_all_namespaces, exam_cleanup_all_namespaces
 # Dependencies: common.sh, session.sh, scenario.sh must be sourced first
 
@@ -169,7 +169,7 @@ exam_session_write() {
   done
   questions_json+="]"
 
-  local total_time_limit=7200  # 2 hours default
+  local total_time_limit=$(( end_at - $(date +%s) ))
 
   local tmp_file
   tmp_file="${CKAD_SESSION_FILE}.tmp.$$"
@@ -405,12 +405,6 @@ exam_grade() {
   ' "${CKAD_SESSION_FILE}"
 }
 
-# exam_current_question
-# Outputs the file path of the current question.
-exam_current_question() {
-  exam_session_read || return $?
-  echo "${EXAM_CURRENT_FILE}"
-}
 
 # exam_setup_all_namespaces
 # Creates a namespace for each question in the exam session.
