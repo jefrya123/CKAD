@@ -15,6 +15,10 @@ else
   echo "Installing bats-core..."
   if [[ "$(uname)" == "Darwin" ]]; then
     brew install bats-core
+  elif command -v apt-get &>/dev/null; then
+    sudo apt-get install -y bats
+  elif command -v dnf &>/dev/null; then
+    sudo dnf install -y bats
   elif command -v npm &>/dev/null; then
     npm install -g bats
   else
@@ -35,6 +39,8 @@ else
     brew install shellcheck
   elif command -v apt-get &>/dev/null; then
     sudo apt-get install -y shellcheck
+  elif command -v dnf &>/dev/null; then
+    sudo dnf install -y ShellCheck
   else
     echo "shellcheck not available via package manager." >&2
     echo "Download from: https://github.com/koalaman/shellcheck/releases" >&2
@@ -61,6 +67,21 @@ if [[ ! -d "${REPO_ROOT}/test/helpers/bats-assert" ]]; then
     "${REPO_ROOT}/test/helpers/bats-assert"
 else
   echo "bats-assert already present"
+fi
+
+# --- Summary ---------------------------------------------------------------
+echo ""
+echo "Installed versions:"
+printf "  %-15s %s\n" "bats:"      "$(bats --version 2>/dev/null || echo 'not found')"
+printf "  %-15s %s\n" "shellcheck:" "$(shellcheck --version 2>/dev/null | grep 'version:' | awk '{print $2}' || echo 'not found')"
+
+if [[ -d "${REPO_ROOT}/test/helpers/bats-support/.git" ]]; then
+  _bats_support_sha=$(git -C "${REPO_ROOT}/test/helpers/bats-support" rev-parse --short HEAD 2>/dev/null || echo 'unknown')
+  printf "  %-15s %s\n" "bats-support:"  "${_bats_support_sha}"
+fi
+if [[ -d "${REPO_ROOT}/test/helpers/bats-assert/.git" ]]; then
+  _bats_assert_sha=$(git -C "${REPO_ROOT}/test/helpers/bats-assert" rev-parse --short HEAD 2>/dev/null || echo 'unknown')
+  printf "  %-15s %s\n" "bats-assert:"   "${_bats_assert_sha}"
 fi
 
 echo ""
