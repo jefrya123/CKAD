@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Ship It
 status: unknown
-last_updated: "2026-03-01T03:09:09.674Z"
+last_updated: "2026-03-01T03:53:22.190Z"
 progress:
-  total_phases: 7
+  total_phases: 8
   completed_phases: 7
-  total_plans: 20
-  completed_plans: 20
+  total_plans: 24
+  completed_plans: 23
 ---
 
 # Project State
@@ -51,6 +51,7 @@ Progress: [########--] 90% (6/7 phases complete, Phase 7 in progress)
 | Phase 06-content-migration P04 | 8 | 2 tasks | 16 files |
 | Phase 06-content-migration P05 | 12 | 2 tasks | 93 files |
 | Phase 06-content-migration P06 | 5 | 2 tasks | 7 files |
+| Phase 07-testing-ci-distribution-docs P01 | 8 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -94,6 +95,7 @@ Key decisions affecting v1.1 work:
 - [Phase 07-02]: install.sh uses ~/.local/share/ckad-drill for clone, symlinks to ~/.local/bin — no sudo required
 - [Phase 07-02]: GITHUB_REPO variable at top of install.sh for easy customization when published
 - [Phase 07-02]: dev-setup.sh dnf fallback added before npm for bats-core (apt-get first, dnf second, npm third)
+- [Phase 07-01]: Smoke test uses single-pass yq multi-file call for performance (0.2s vs ~98s for 70 files)
 
 ### Pending Todos
 

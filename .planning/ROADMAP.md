@@ -168,4 +168,4 @@ Phase 7 begins after Phase 6 completes.
 | 4. Exam Mode | v1.1 | 2/2 | Complete | 2026-03-01 |
 | 5. Learn Mode | v1.1 | 2/2 | Complete | 2026-03-01 |
 | 6. Content Migration | 6/6 | Complete   | 2026-03-01 | - |
-| 7. Testing, CI, Distribution, Docs | 1/3 | In Progress|  | - |
+| 7. Testing, CI, Distribution, Docs | 2/3 | In Progress|  | - |

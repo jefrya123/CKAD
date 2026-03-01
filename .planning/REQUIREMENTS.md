@@ -105,10 +105,10 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **DIST-02**: `scripts/dev-setup.sh` installs bats-core and shellcheck for developers
 - [x] **DIST-03**: `ckad-drill validate-scenario <file>` runs full end-to-end validation (parse, setup, apply solution, validate, cleanup)
 - [x] **DIST-04**: `ckad-drill validate-scenario <dir>` validates all scenarios in directory
-- [ ] **TEST-01**: bats unit tests exist for all lib functions (no cluster required)
-- [ ] **TEST-02**: bats integration tests cover full scenario lifecycle against real cluster
-- [ ] **TEST-03**: Schema tests validate known-good and known-bad YAML files
-- [ ] **TEST-04**: All bash scripts pass shellcheck with zero warnings
+- [x] **TEST-01**: bats unit tests exist for all lib functions (no cluster required)
+- [x] **TEST-02**: bats integration tests cover full scenario lifecycle against real cluster
+- [x] **TEST-03**: Schema tests validate known-good and known-bad YAML files
+- [x] **TEST-04**: All bash scripts pass shellcheck with zero warnings
 - [ ] **CICD-01**: CI runs shellcheck + bats unit tests on every PR
 - [ ] **CICD-02**: CI runs shellcheck + bats unit + integration tests on merge to main
 - [ ] **DOCS-01**: README with quick start, feature overview, and competitive comparison
@@ -218,10 +218,10 @@ Requirements for initial release. Each maps to roadmap phases.
 | CONT-06 | Phase 6 | Complete |
 | CONT-07 | Phase 6 | Complete |
 | CONT-08 | Phase 6 | Complete |
-| TEST-01 | Phase 7 | Pending |
-| TEST-02 | Phase 7 | Pending |
-| TEST-03 | Phase 7 | Pending |
-| TEST-04 | Phase 7 | Pending |
+| TEST-01 | Phase 7 | Complete |
+| TEST-02 | Phase 7 | Complete |
+| TEST-03 | Phase 7 | Complete |
+| TEST-04 | Phase 7 | Complete |
 | CICD-01 | Phase 7 | Pending |
 | CICD-02 | Phase 7 | Pending |
 | DIST-01 | Phase 7 | Complete |
