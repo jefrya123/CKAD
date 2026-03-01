@@ -22,10 +22,10 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 
 ## Current Position
 
-Phase: 6 of 7 (Content Migration) — COMPLETE
-Plan: 5/5 complete (06-05 gap-fill, archive, and validation)
-Status: Phase 6 complete — 70 YAML scenarios across 5 domains, old content archived, CONT-06/07/08 complete
-Last activity: 2026-03-01 — 06-05 complete: 10 gap-filling scenarios added, old markdown archived to archive/study-guide/
+Phase: 6 of 7 (Content Migration) — COMPLETE (gap closure 06-06 done)
+Plan: 6/6 complete (06-06 gap-closure: fixed invalid validation types and placeholder)
+Status: Phase 6 fully complete — all 70 scenarios use valid validation types, all solution steps are valid shell commands
+Last activity: 2026-02-28 — 06-06 complete: fixed 8 invalid validation type checks and removed bash placeholder from solution steps
 
 Progress: [#######---] 86% (6/7 phases complete — Phase 7 Distribution next)
 
@@ -50,6 +50,7 @@ Progress: [#######---] 86% (6/7 phases complete — Phase 7 Distribution next)
 | Phase 06-content-migration P03 | 12 | 2 tasks | 13 files |
 | Phase 06-content-migration P04 | 8 | 2 tasks | 16 files |
 | Phase 06-content-migration P05 | 12 | 2 tasks | 93 files |
+| Phase 06-content-migration P06 | 5 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -87,6 +88,9 @@ Key decisions affecting v1.1 work:
 - [Phase 06-content-migration]: learn_intro extracted from tutorial lesson prose not invented; domain-4 and domain-5 directories created; quiz questions not converted (knowledge-based recall only)
 - [Phase 06-content-migration]: container_running check is timing-dependent in validate-scenario — use container_count + container_image + volume_mount for multi-container pod scenarios
 - [Phase 06-content-migration]: sc-rbac-clusterrole creates cluster-scoped ClusterRole/ClusterRoleBinding — not cleaned up by namespace deletion, must be managed separately
+- [Phase 06-06-gap-closure]: validator.sh reads jsonpath: field (not path:) — all resource_field checks must use jsonpath: key name
+- [Phase 06-06-gap-closure]: pod_phase is not a valid validator type — use resource_field with .status.phase jsonpath
+- [Phase 06-06-gap-closure]: immutable pod fields (volumeMounts) require delete-then-apply, not apply alone — solution steps must separate delete and apply
 
 ### Pending Todos
 
@@ -99,6 +103,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-01
-Stopped at: Completed 06-05-PLAN.md — 70 YAML scenarios (10+ per domain), old content archived, Phase 6 complete; Phase 7 Distribution is next
+Last session: 2026-02-28
+Stopped at: Completed 06-06-PLAN.md — gap closure: fixed 8 invalid validation types (jsonpath/pod_phase -> resource_field) and placeholder bash error in debug-volume-mount.yaml; Phase 6 fully complete; Phase 7 Distribution is next
 Resume file: None
