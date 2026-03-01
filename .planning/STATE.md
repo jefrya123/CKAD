@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Ship It
 status: unknown
-last_updated: "2026-03-01T02:51:16.811Z"
+last_updated: "2026-03-01T02:51:52.815Z"
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 20
-  completed_plans: 16
+  completed_plans: 17
 ---
 
 # Project State
@@ -22,12 +22,12 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 
 ## Current Position
 
-Phase: 5 of 7 (Learn Mode)
-Plan: 2/2 complete (05-02 learn CLI wiring)
-Status: Phase 5 complete — all LERN requirements done
-Last activity: 2026-03-01 — 05-02 complete: learn subcommands wired into bin/ckad-drill, 87 tests passing
+Phase: 6 of 7 (Content Migration)
+Plan: 3/5 complete (06-03 debug scenario conversion)
+Status: Phase 6 in progress — 13 debug scenarios converted, CONT-02 complete
+Last activity: 2026-02-28 — 06-03 complete: 13 debug-prefix scenarios from troubleshooting labs, all 5 domains covered
 
-Progress: [#####-----] 57% (5/7 phases complete — Phase 5 done; Phase 6 next)
+Progress: [######----] 64% (5/7 phases complete — Phase 6 in progress, plan 3/5 done)
 
 ## Performance Metrics
 
@@ -47,6 +47,7 @@ Progress: [#####-----] 57% (5/7 phases complete — Phase 5 done; Phase 6 next)
 | 04-exam-mode | 2/2 | 22 min | 11 min |
 | Phase 05-learn-mode P02 | 7 | 1 tasks | 2 files |
 | Phase 06-content-migration P02 | 3 | 2 tasks | 14 files |
+| Phase 06-content-migration P03 | 12 | 2 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,7 @@ Key decisions affecting v1.1 work:
 - [Phase 05-02]: _learn_start/_learn_list helpers extracted — local keyword not valid in case blocks (same pattern as exam mode)
 - [Phase 06-content-migration]: sc-configmap-secret moved from domain-2 to domain-4 (ConfigMap is Config & Security content)
 - [Phase 06-content-migration]: sc-network-policy moved from domain-3 to domain-5, renamed to sc-netpol-deny (NetworkPolicy is Services & Networking content)
+- [Phase 06-content-migration]: Lab-08 actual content is Job restartPolicy (not PVC access mode as described in plan) — renamed to debug-job-restart-policy.yaml for accuracy
 
 ### Pending Todos
 
@@ -92,6 +94,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-01
-Stopped at: Completed 05-02-PLAN.md — learn CLI wiring (bin/ckad-drill learn subcommands), all LERN requirements, 87 tests passing
+Last session: 2026-02-28
+Stopped at: Completed 06-03-PLAN.md — 13 debug-prefix scenarios from troubleshooting labs across all 5 domains, CONT-02 requirement complete
 Resume file: None

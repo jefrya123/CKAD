@@ -91,7 +91,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Content
 
 - [x] **CONT-01**: 31 existing scenarios migrated to YAML format with typed validations
-- [ ] **CONT-02**: 12 troubleshooting labs converted to debug-prefix scenarios
+- [x] **CONT-02**: 12 troubleshooting labs converted to debug-prefix scenarios
 - [ ] **CONT-03**: Tutorial inline exercises extracted as learn-prefix scenarios with concept text
 - [ ] **CONT-04**: Domain exercises (~2,200 lines) extracted as additional scenarios
 - [ ] **CONT-05**: Quiz questions convertible to practical tasks become scenarios
@@ -211,7 +211,7 @@ Requirements for initial release. Each maps to roadmap phases.
 | LERN-04 | Phase 5 | Complete |
 | LERN-05 | Phase 5 | Complete |
 | CONT-01 | Phase 6 | Complete |
-| CONT-02 | Phase 6 | Pending |
+| CONT-02 | Phase 6 | Complete |
 | CONT-03 | Phase 6 | Pending |
 | CONT-04 | Phase 6 | Pending |
 | CONT-05 | Phase 6 | Pending |
