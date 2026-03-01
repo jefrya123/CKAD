@@ -73,12 +73,12 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **EXAM-04**: `ckad-drill exam list` shows all questions with status icons
 - [x] **EXAM-05**: `ckad-drill exam next/prev/jump N` navigates between questions
 - [x] **EXAM-06**: `ckad-drill exam flag` flags current question for review
-- [ ] **EXAM-07**: `ckad-drill check` during exam validates only the current question
-- [ ] **EXAM-08**: Hints and solutions are blocked during exam mode
+- [x] **EXAM-07**: `ckad-drill check` during exam validates only the current question
+- [x] **EXAM-08**: Hints and solutions are blocked during exam mode
 - [x] **EXAM-09**: `ckad-drill exam submit` grades all questions, shows per-domain scores
 - [x] **EXAM-10**: Pass threshold is 66% — clear PASS/FAIL display
-- [ ] **EXAM-11**: Exam results recorded to progress.json
-- [ ] **EXAM-12**: All exam namespaces cleaned up on submit or Ctrl+C
+- [x] **EXAM-11**: Exam results recorded to progress.json
+- [x] **EXAM-12**: All exam namespaces cleaned up on submit or Ctrl+C
 
 ### Learn Mode
 
@@ -199,12 +199,12 @@ Requirements for initial release. Each maps to roadmap phases.
 | EXAM-04 | Phase 4 | Complete |
 | EXAM-05 | Phase 4 | Complete |
 | EXAM-06 | Phase 4 | Complete |
-| EXAM-07 | Phase 4 | Pending |
-| EXAM-08 | Phase 4 | Pending |
+| EXAM-07 | Phase 4 | Complete |
+| EXAM-08 | Phase 4 | Complete |
 | EXAM-09 | Phase 4 | Complete |
 | EXAM-10 | Phase 4 | Complete |
-| EXAM-11 | Phase 4 | Pending |
-| EXAM-12 | Phase 4 | Pending |
+| EXAM-11 | Phase 4 | Complete |
+| EXAM-12 | Phase 4 | Complete |
 | LERN-01 | Phase 5 | Pending |
 | LERN-02 | Phase 5 | Pending |
 | LERN-03 | Phase 5 | Pending |
