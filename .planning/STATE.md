@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Ship It
-status: ready_to_plan
-last_updated: "2026-02-28T12:00:00.000Z"
+status: in_progress
+last_updated: "2026-03-01T01:06:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
 ---
 
 # Project State
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Unlimited, free, real-cluster CKAD practice with automated validation
-**Current focus:** Milestone v1.1 Ship It — Phase 4 (Exam Mode) ready to plan
+**Current focus:** Milestone v1.1 Ship It — Phase 4 (Exam Mode) Plan 1 complete, Plan 2 next
 
 ## Current Position
 
 Phase: 4 of 7 (Exam Mode) — first v1.1 phase
-Plan: 0/TBD
-Status: Ready to plan
-Last activity: 2026-02-28 — v1.1 roadmap defined, all 35 requirements mapped
+Plan: 1/2 complete (04-01 done — exam session engine)
+Status: In progress
+Last activity: 2026-03-01 — 04-01 complete: lib/exam.sh with 39 passing unit tests
 
-Progress: [####------] 40% (4/7 phases complete — v1.0 phases done)
+Progress: [####------] 40% (4/7 phases complete — v1.0 phases done; Phase 4 in progress)
 
 ## Performance Metrics
 
@@ -44,6 +44,7 @@ Progress: [####------] 40% (4/7 phases complete — v1.0 phases done)
 | 02-scenario-validation-engine | 2 | 11 min | 5.5 min |
 | 03-cli-drill-mode | 6 | 16 min | 2.7 min |
 | 03.1-drill-integration-fixes | 1 | 14 min | 14 min |
+| 04-exam-mode (partial) | 1/2 | 9 min | 9 min |
 
 ## Accumulated Context
 
@@ -54,6 +55,10 @@ Key decisions affecting v1.1 work:
 
 - All phases: Pure bash, no build step — source is the product
 - Phase 4: Exam mode as distinct component with separate session state (ADR-11)
+- 04-01: D3 target set to 3 (not 2) so integer weights 3+3+3+4+3=16 total cleanly
+- 04-01: exam_select_questions takes file paths as args (not internal discover) — caller controls pool
+- 04-01: exam_grade implemented in pure jq (single invocation via group_by+reduce)
+- 04-01: flagged=true overrides status icon in exam_list — [?] displayed instead of status
 - Phase 5: Learn mode shares scenario engine; concept text in YAML `learn_intro` field
 - Phase 6: Same repo, archive study guide (preserves git history, transforms in place)
 
@@ -76,6 +81,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-28
-Stopped at: v1.1 roadmap created, ready to plan Phase 4 or Phase 5
+Last session: 2026-03-01
+Stopped at: Completed 04-01-PLAN.md — lib/exam.sh exam session engine, 39 tests, ready for 04-02
 Resume file: None

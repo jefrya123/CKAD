@@ -67,16 +67,16 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Exam Mode
 
-- [ ] **EXAM-01**: `ckad-drill exam` starts a mock exam with 15-20 questions weighted by CKAD domain percentages
-- [ ] **EXAM-02**: All exam namespaces are created at exam start
-- [ ] **EXAM-03**: Global timer (default 2 hours, configurable with `--time`)
-- [ ] **EXAM-04**: `ckad-drill exam list` shows all questions with status icons
-- [ ] **EXAM-05**: `ckad-drill exam next/prev/jump N` navigates between questions
-- [ ] **EXAM-06**: `ckad-drill exam flag` flags current question for review
+- [x] **EXAM-01**: `ckad-drill exam` starts a mock exam with 15-20 questions weighted by CKAD domain percentages
+- [x] **EXAM-02**: All exam namespaces are created at exam start
+- [x] **EXAM-03**: Global timer (default 2 hours, configurable with `--time`)
+- [x] **EXAM-04**: `ckad-drill exam list` shows all questions with status icons
+- [x] **EXAM-05**: `ckad-drill exam next/prev/jump N` navigates between questions
+- [x] **EXAM-06**: `ckad-drill exam flag` flags current question for review
 - [ ] **EXAM-07**: `ckad-drill check` during exam validates only the current question
 - [ ] **EXAM-08**: Hints and solutions are blocked during exam mode
-- [ ] **EXAM-09**: `ckad-drill exam submit` grades all questions, shows per-domain scores
-- [ ] **EXAM-10**: Pass threshold is 66% — clear PASS/FAIL display
+- [x] **EXAM-09**: `ckad-drill exam submit` grades all questions, shows per-domain scores
+- [x] **EXAM-10**: Pass threshold is 66% — clear PASS/FAIL display
 - [ ] **EXAM-11**: Exam results recorded to progress.json
 - [ ] **EXAM-12**: All exam namespaces cleaned up on submit or Ctrl+C
 
@@ -193,16 +193,16 @@ Requirements for initial release. Each maps to roadmap phases.
 | PROG-04 | Phase 3 | Complete |
 | DIST-03 | Phase 3 | Complete |
 | DIST-04 | Phase 3 | Complete |
-| EXAM-01 | Phase 4 | Pending |
-| EXAM-02 | Phase 4 | Pending |
-| EXAM-03 | Phase 4 | Pending |
-| EXAM-04 | Phase 4 | Pending |
-| EXAM-05 | Phase 4 | Pending |
-| EXAM-06 | Phase 4 | Pending |
+| EXAM-01 | Phase 4 | Complete |
+| EXAM-02 | Phase 4 | Complete |
+| EXAM-03 | Phase 4 | Complete |
+| EXAM-04 | Phase 4 | Complete |
+| EXAM-05 | Phase 4 | Complete |
+| EXAM-06 | Phase 4 | Complete |
 | EXAM-07 | Phase 4 | Pending |
 | EXAM-08 | Phase 4 | Pending |
-| EXAM-09 | Phase 4 | Pending |
-| EXAM-10 | Phase 4 | Pending |
+| EXAM-09 | Phase 4 | Complete |
+| EXAM-10 | Phase 4 | Complete |
 | EXAM-11 | Phase 4 | Pending |
 | EXAM-12 | Phase 4 | Pending |
 | LERN-01 | Phase 5 | Pending |
