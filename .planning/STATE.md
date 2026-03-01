@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Ship It
 status: unknown
-last_updated: "2026-03-01T03:53:22.190Z"
+last_updated: "2026-03-01T03:57:22.902Z"
 progress:
   total_phases: 8
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 24
-  completed_plans: 23
+  completed_plans: 24
 ---
 
 # Project State
@@ -22,10 +22,10 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 
 ## Current Position
 
-Phase: 7 of 7 (Testing, CI, Distribution, Docs) — IN PROGRESS
-Plan: 2/N complete (07-02 distribution scripts done)
-Status: Phase 7 in progress — scripts/install.sh created (DIST-01), scripts/dev-setup.sh updated with dnf support (DIST-02)
-Last activity: 2026-03-01 — 07-02 complete: curl-pipe-sh install.sh for Linux/macOS, dev-setup.sh extended with Fedora/RHEL support and version summary
+Phase: 7 of 7 (Testing, CI, Distribution, Docs) — COMPLETE
+Plan: 3/3 complete (07-03 CI + docs done)
+Status: Phase 7 complete — all plans executed: smoke/unit/integration tests (07-01), install.sh + dev-setup.sh (07-02), CI workflow + README + CONTRIBUTING (07-03)
+Last activity: 2026-02-28 — 07-03 complete: GitHub Actions CI workflow, README.md with quick-start, CONTRIBUTING.md with scenario authoring guide
 
 Progress: [########--] 90% (6/7 phases complete, Phase 7 in progress)
 
@@ -52,6 +52,7 @@ Progress: [########--] 90% (6/7 phases complete, Phase 7 in progress)
 | Phase 06-content-migration P05 | 12 | 2 tasks | 93 files |
 | Phase 06-content-migration P06 | 5 | 2 tasks | 7 files |
 | Phase 07-testing-ci-distribution-docs P01 | 8 | 2 tasks | 7 files |
+| Phase 07-testing-ci-distribution-docs P03 | 2 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -96,6 +97,8 @@ Key decisions affecting v1.1 work:
 - [Phase 07-02]: GITHUB_REPO variable at top of install.sh for easy customization when published
 - [Phase 07-02]: dev-setup.sh dnf fallback added before npm for bats-core (apt-get first, dnf second, npm third)
 - [Phase 07-01]: Smoke test uses single-pass yq multi-file call for performance (0.2s vs ~98s for 70 files)
+- [Phase 07-03]: Integration CI uses bare kind cluster not ckad-drill start — avoids Calico/ingress overhead in CI
+- [Phase 07-03]: README replaces old study-guide content entirely — pre-migration content no longer relevant
 
 ### Pending Todos
 
@@ -108,6 +111,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-01
-Stopped at: Completed 07-02-PLAN.md — distribution scripts: install.sh for curl-pipe-sh installs (DIST-01), dev-setup.sh with dnf/Fedora support and version summary (DIST-02)
+Last session: 2026-02-28
+Stopped at: Completed 07-03-PLAN.md — CI workflow (.github/workflows/ci.yml), README.md with quick-start and commands table, CONTRIBUTING.md with scenario authoring guide and YAML schema reference
 Resume file: None

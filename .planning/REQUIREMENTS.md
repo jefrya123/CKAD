@@ -109,10 +109,10 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **TEST-02**: bats integration tests cover full scenario lifecycle against real cluster
 - [x] **TEST-03**: Schema tests validate known-good and known-bad YAML files
 - [x] **TEST-04**: All bash scripts pass shellcheck with zero warnings
-- [ ] **CICD-01**: CI runs shellcheck + bats unit tests on every PR
-- [ ] **CICD-02**: CI runs shellcheck + bats unit + integration tests on merge to main
-- [ ] **DOCS-01**: README with quick start, feature overview, and competitive comparison
-- [ ] **DOCS-02**: CONTRIBUTING.md with scenario authoring guide and PR checklist
+- [x] **CICD-01**: CI runs shellcheck + bats unit tests on every PR
+- [x] **CICD-02**: CI runs shellcheck + bats unit + integration tests on merge to main
+- [x] **DOCS-01**: README with quick start, feature overview, and competitive comparison
+- [x] **DOCS-02**: CONTRIBUTING.md with scenario authoring guide and PR checklist
 
 ## v2 Requirements
 
@@ -222,12 +222,12 @@ Requirements for initial release. Each maps to roadmap phases.
 | TEST-02 | Phase 7 | Complete |
 | TEST-03 | Phase 7 | Complete |
 | TEST-04 | Phase 7 | Complete |
-| CICD-01 | Phase 7 | Pending |
-| CICD-02 | Phase 7 | Pending |
+| CICD-01 | Phase 7 | Complete |
+| CICD-02 | Phase 7 | Complete |
 | DIST-01 | Phase 7 | Complete |
 | DIST-02 | Phase 7 | Complete |
-| DOCS-01 | Phase 7 | Pending |
-| DOCS-02 | Phase 7 | Pending |
+| DOCS-01 | Phase 7 | Complete |
+| DOCS-02 | Phase 7 | Complete |
 
 **Coverage:**
 - v1 requirements: 66 total
