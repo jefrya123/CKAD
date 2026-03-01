@@ -95,7 +95,11 @@ Plans:
   3. `ckad-drill check` during an exam validates only the current question and hints and solutions are blocked
   4. `ckad-drill exam submit` grades all questions, shows per-domain scores, and displays a clear PASS (>=66%) or FAIL result
   5. All exam namespaces are cleaned up on submit or Ctrl+C and the exam result is recorded to progress.json
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — Exam session engine (lib/exam.sh) with question selection, navigation, flagging, and grading + unit tests
+- [ ] 04-02-PLAN.md — Wire exam subcommands into CLI, extend progress recording, block hints/solutions in exam mode
 
 ### Phase 5: Learn Mode
 **Goal**: A user can work through progressive domain lessons with concept explanations and validated exercises
@@ -145,7 +149,7 @@ Phase 7 begins after Phase 6 completes.
 | 2. Scenario + Validation Engine | v1.0 | 2/2 | Complete | 2026-02-28 |
 | 3. CLI + Drill Mode | v1.0 | 6/6 | Complete | 2026-02-28 |
 | 3.1 Drill Integration Fixes | v1.0 | 1/1 | Complete | 2026-03-01 |
-| 4. Exam Mode | v1.1 | 0/TBD | Not started | - |
+| 4. Exam Mode | v1.1 | 0/2 | Planned | - |
 | 5. Learn Mode | v1.1 | 0/TBD | Not started | - |
 | 6. Content Migration | v1.1 | 0/TBD | Not started | - |
 | 7. Testing, CI, Distribution, Docs | v1.1 | 0/TBD | Not started | - |
