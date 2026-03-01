@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation + Cluster** - Project scaffold, shared lib files, kind cluster management
 - [x] **Phase 2: Scenario + Validation Engine** - YAML scenario loading and all 10 typed validation checks
 - [x] **Phase 3: CLI + Drill Mode** - Main entry point, drill subcommands, timer, progress tracking, scenario validator tool (completed 2026-02-28)
-- [ ] **Phase 3.1: Drill Integration Fixes** - INSERTED: Gap closure for namespace cleanup, set -e exit handling, solution display (audit v1.0)
+- [x] **Phase 3.1: Drill Integration Fixes** - INSERTED: Gap closure for namespace cleanup, set -e exit handling, solution display (audit v1.0) (completed 2026-03-01)
 - [ ] **Phase 4: Exam Mode** - Multi-scenario timed exam session with navigation, flagging, and scoring
 - [ ] **Phase 5: Learn Mode** - Progressive guided lessons with concept text and completion tracking
 - [ ] **Phase 6: Content Migration** - Convert 31 existing scenarios, 12 labs, tutorials, and exercises to YAML
@@ -83,7 +83,7 @@ Plans:
   2. `ckad-drill next` and `ckad-drill skip` delete the scenario namespace from the cluster before moving on
   3. Pressing Ctrl+C during a drill session deletes the scenario namespace from the cluster
   4. `ckad-drill solution` displays multi-line heredoc steps as complete numbered steps (not split across lines)
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] 03.1-01-PLAN.md — Fix 4 defects in bin/ckad-drill (set-e guard, namespace bridge, trap fix, solution display) + regression tests
@@ -147,7 +147,7 @@ Phase 6 (Content Migration) depends on Phase 2 (YAML schema) and Phase 3 (valida
 | 1. Foundation + Cluster | 2/2 | Complete | 2026-02-28 |
 | 2. Scenario + Validation Engine | 2/2 | Complete | 2026-02-28 |
 | 3. CLI + Drill Mode | 6/6 | Complete   | 2026-02-28 |
-| 3.1 Drill Integration Fixes | 0/1 | Not started | - |
+| 3.1 Drill Integration Fixes | 1/1 | Complete   | 2026-03-01 |
 | 4. Exam Mode | 0/TBD | Not started | - |
 | 5. Learn Mode | 0/TBD | Not started | - |
 | 6. Content Migration | 0/TBD | Not started | - |

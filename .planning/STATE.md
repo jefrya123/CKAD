@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-02-28T23:11:03.236Z"
+last_updated: "2026-03-01T00:12:14.351Z"
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 10
-  completed_plans: 10
+  total_phases: 4
+  completed_phases: 4
+  total_plans: 11
+  completed_plans: 11
 ---
 
 # Project State
@@ -22,12 +22,12 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 
 ## Current Position
 
-Phase: 3 of 7 (CLI Drill Mode) — Complete (gap closure)
-Plan: 6 of 6 in current phase (03-06 complete)
-Status: Phase 3 complete — 6/6 plans done (includes gap closure plan 03-06)
-Last activity: 2026-02-28 — Plan 03-06 complete: fixed validate-scenario multi-line heredoc solution steps + 2 yq extraction unit tests
+Phase: 3.1 of 7 (Drill Integration Fixes) — Complete
+Plan: 1 of 1 in current phase (03.1-01 complete)
+Status: Phase 3.1 complete — 1/1 plans done; all 4 drill integration bugs fixed
+Last activity: 2026-02-28 — Plan 03.1-01 complete: fixed BREAK-01/02/03 and DEFECT-01 in bin/ckad-drill; 20/20 drill.bats tests passing
 
-Progress: [███████░░░] ~65%
+Progress: [███████░░░] ~70%
 
 ## Performance Metrics
 
@@ -54,6 +54,7 @@ Progress: [███████░░░] ~65%
 | Phase 03-cli-drill-mode P04 | 8 | 2 tasks | 2 files |
 | Phase 03-cli-drill-mode P06 | 1 | 2 tasks | 2 files |
 | Phase 03-cli-drill-mode P05 | 1 | 2 tasks | 2 files |
+| Phase 03.1-drill-integration-fixes P01 | 14 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -97,6 +98,9 @@ Key decisions affecting current work:
 - [Phase 03-06]: warn on failed eval instead of silent 2>/dev/null suppression — operator visibility for solution step failures
 - [Phase 03-cli-drill-mode]: Shell detection emitted into user shell output (ZSH_VERSION check), not in timer.sh bash logic — timer.sh always runs in bash regardless of user shell
 - [Phase 03-cli-drill-mode]: zsh timer uses add-zsh-hook precmd hook; bash timer uses PROMPT_COMMAND — shell-detection block emitted in output
+- [Phase 03.1-drill-integration-fixes]: XDG_CONFIG_HOME controls session file path in bats tests because common.sh unconditionally overwrites CKAD_SESSION_FILE at source time
+- [Phase 03.1-drill-integration-fixes]: SCENARIO_NAMESPACE bridge pattern: set SCENARIO_NAMESPACE from SESSION_NAMESPACE before calling scenario_cleanup in next/skip/_drill_cleanup paths
+- [Phase 03.1-drill-integration-fixes]: Unescaped ${PATH} in bash -c double-quoted string for correct PATH inheritance (escaped \${PATH} becomes single-quote literal, breaking jq/rm)
 
 ### Pending Todos
 
@@ -110,5 +114,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 03-05-PLAN.md — zsh timer support via ZSH_VERSION-gated add-zsh-hook precmd hook in timer_env_output; 27 timer.bats tests passing (7 new zsh-branch tests).
+Stopped at: Completed 03.1-01-PLAN.md — fixed BREAK-01/02/03 and DEFECT-01 in bin/ckad-drill; 20/20 drill.bats tests passing; shellcheck clean
 Resume file: None
