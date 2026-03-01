@@ -277,3 +277,82 @@ teardown() {
   assert_success
   assert_output "3"
 }
+
+# ---------------------------------------------------------------
+# progress_record_exam
+# ---------------------------------------------------------------
+
+@test "progress_record_exam appends one entry to exams array" {
+  progress_init
+  local domain_json='[{"domain":1,"total":3,"passed":2,"percent":66},{"domain":2,"total":3,"passed":3,"percent":100}]'
+  progress_record_exam 80 true "${domain_json}"
+  run jq '.exams | length' "${CKAD_PROGRESS_FILE}"
+  assert_success
+  assert_output "1"
+}
+
+@test "progress_record_exam stores score field" {
+  progress_init
+  local domain_json='[{"domain":1,"total":3,"passed":3,"percent":100}]'
+  progress_record_exam 75 true "${domain_json}"
+  run jq -r '.exams[0].score' "${CKAD_PROGRESS_FILE}"
+  assert_success
+  assert_output "75"
+}
+
+@test "progress_record_exam stores passed field as boolean true" {
+  progress_init
+  local domain_json='[{"domain":1,"total":3,"passed":3,"percent":100}]'
+  progress_record_exam 80 true "${domain_json}"
+  run jq -r '.exams[0].passed' "${CKAD_PROGRESS_FILE}"
+  assert_success
+  assert_output "true"
+}
+
+@test "progress_record_exam stores passed field as boolean false" {
+  progress_init
+  local domain_json='[{"domain":1,"total":3,"passed":0,"percent":0}]'
+  progress_record_exam 30 false "${domain_json}"
+  run jq -r '.exams[0].passed' "${CKAD_PROGRESS_FILE}"
+  assert_success
+  assert_output "false"
+}
+
+@test "progress_record_exam stores domains array" {
+  progress_init
+  local domain_json='[{"domain":1,"total":3,"passed":2,"percent":66}]'
+  progress_record_exam 66 true "${domain_json}"
+  run jq '.exams[0].domains | length' "${CKAD_PROGRESS_FILE}"
+  assert_success
+  assert_output "1"
+}
+
+@test "progress_record_exam stores ISO timestamp in date field" {
+  progress_init
+  local domain_json='[{"domain":1,"total":3,"passed":3,"percent":100}]'
+  progress_record_exam 100 true "${domain_json}"
+  run jq -r '.exams[0].date' "${CKAD_PROGRESS_FILE}"
+  assert_success
+  [[ "${output}" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]]
+}
+
+@test "progress_record_exam accumulates multiple entries" {
+  progress_init
+  local domain_json='[{"domain":1,"total":3,"passed":2,"percent":66}]'
+  progress_record_exam 70 true "${domain_json}"
+  progress_record_exam 80 true "${domain_json}"
+  progress_record_exam 60 false "${domain_json}"
+  run jq '.exams | length' "${CKAD_PROGRESS_FILE}"
+  assert_success
+  assert_output "3"
+}
+
+@test "progress_record_exam creates progress.json if missing" {
+  rm -f "${CKAD_PROGRESS_FILE}"
+  local domain_json='[{"domain":1,"total":3,"passed":3,"percent":100}]'
+  progress_record_exam 85 true "${domain_json}"
+  [ -f "${CKAD_PROGRESS_FILE}" ]
+  run jq '.exams | length' "${CKAD_PROGRESS_FILE}"
+  assert_success
+  assert_output "1"
+}
