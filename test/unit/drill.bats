@@ -766,3 +766,217 @@ SESSIONEOF
 
   rm -rf "${tmpdir}"
 }
+
+# ---------------------------------------------------------------------------
+# Learn mode: ckad-drill learn (list all domains)
+# ---------------------------------------------------------------------------
+
+@test "learn: lists domain headers when called with no flags" {
+  run bash -c "
+    CKAD_CONFIG_DIR='${TEST_CONFIG_DIR}'
+    CKAD_SESSION_FILE='${TEST_CONFIG_DIR}/session.json'
+    CKAD_PROGRESS_FILE='${TEST_CONFIG_DIR}/progress.json'
+    bash '${CKAD_DRILL_ROOT}/bin/ckad-drill' learn 2>&1
+  "
+  assert_success
+  assert_output --partial "Domain"
+  assert_output --partial "ckad-drill learn --domain"
+}
+
+# ---------------------------------------------------------------------------
+# Learn mode: ckad-drill learn --domain without cluster
+# ---------------------------------------------------------------------------
+
+@test "learn --domain: exits with No active cluster error when cluster is down" {
+  run bash -c "
+    CKAD_CONFIG_DIR='${TEST_CONFIG_DIR}'
+    CKAD_SESSION_FILE='${TEST_CONFIG_DIR}/session.json'
+    CKAD_PROGRESS_FILE='${TEST_CONFIG_DIR}/progress.json'
+
+    kind() { echo ''; }
+    export -f kind
+
+    bash '${CKAD_DRILL_ROOT}/bin/ckad-drill' learn --domain 1 2>&1
+  "
+  assert_failure
+  assert_output --partial "No active cluster"
+}
+
+# ---------------------------------------------------------------------------
+# Learn mode: hint allowed (not blocked like exam)
+# ---------------------------------------------------------------------------
+
+@test "hint: allowed in learn mode (not blocked)" {
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  mkdir -p "${tmpdir}/ckad-drill"
+  local scenario_file="${tmpdir}/learn-scenario.yaml"
+
+  cat > "${scenario_file}" <<'SCENEOF'
+id: learn-hint-test
+domain: 1
+title: "Learn Hint Test"
+difficulty: easy
+time_limit: 300
+namespace: learn-hint-ns
+description: "Learn mode hint test"
+learn_intro: "This is the concept text."
+hint: "This is the learn mode hint."
+validations: []
+SCENEOF
+
+  local end_at
+  end_at=$(( $(date +%s) + 300 ))
+  cat > "${tmpdir}/ckad-drill/session.json" <<SESSIONEOF
+{
+  "mode": "learn",
+  "scenario_id": "learn-hint-test",
+  "scenario_file": "${scenario_file}",
+  "namespace": "learn-hint-ns",
+  "started_at": "2026-01-01T00:00:00Z",
+  "time_limit": 300,
+  "end_at": ${end_at}
+}
+SESSIONEOF
+
+  run bash -c "
+    XDG_CONFIG_HOME='${tmpdir}'
+    export XDG_CONFIG_HOME
+    bash '${CKAD_DRILL_ROOT}/bin/ckad-drill' hint 2>&1
+  "
+  assert_success
+  assert_output --partial "learn mode hint"
+  rm -rf "${tmpdir}"
+}
+
+# ---------------------------------------------------------------------------
+# Learn mode: solution allowed (not blocked like exam)
+# ---------------------------------------------------------------------------
+
+@test "solution: allowed in learn mode (not blocked)" {
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  mkdir -p "${tmpdir}/ckad-drill"
+  local scenario_file="${tmpdir}/learn-solution-scenario.yaml"
+
+  cat > "${scenario_file}" <<'SCENEOF'
+id: learn-solution-test
+domain: 1
+title: "Learn Solution Test"
+difficulty: easy
+time_limit: 300
+namespace: learn-solution-ns
+description: "Learn mode solution test"
+learn_intro: "Concept text here."
+validations: []
+solution:
+  steps:
+    - "kubectl get pods"
+SCENEOF
+
+  local end_at
+  end_at=$(( $(date +%s) + 300 ))
+  cat > "${tmpdir}/ckad-drill/session.json" <<SESSIONEOF
+{
+  "mode": "learn",
+  "scenario_id": "learn-solution-test",
+  "scenario_file": "${scenario_file}",
+  "namespace": "learn-solution-ns",
+  "started_at": "2026-01-01T00:00:00Z",
+  "time_limit": 300,
+  "end_at": ${end_at}
+}
+SESSIONEOF
+
+  run bash -c "
+    XDG_CONFIG_HOME='${tmpdir}'
+    export XDG_CONFIG_HOME
+    bash '${CKAD_DRILL_ROOT}/bin/ckad-drill' solution 2>&1
+  "
+  assert_success
+  assert_output --partial "kubectl get pods"
+  rm -rf "${tmpdir}"
+}
+
+# ---------------------------------------------------------------------------
+# Learn mode: check in learn mode records completion on pass
+# ---------------------------------------------------------------------------
+
+@test "check: in learn mode records learn completion to progress.json on pass" {
+  local tmpdir
+  tmpdir="$(mktemp -d)"
+  mkdir -p "${tmpdir}/ckad-drill" "${tmpdir}/bin"
+  local scenario_file="${tmpdir}/learn-check-scenario.yaml"
+
+  cat > "${scenario_file}" <<'SCENEOF'
+id: learn-check-pass
+domain: 1
+title: "Learn Check Pass Test"
+difficulty: easy
+time_limit: 300
+namespace: learn-check-ns
+description: "Learn mode check test"
+learn_intro: "Concept text."
+validations:
+  - name: pod_exists
+    type: resource_exists
+    resource: pod/test-pod
+SCENEOF
+
+  local end_at
+  end_at=$(( $(date +%s) + 300 ))
+  cat > "${tmpdir}/ckad-drill/session.json" <<SESSIONEOF
+{
+  "mode": "learn",
+  "scenario_id": "learn-check-pass",
+  "scenario_file": "${scenario_file}",
+  "namespace": "learn-check-ns",
+  "started_at": "2026-01-01T00:00:00Z",
+  "time_limit": 300,
+  "end_at": ${end_at}
+}
+SESSIONEOF
+
+  # Fake kubectl: always succeed (validation passes)
+  cat > "${tmpdir}/bin/kubectl" <<'KUBEOF'
+#!/usr/bin/env bash
+exit 0
+KUBEOF
+  chmod +x "${tmpdir}/bin/kubectl"
+
+  run bash -c "
+    XDG_CONFIG_HOME='${tmpdir}'
+    PATH='${tmpdir}/bin:${PATH}'
+    export XDG_CONFIG_HOME PATH
+    bash '${CKAD_DRILL_ROOT}/bin/ckad-drill' check 2>&1
+  "
+
+  assert_success
+
+  # progress.json must have learn completion recorded
+  [[ -f "${tmpdir}/ckad-drill/progress.json" ]] \
+    || fail "progress.json was not created"
+
+  local completed_val
+  completed_val=$(jq -r '.learn["learn-check-pass"].completed' \
+    "${tmpdir}/ckad-drill/progress.json" 2>/dev/null)
+  [[ "${completed_val}" == "true" ]] \
+    || fail "Expected .learn[learn-check-pass].completed=true, got: ${completed_val}"
+
+  rm -rf "${tmpdir}"
+}
+
+# ---------------------------------------------------------------------------
+# Help text includes learn subcommand
+# ---------------------------------------------------------------------------
+
+@test "no args shows learn command in help" {
+  run bash -c "
+    CKAD_CONFIG_DIR='${TEST_CONFIG_DIR}'
+    CKAD_SESSION_FILE='${TEST_CONFIG_DIR}/session.json'
+    CKAD_PROGRESS_FILE='${TEST_CONFIG_DIR}/progress.json'
+    bash '${CKAD_DRILL_ROOT}/bin/ckad-drill' 2>&1
+  "
+  assert_failure
+  assert_output --partial "learn"
+}
