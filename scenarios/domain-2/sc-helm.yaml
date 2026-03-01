@@ -1,0 +1,41 @@
+id: sc-helm
+domain: 2
+title: "Install, Upgrade, and Rollback a Helm Release"
+difficulty: medium
+time_limit: 240
+namespace: helm-demo
+tags: [helm]
+description: >
+  Using Helm, add the Bitnami chart repository (https://charts.bitnami.com/bitnami)
+  and install the nginx chart with release name "my-web" and replicaCount=2 in the
+  "helm-demo" namespace. Then upgrade the release to replicaCount=4. View the release
+  history with helm history, then rollback to revision 1.
+
+hint: >
+  Use helm repo add to add the Bitnami repo, helm repo update to fetch the latest
+  index, then helm install --set replicaCount=2 for install and helm upgrade --set
+  replicaCount=4 for the upgrade. Use helm rollback my-web 1 to roll back.
+
+validations:
+  - name: helm_release_exists
+    type: command_output
+    command: "helm list -n helm-demo -q"
+    mode: contains
+    expected: "my-web"
+
+  - name: release_deployed
+    type: command_output
+    command: "helm status my-web -n helm-demo --short"
+    mode: contains
+    expected: "deployed"
+
+solution:
+  steps:
+    - "kubectl create namespace helm-demo --dry-run=client -o yaml | kubectl apply -f -"
+    - "helm repo add bitnami https://charts.bitnami.com/bitnami"
+    - "helm repo update"
+    - "helm install my-web bitnami/nginx --set replicaCount=2 -n helm-demo"
+    - "helm upgrade my-web bitnami/nginx --set replicaCount=4 -n helm-demo"
+    - "helm history my-web -n helm-demo"
+    - "helm rollback my-web 1 -n helm-demo"
+    - "helm list -n helm-demo"

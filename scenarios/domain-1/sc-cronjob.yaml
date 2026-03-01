@@ -1,0 +1,69 @@
+id: sc-cronjob
+domain: 1
+title: "Create a CronJob with History Limits"
+difficulty: medium
+time_limit: 180
+namespace: scheduler-ns
+description: >
+  Create a CronJob named "log-cleaner" in the "scheduler-ns" namespace that runs
+  every 10 minutes using the "busybox" image. The command is: /bin/sh -c "echo Cleaning logs".
+  Configure it to keep 2 successful job history records, 1 failed job history record,
+  and use concurrencyPolicy: Forbid to prevent overlapping runs.
+
+hint: >
+  Use kubectl create cronjob with --schedule="*/10 * * * *" to generate a base
+  manifest. Add successfulJobsHistoryLimit, failedJobsHistoryLimit, and
+  concurrencyPolicy fields at the CronJob spec level (not inside jobTemplate).
+
+validations:
+  - name: cronjob_exists
+    type: resource_exists
+    resource: cronjob/log-cleaner
+    namespace: scheduler-ns
+
+  - name: schedule_correct
+    type: resource_field
+    resource: cronjob/log-cleaner
+    namespace: scheduler-ns
+    jsonpath: "{.spec.schedule}"
+    expected: "*/10 * * * *"
+
+  - name: concurrency_policy
+    type: resource_field
+    resource: cronjob/log-cleaner
+    namespace: scheduler-ns
+    jsonpath: "{.spec.concurrencyPolicy}"
+    expected: "Forbid"
+
+  - name: successful_history
+    type: resource_field
+    resource: cronjob/log-cleaner
+    namespace: scheduler-ns
+    jsonpath: "{.spec.successfulJobsHistoryLimit}"
+    expected: "2"
+
+solution:
+  steps:
+    - "kubectl create namespace scheduler-ns --dry-run=client -o yaml | kubectl apply -f -"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: batch/v1
+      kind: CronJob
+      metadata:
+        name: log-cleaner
+        namespace: scheduler-ns
+      spec:
+        schedule: "*/10 * * * *"
+        concurrencyPolicy: Forbid
+        successfulJobsHistoryLimit: 2
+        failedJobsHistoryLimit: 1
+        jobTemplate:
+          spec:
+            template:
+              spec:
+                containers:
+                - name: cleaner
+                  image: busybox
+                  command: ["/bin/sh", "-c", "echo Cleaning logs"]
+                restartPolicy: OnFailure
+      EOF

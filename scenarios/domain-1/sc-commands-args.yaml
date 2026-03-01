@@ -1,0 +1,78 @@
+id: sc-commands-args
+domain: 1
+title: "Override Container Command and Arguments"
+difficulty: easy
+time_limit: 180
+namespace: cmd-lab
+description: >
+  In the "cmd-lab" namespace, create two pods that demonstrate command and argument
+  overrides. First, create a pod named "cmd-pod" using the "busybox" image that
+  overrides the default command with "/bin/sh" and passes arguments "-c" and
+  "echo 'Hello from command override'; sleep 3600". Second, create a pod named
+  "env-cmd-pod" using "busybox" with command ["/bin/sh", "-c"] and args
+  ["echo $GREETING; sleep 3600"], setting environment variable GREETING to
+  "Hello from env".
+
+hint: >
+  In Kubernetes, command overrides Docker's ENTRYPOINT and args overrides Docker's CMD.
+  For the second pod, environment variables in args are expanded by the shell at runtime,
+  not by Kubernetes itself.
+
+validations:
+  - name: cmd_pod_exists
+    type: resource_exists
+    resource: pod/cmd-pod
+    namespace: cmd-lab
+
+  - name: cmd_pod_running
+    type: container_running
+    pod: cmd-pod
+    namespace: cmd-lab
+
+  - name: env_pod_exists
+    type: resource_exists
+    resource: pod/env-cmd-pod
+    namespace: cmd-lab
+
+  - name: env_var_set
+    type: container_env
+    pod: env-cmd-pod
+    container: app
+    namespace: cmd-lab
+    env_var: GREETING
+    expected: "Hello from env"
+
+solution:
+  steps:
+    - "kubectl create namespace cmd-lab --dry-run=client -o yaml | kubectl apply -f -"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: cmd-pod
+        namespace: cmd-lab
+      spec:
+        containers:
+        - name: app
+          image: busybox
+          command: ["/bin/sh"]
+          args: ["-c", "echo 'Hello from command override'; sleep 3600"]
+      EOF
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: env-cmd-pod
+        namespace: cmd-lab
+      spec:
+        containers:
+        - name: app
+          image: busybox
+          command: ["/bin/sh", "-c"]
+          args: ["echo $GREETING; sleep 3600"]
+          env:
+          - name: GREETING
+            value: "Hello from env"
+      EOF

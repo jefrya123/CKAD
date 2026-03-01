@@ -1,0 +1,71 @@
+id: sc-init-container
+domain: 1
+title: "Create a Pod with an Init Container"
+difficulty: medium
+time_limit: 180
+namespace: init-lab
+description: >
+  Create a Pod named "app-init" in the "init-lab" namespace with an init container
+  named "setup" using the "busybox" image that writes "<h1>Hello CKAD</h1>" to
+  "/work/index.html". The main container named "web" uses the "nginx" image and
+  mounts the same volume at "/usr/share/nginx/html". Use an emptyDir volume named
+  "content" shared between both containers.
+
+hint: >
+  Init containers go under spec.initContainers. They run to completion before
+  the main containers start. Use an emptyDir volume to share data between the
+  init container and the main container.
+
+validations:
+  - name: pod_exists
+    type: resource_exists
+    resource: pod/app-init
+    namespace: init-lab
+
+  - name: pod_running
+    type: container_running
+    pod: app-init
+    namespace: init-lab
+
+  - name: web_image
+    type: container_image
+    pod: app-init
+    container: web
+    namespace: init-lab
+    expected: "nginx"
+
+  - name: init_volume_mount
+    type: volume_mount
+    pod: app-init
+    container: web
+    namespace: init-lab
+    mount_path: /usr/share/nginx/html
+
+solution:
+  steps:
+    - "kubectl create namespace init-lab --dry-run=client -o yaml | kubectl apply -f -"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: app-init
+        namespace: init-lab
+      spec:
+        initContainers:
+        - name: setup
+          image: busybox
+          command: ['sh', '-c', 'echo "<h1>Hello CKAD</h1>" > /work/index.html']
+          volumeMounts:
+          - name: content
+            mountPath: /work
+        containers:
+        - name: web
+          image: nginx
+          volumeMounts:
+          - name: content
+            mountPath: /usr/share/nginx/html
+        volumes:
+        - name: content
+          emptyDir: {}
+      EOF

@@ -1,0 +1,59 @@
+id: sc-job
+domain: 1
+title: "Create a Job with Completions and Parallelism"
+difficulty: easy
+time_limit: 120
+namespace: batch-ops
+description: >
+  Create a Job named "data-export" in the "batch-ops" namespace that uses the
+  "busybox" image and runs the command: echo "Export completed successfully".
+  The Job must complete 3 times total, run up to 2 pods in parallel, and have
+  a backoffLimit of 4.
+
+hint: >
+  Use kubectl create job with --dry-run=client -o yaml to generate the base manifest,
+  then add completions, parallelism, and backoffLimit fields under spec. The restartPolicy
+  must be Never or OnFailure for Job pods.
+
+validations:
+  - name: job_exists
+    type: resource_exists
+    resource: job/data-export
+    namespace: batch-ops
+
+  - name: completions_set
+    type: resource_field
+    resource: job/data-export
+    namespace: batch-ops
+    jsonpath: "{.spec.completions}"
+    expected: "3"
+
+  - name: parallelism_set
+    type: resource_field
+    resource: job/data-export
+    namespace: batch-ops
+    jsonpath: "{.spec.parallelism}"
+    expected: "2"
+
+solution:
+  steps:
+    - "kubectl create namespace batch-ops --dry-run=client -o yaml | kubectl apply -f -"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: data-export
+        namespace: batch-ops
+      spec:
+        completions: 3
+        parallelism: 2
+        backoffLimit: 4
+        template:
+          spec:
+            containers:
+            - name: export
+              image: busybox
+              command: ["echo", "Export completed successfully"]
+            restartPolicy: Never
+      EOF
