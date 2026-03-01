@@ -1,0 +1,44 @@
+id: debug-image-pull
+domain: 1
+title: "Fix: Pod ImagePullBackOff"
+difficulty: easy
+time_limit: 120
+namespace: debug-imgpull
+description: >
+  A pod named app-pod is stuck in ImagePullBackOff state. The pod cannot be
+  scheduled because the container image cannot be pulled. Diagnose the image
+  reference error and fix the pod spec so the container starts successfully.
+
+setup:
+  manifest: |
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: app-pod
+      namespace: debug-imgpull
+    spec:
+      containers:
+      - name: app
+        image: busybox:9.99.99
+        command: ["sleep", "3600"]
+
+hint: >
+  Run kubectl describe pod app-pod -n debug-imgpull and look at the Events section.
+  The image tag does not exist. Use a valid busybox tag such as busybox:1.36 or
+  busybox:latest. You will need to delete and recreate the pod since image is
+  not directly patchable on a running pod (unless it uses patch).
+
+validations:
+  - name: pod_running
+    type: container_running
+    pod: app-pod
+    namespace: debug-imgpull
+    container: app
+
+solution:
+  steps:
+    - "kubectl get pod app-pod -n debug-imgpull  # ImagePullBackOff or ErrImagePull"
+    - "kubectl describe pod app-pod -n debug-imgpull | grep -A5 Events"
+    - "# The image tag 9.99.99 doesn't exist on Docker Hub"
+    - "kubectl patch pod app-pod -n debug-imgpull --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/containers/0/image\", \"value\": \"busybox:1.36\"}]'"
+    - "kubectl get pod app-pod -n debug-imgpull  # Should transition to Running"

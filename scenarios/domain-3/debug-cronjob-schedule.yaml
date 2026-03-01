@@ -1,0 +1,50 @@
+id: debug-cronjob-schedule
+domain: 3
+title: "Fix: CronJob Invalid Schedule"
+difficulty: easy
+time_limit: 120
+namespace: debug-lab09
+description: >
+  A CronJob named lab09-cron has been created but no jobs are being scheduled.
+  The schedule field contains an error. Diagnose the problem and fix the schedule
+  so the CronJob works correctly.
+
+setup:
+  manifest: |
+    apiVersion: batch/v1
+    kind: CronJob
+    metadata:
+      name: lab09-cron
+      namespace: debug-lab09
+    spec:
+      schedule: "0 */2 * * * *"
+      jobTemplate:
+        spec:
+          template:
+            spec:
+              containers:
+              - name: task
+                image: busybox
+                command: ["echo", "running"]
+              restartPolicy: OnFailure
+
+hint: >
+  A cron schedule has exactly 5 fields: minute hour day-of-month month day-of-week.
+  Run kubectl describe cronjob lab09-cron -n debug-lab09 to see if there are
+  validation errors. Count the fields in the schedule string.
+
+validations:
+  - name: cronjob_schedule_valid
+    type: resource_field
+    resource: cronjob/lab09-cron
+    namespace: debug-lab09
+    field: ".spec.schedule"
+    expected: "0 */2 * * *"
+
+solution:
+  steps:
+    - "kubectl describe cronjob lab09-cron -n debug-lab09"
+    - "kubectl get cronjob lab09-cron -n debug-lab09 -o yaml | grep schedule"
+    - "# Count fields: '0 */2 * * * *' has 6 fields — cron only takes 5"
+    - "kubectl patch cronjob lab09-cron -n debug-lab09 --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/schedule\", \"value\": \"0 */2 * * *\"}]'"
+    - "kubectl get cronjob lab09-cron -n debug-lab09  # Verify SCHEDULE shows 5-field format"

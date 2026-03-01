@@ -1,0 +1,82 @@
+id: debug-selector-mismatch
+domain: 2
+title: "Fix: Deployment Selector/Template Label Mismatch"
+difficulty: hard
+time_limit: 240
+namespace: debug-lab10
+description: >
+  A Deployment named lab10-deploy was created but has 0 ready pods despite having
+  3 replicas configured. The Deployment selector does not match the pod template labels.
+  Diagnose the mismatch and fix it.
+
+setup:
+  manifest: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: lab10-deploy
+      namespace: debug-lab10
+    spec:
+      replicas: 3
+      selector:
+        matchLabels:
+          app: web
+      template:
+        metadata:
+          labels:
+            app: frontend
+        spec:
+          containers:
+          - name: nginx
+            image: nginx
+
+hint: >
+  Run kubectl describe deployment lab10-deploy -n debug-lab10 and look at
+  Selector and Pod Template Labels. A Deployment's selector must exactly match
+  the labels in spec.template.metadata.labels. When they differ, the Deployment
+  controller cannot manage the pods it creates.
+
+validations:
+  - name: template_label_matches
+    type: resource_field
+    resource: deployment/lab10-deploy
+    namespace: debug-lab10
+    field: ".spec.template.metadata.labels.app"
+    expected: "web"
+  - name: replicas_ready
+    type: resource_field
+    resource: deployment/lab10-deploy
+    namespace: debug-lab10
+    field: ".status.readyReplicas"
+    expected: "3"
+
+solution:
+  steps:
+    - "kubectl get deployment lab10-deploy -n debug-lab10  # Note 0/3 READY"
+    - "kubectl describe deployment lab10-deploy -n debug-lab10 | grep -E 'Selector|Labels'"
+    - "kubectl get deployment lab10-deploy -n debug-lab10 -o yaml | grep -A5 'template:'"
+    - "# The selector requires app=web but template labels say app=frontend"
+    - "# Note: selector is immutable — must delete and recreate the Deployment"
+    - "kubectl delete deployment lab10-deploy -n debug-lab10"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: lab10-deploy
+        namespace: debug-lab10
+      spec:
+        replicas: 3
+        selector:
+          matchLabels:
+            app: web
+        template:
+          metadata:
+            labels:
+              app: web
+          spec:
+            containers:
+            - name: nginx
+              image: nginx
+      EOF
+    - "kubectl rollout status deployment/lab10-deploy -n debug-lab10"
