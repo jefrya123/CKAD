@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Ship It
 status: unknown
-last_updated: "2026-03-01T02:51:52.815Z"
+last_updated: "2026-03-01T02:52:35.842Z"
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 20
-  completed_plans: 17
+  completed_plans: 18
 ---
 
 # Project State
@@ -23,11 +23,11 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 ## Current Position
 
 Phase: 6 of 7 (Content Migration)
-Plan: 3/5 complete (06-03 debug scenario conversion)
-Status: Phase 6 in progress — 13 debug scenarios converted, CONT-02 complete
-Last activity: 2026-02-28 — 06-03 complete: 13 debug-prefix scenarios from troubleshooting labs, all 5 domains covered
+Plan: 4/5 complete (06-04 learn scenario extraction)
+Status: Phase 6 in progress — 16 learn scenarios extracted across all 5 domains, CONT-03/04/05 complete
+Last activity: 2026-02-28 — 06-04 complete: 16 learn-prefix scenarios with learn_intro from tutorial content, all 5 domains covered
 
-Progress: [######----] 64% (5/7 phases complete — Phase 6 in progress, plan 3/5 done)
+Progress: [######----] 66% (5/7 phases complete — Phase 6 in progress, plan 4/5 done)
 
 ## Performance Metrics
 
@@ -48,6 +48,7 @@ Progress: [######----] 64% (5/7 phases complete — Phase 6 in progress, plan 3/
 | Phase 05-learn-mode P02 | 7 | 1 tasks | 2 files |
 | Phase 06-content-migration P02 | 3 | 2 tasks | 14 files |
 | Phase 06-content-migration P03 | 12 | 2 tasks | 13 files |
+| Phase 06-content-migration P04 | 8 | 2 tasks | 16 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,7 @@ Key decisions affecting v1.1 work:
 - [Phase 06-content-migration]: sc-configmap-secret moved from domain-2 to domain-4 (ConfigMap is Config & Security content)
 - [Phase 06-content-migration]: sc-network-policy moved from domain-3 to domain-5, renamed to sc-netpol-deny (NetworkPolicy is Services & Networking content)
 - [Phase 06-content-migration]: Lab-08 actual content is Job restartPolicy (not PVC access mode as described in plan) — renamed to debug-job-restart-policy.yaml for accuracy
+- [Phase 06-content-migration]: learn_intro extracted from tutorial lesson prose not invented; domain-4 and domain-5 directories created; quiz questions not converted (knowledge-based recall only)
 
 ### Pending Todos
 
@@ -95,5 +97,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 06-03-PLAN.md — 13 debug-prefix scenarios from troubleshooting labs across all 5 domains, CONT-02 requirement complete
+Stopped at: Completed 06-04-PLAN.md — 16 learn-prefix scenarios with learn_intro concept text, all 5 CKAD domains, CONT-03/04/05 requirements complete
 Resume file: None
