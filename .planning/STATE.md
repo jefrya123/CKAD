@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Ship It
 status: unknown
-last_updated: "2026-03-01T02:08:50.333Z"
+last_updated: "2026-03-01T02:51:16.811Z"
 progress:
-  total_phases: 6
+  total_phases: 7
   completed_phases: 6
-  total_plans: 15
-  completed_plans: 15
+  total_plans: 20
+  completed_plans: 16
 ---
 
 # Project State
@@ -46,6 +46,7 @@ Progress: [#####-----] 57% (5/7 phases complete — Phase 5 done; Phase 6 next)
 | 03.1-drill-integration-fixes | 1 | 14 min | 14 min |
 | 04-exam-mode | 2/2 | 22 min | 11 min |
 | Phase 05-learn-mode P02 | 7 | 1 tasks | 2 files |
+| Phase 06-content-migration P02 | 3 | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -77,6 +78,8 @@ Key decisions affecting v1.1 work:
 - [Phase 05-01]: Decorated sort pattern for progressive ordering within domain (easy->medium->hard)
 - [Phase 05-02]: cluster_check_active before learn_next_lesson in _learn_start ensures cluster error fires before scenario discovery
 - [Phase 05-02]: _learn_start/_learn_list helpers extracted — local keyword not valid in case blocks (same pattern as exam mode)
+- [Phase 06-content-migration]: sc-configmap-secret moved from domain-2 to domain-4 (ConfigMap is Config & Security content)
+- [Phase 06-content-migration]: sc-network-policy moved from domain-3 to domain-5, renamed to sc-netpol-deny (NetworkPolicy is Services & Networking content)
 
 ### Pending Todos
 
