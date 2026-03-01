@@ -1,4 +1,4 @@
-.PHONY: shellcheck lint test-unit test-integration test
+.PHONY: shellcheck lint test-unit test-schema test-integration test
 
 # Run shellcheck on all bash files
 shellcheck:
@@ -10,6 +10,10 @@ lint: shellcheck
 # Run unit tests (no cluster required)
 test-unit:
 	bats test/unit/
+
+# Run schema validation tests only
+test-schema:
+	bats test/unit/schema.bats
 
 # Run integration tests (requires running kind cluster)
 test-integration:
