@@ -191,6 +191,44 @@ progress_read_exam_history() {
   jq -r '.exams // []' "${file}"
 }
 
+# progress_record_learn SCENARIO_ID
+# Records learn completion in progress.json under .learn[SCENARIO_ID].
+# Schema: .learn[$sid] = { completed: true, completed_at: $timestamp }
+# Additive — does NOT change progress_init schema (.learn added on first record).
+# Atomic write via temp file + mv.
+progress_record_learn() {
+  local scenario_id="$1"
+
+  # Ensure file exists
+  progress_init
+
+  local timestamp
+  timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+  local tmp_file
+  tmp_file="${CKAD_PROGRESS_FILE}.tmp.$$"
+
+  jq --arg sid "${scenario_id}" \
+     --arg ts "${timestamp}" \
+    '.learn[$sid] = { "completed": true, "completed_at": $ts }' \
+    "${CKAD_PROGRESS_FILE}" > "${tmp_file}" && mv "${tmp_file}" "${CKAD_PROGRESS_FILE}"
+}
+
+# progress_learn_completed SCENARIO_ID
+# Returns 0 if lesson is completed (.learn[SCENARIO_ID].completed == true), 1 if not.
+# Returns 1 if progress.json is missing or lesson is absent.
+progress_learn_completed() {
+  local scenario_id="$1"
+
+  if [[ ! -f "${CKAD_PROGRESS_FILE}" ]]; then
+    return 1
+  fi
+
+  jq -e --arg sid "${scenario_id}" \
+    '.learn[$sid].completed == true' \
+    "${CKAD_PROGRESS_FILE}" > /dev/null 2>&1
+}
+
 # progress_recommend_weak_domain
 # Outputs the domain number with the lowest pass rate.
 # Outputs empty string if no data.

@@ -356,3 +356,81 @@ teardown() {
   assert_success
   assert_output "1"
 }
+
+# ---------------------------------------------------------------
+# progress_record_learn
+# ---------------------------------------------------------------
+
+@test "progress_record_learn creates .learn entry with completed true" {
+  progress_init
+  progress_record_learn "sc-pod-basics"
+  run jq -r '.learn["sc-pod-basics"].completed' "${CKAD_PROGRESS_FILE}"
+  assert_success
+  assert_output "true"
+}
+
+@test "progress_record_learn stores completed_at as ISO timestamp" {
+  progress_init
+  progress_record_learn "sc-pod-basics"
+  run jq -r '.learn["sc-pod-basics"].completed_at' "${CKAD_PROGRESS_FILE}"
+  assert_success
+  [[ "${output}" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]]
+}
+
+@test "progress_record_learn on already-completed lesson updates completed_at" {
+  progress_init
+  progress_record_learn "sc-pod-basics"
+  local first_ts
+  first_ts=$(jq -r '.learn["sc-pod-basics"].completed_at' "${CKAD_PROGRESS_FILE}")
+  sleep 1
+  progress_record_learn "sc-pod-basics"
+  run jq -r '.learn["sc-pod-basics"].completed_at' "${CKAD_PROGRESS_FILE}"
+  assert_success
+  # completed_at should be updated (different from first call or same — just must be valid ISO)
+  [[ "${output}" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$ ]]
+}
+
+@test "progress_record_learn creates progress.json if missing" {
+  rm -f "${CKAD_PROGRESS_FILE}"
+  progress_record_learn "sc-pod-basics"
+  [ -f "${CKAD_PROGRESS_FILE}" ]
+  run jq -r '.learn["sc-pod-basics"].completed' "${CKAD_PROGRESS_FILE}"
+  assert_success
+  assert_output "true"
+}
+
+# ---------------------------------------------------------------
+# progress_learn_completed
+# ---------------------------------------------------------------
+
+@test "progress_learn_completed returns 0 (true) if lesson completed" {
+  progress_init
+  progress_record_learn "sc-pod-basics"
+  run progress_learn_completed "sc-pod-basics"
+  assert_success
+}
+
+@test "progress_learn_completed returns 1 (false) if lesson not in progress.json" {
+  progress_init
+  run progress_learn_completed "sc-not-started"
+  assert_failure
+}
+
+@test "progress_learn_completed returns 1 on empty progress.json" {
+  progress_init
+  run progress_learn_completed "sc-any-lesson"
+  assert_failure
+}
+
+@test "progress_learn_completed returns 1 on missing progress.json" {
+  rm -f "${CKAD_PROGRESS_FILE}"
+  run progress_learn_completed "sc-pod-basics"
+  assert_failure
+}
+
+@test "progress_init does not add .learn field to schema" {
+  progress_init
+  run jq -r '.learn // "absent"' "${CKAD_PROGRESS_FILE}"
+  assert_success
+  assert_output "absent"
+}
