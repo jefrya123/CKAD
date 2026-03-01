@@ -1,0 +1,10 @@
+id: empty-solution
+domain: 1
+title: "Empty Solution"
+difficulty: easy
+time_limit: 120
+namespace: test-empty-sol
+description: "Empty solution steps array."
+validations: []
+solution:
+  steps: []

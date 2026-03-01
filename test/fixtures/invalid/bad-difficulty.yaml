@@ -1,0 +1,11 @@
+id: bad-difficulty
+domain: 1
+title: "Bad Difficulty"
+difficulty: extreme
+time_limit: 120
+namespace: test-bad-diff
+description: "Invalid difficulty value."
+validations: []
+solution:
+  steps:
+    - "echo done"
