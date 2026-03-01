@@ -1,0 +1,40 @@
+id: sc-debug-crash
+domain: 3
+title: "Debug and Fix a CrashLoopBackOff Pod"
+difficulty: medium
+time_limit: 180
+namespace: debug-ns
+setup:
+  commands:
+    - "kubectl create namespace debug-ns --dry-run=client -o yaml | kubectl apply -f -"
+    - "kubectl run crasher --image=busybox -n debug-ns -- /bin/sh -c 'exit 1'"
+description: >
+  A pod named "crasher" in the "debug-ns" namespace is in CrashLoopBackOff because
+  its container exits immediately with code 1. Use kubectl logs --previous and
+  kubectl describe to diagnose the issue. Then fix it: delete the broken pod and
+  recreate "crasher" with a command that keeps it running (echo running; sleep 3600).
+
+hint: >
+  Check kubectl logs crasher --previous to see output from the last failed run.
+  Use kubectl describe pod crasher to see the exit code and reason. The container
+  exits because the command returns a non-zero exit code. Recreate it with a long-running command.
+
+validations:
+  - name: pod_exists
+    type: resource_exists
+    resource: pod/crasher
+    namespace: debug-ns
+
+  - name: pod_running
+    type: container_running
+    pod: crasher
+    namespace: debug-ns
+
+solution:
+  steps:
+    - "kubectl get pod crasher -n debug-ns"
+    - "kubectl logs crasher -n debug-ns --previous || true"
+    - "kubectl describe pod crasher -n debug-ns"
+    - "kubectl delete pod crasher -n debug-ns --force --grace-period=0"
+    - "kubectl run crasher --image=busybox -n debug-ns -- /bin/sh -c 'echo running; sleep 3600'"
+    - "kubectl get pod crasher -n debug-ns"

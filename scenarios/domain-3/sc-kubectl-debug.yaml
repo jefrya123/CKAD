@@ -1,0 +1,42 @@
+id: sc-kubectl-debug
+domain: 3
+title: "Debug a Running Pod with Ephemeral Containers"
+difficulty: hard
+time_limit: 180
+namespace: ephemeral-ns
+description: >
+  In the "ephemeral-ns" namespace, create a Pod named "debug-target" using the "nginx"
+  image and wait for it to be running. Then use kubectl debug to attach an ephemeral
+  container named "debugger" using the "busybox" image with process namespace sharing
+  to inspect the running nginx processes. Also create a debug copy of the pod named
+  "debug-copy" using kubectl debug with the --copy-to flag.
+
+hint: >
+  Use kubectl debug -it debug-target --image=busybox --container=debugger --target=nginx
+  for ephemeral containers (requires cluster support). Use kubectl debug debug-target
+  --copy-to=debug-copy --image=busybox -it -- sh to create a debugging copy.
+  The --share-processes flag enables process namespace sharing.
+
+validations:
+  - name: target_pod_exists
+    type: resource_exists
+    resource: pod/debug-target
+    namespace: ephemeral-ns
+
+  - name: target_pod_running
+    type: container_running
+    pod: debug-target
+    namespace: ephemeral-ns
+
+  - name: debug_copy_exists
+    type: resource_exists
+    resource: pod/debug-copy
+    namespace: ephemeral-ns
+
+solution:
+  steps:
+    - "kubectl create namespace ephemeral-ns --dry-run=client -o yaml | kubectl apply -f -"
+    - "kubectl run debug-target --image=nginx -n ephemeral-ns"
+    - "kubectl wait --for=condition=Ready pod/debug-target -n ephemeral-ns --timeout=60s"
+    - "kubectl debug debug-target --copy-to=debug-copy --image=busybox -n ephemeral-ns -- sh -c 'ps aux; sleep 3600'"
+    - "kubectl get pod debug-target debug-copy -n ephemeral-ns"

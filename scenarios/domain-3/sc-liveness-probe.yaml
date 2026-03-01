@@ -1,0 +1,65 @@
+id: sc-liveness-probe
+domain: 3
+title: "Add a Liveness Probe to a Pod"
+difficulty: easy
+time_limit: 180
+namespace: probe-lab
+description: >
+  In the "probe-lab" namespace, create a Pod named "healthy-app" using the "nginx"
+  image. Configure an HTTP liveness probe that checks the path "/" on port 80 with
+  an initialDelaySeconds of 5, a periodSeconds of 10, and a failureThreshold of 3.
+
+hint: >
+  Add a livenessProbe section under the container spec. For HTTP probes, use httpGet
+  with path and port fields. The initialDelaySeconds gives the container time to
+  start before the first probe fires.
+
+validations:
+  - name: pod_exists
+    type: resource_exists
+    resource: pod/healthy-app
+    namespace: probe-lab
+
+  - name: pod_running
+    type: container_running
+    pod: healthy-app
+    namespace: probe-lab
+
+  - name: liveness_probe_port
+    type: resource_field
+    resource: pod/healthy-app
+    namespace: probe-lab
+    jsonpath: "{.spec.containers[0].livenessProbe.httpGet.port}"
+    expected: "80"
+
+  - name: liveness_initial_delay
+    type: resource_field
+    resource: pod/healthy-app
+    namespace: probe-lab
+    jsonpath: "{.spec.containers[0].livenessProbe.initialDelaySeconds}"
+    expected: "5"
+
+solution:
+  steps:
+    - "kubectl create namespace probe-lab --dry-run=client -o yaml | kubectl apply -f -"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: healthy-app
+        namespace: probe-lab
+      spec:
+        containers:
+        - name: nginx
+          image: nginx
+          ports:
+          - containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+      EOF

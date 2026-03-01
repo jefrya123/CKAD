@@ -1,0 +1,83 @@
+id: sc-fix-probe
+domain: 3
+title: "Fix a Failing Liveness Probe"
+difficulty: medium
+time_limit: 180
+namespace: probe-fix-ns
+setup:
+  manifest: |
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: probe-fix
+      namespace: probe-fix-ns
+    spec:
+      containers:
+      - name: app
+        image: nginx
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 3
+description: >
+  A Pod named "probe-fix" in the "probe-fix-ns" namespace has a misconfigured
+  liveness probe that is causing repeated restarts. The probe checks port 8080
+  but nginx listens on port 80. Diagnose the issue using kubectl describe, then
+  fix the pod by deleting it and recreating it with the corrected probe configuration
+  (port 80, path "/").
+
+hint: >
+  Run kubectl describe pod probe-fix and look at the Events section. You will see
+  "Liveness probe failed: connection refused". The probe port must match the port
+  the container actually serves on. Delete and recreate the pod with the fix applied.
+
+validations:
+  - name: pod_exists
+    type: resource_exists
+    resource: pod/probe-fix
+    namespace: probe-fix-ns
+
+  - name: pod_running
+    type: container_running
+    pod: probe-fix
+    namespace: probe-fix-ns
+
+  - name: liveness_port_correct
+    type: resource_field
+    resource: pod/probe-fix
+    namespace: probe-fix-ns
+    jsonpath: "{.spec.containers[0].livenessProbe.httpGet.port}"
+    expected: "80"
+
+  - name: liveness_path_correct
+    type: resource_field
+    resource: pod/probe-fix
+    namespace: probe-fix-ns
+    jsonpath: "{.spec.containers[0].livenessProbe.httpGet.path}"
+    expected: "/"
+
+solution:
+  steps:
+    - "kubectl create namespace probe-fix-ns --dry-run=client -o yaml | kubectl apply -f -"
+    - "kubectl describe pod probe-fix -n probe-fix-ns"
+    - "kubectl delete pod probe-fix -n probe-fix-ns --force --grace-period=0"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: probe-fix
+        namespace: probe-fix-ns
+      spec:
+        containers:
+        - name: app
+          image: nginx
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 3
+      EOF
