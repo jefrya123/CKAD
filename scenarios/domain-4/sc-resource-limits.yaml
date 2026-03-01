@@ -1,0 +1,64 @@
+id: sc-resource-limits
+domain: 4
+title: "Set CPU and Memory Resource Limits on a Pod"
+difficulty: easy
+time_limit: 180
+namespace: limits-ns
+description: >
+  In the "limits-ns" namespace, create a Pod named "limited-app" running "nginx:1.25".
+  Configure the container with CPU request of 100m and CPU limit of 200m, and memory
+  request of 64Mi and memory limit of 128Mi.
+
+hint: >
+  Use resources.requests and resources.limits under the container spec. You can use
+  kubectl run with --requests and --limits flags or write a YAML manifest.
+
+validations:
+  - name: pod_exists
+    type: resource_exists
+    resource: pod/limited-app
+    namespace: limits-ns
+
+  - name: cpu_request
+    type: resource_field
+    resource: pod/limited-app
+    namespace: limits-ns
+    jsonpath: "{.spec.containers[0].resources.requests.cpu}"
+    expected: "100m"
+
+  - name: memory_limit
+    type: resource_field
+    resource: pod/limited-app
+    namespace: limits-ns
+    jsonpath: "{.spec.containers[0].resources.limits.memory}"
+    expected: "128Mi"
+
+  - name: cpu_limit
+    type: resource_field
+    resource: pod/limited-app
+    namespace: limits-ns
+    jsonpath: "{.spec.containers[0].resources.limits.cpu}"
+    expected: "200m"
+
+solution:
+  steps:
+    - "kubectl create namespace limits-ns --dry-run=client -o yaml | kubectl apply -f -"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: limited-app
+        namespace: limits-ns
+      spec:
+        containers:
+          - name: nginx
+            image: nginx:1.25
+            resources:
+              requests:
+                cpu: "100m"
+                memory: "64Mi"
+              limits:
+                cpu: "200m"
+                memory: "128Mi"
+      EOF
