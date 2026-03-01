@@ -79,7 +79,7 @@ Plans:
 
 ---
 
-### 🚧 v1.1 Ship It (In Progress)
+### v1.1 Ship It (In Progress)
 
 **Milestone Goal:** Complete exam mode, learn mode, migrate 70+ scenarios, and ship with CI, install script, and docs.
 
@@ -109,7 +109,11 @@ Plans:
   1. `ckad-drill learn` lists all learn-mode scenarios by domain with completion status shown
   2. `ckad-drill learn --domain 1` presents lessons in progressive order (easy scenarios first) with concept text shown before the task
   3. Completing a lesson shows the next lesson in that domain and records completion in progress.json
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — Learn engine (lib/learn.sh) with discovery, ordering, concept display, and progress tracking + unit tests
+- [ ] 05-02-PLAN.md — Wire learn subcommands into CLI, extend check for learn mode
 
 ### Phase 6: Content Migration
 **Goal**: The scenario library reaches 70+ validated YAML scenarios covering all 5 domains
@@ -149,7 +153,7 @@ Phase 7 begins after Phase 6 completes.
 | 2. Scenario + Validation Engine | v1.0 | 2/2 | Complete | 2026-02-28 |
 | 3. CLI + Drill Mode | v1.0 | 6/6 | Complete | 2026-02-28 |
 | 3.1 Drill Integration Fixes | v1.0 | 1/1 | Complete | 2026-03-01 |
-| 4. Exam Mode | 2/2 | Complete   | 2026-03-01 | - |
-| 5. Learn Mode | v1.1 | 0/TBD | Not started | - |
+| 4. Exam Mode | v1.1 | 2/2 | Complete | 2026-03-01 |
+| 5. Learn Mode | v1.1 | 0/2 | Planning complete | - |
 | 6. Content Migration | v1.1 | 0/TBD | Not started | - |
 | 7. Testing, CI, Distribution, Docs | v1.1 | 0/TBD | Not started | - |
