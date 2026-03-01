@@ -1,0 +1,82 @@
+id: sc-adapter-pod
+domain: 1
+title: "Adapter Container Pattern"
+difficulty: medium
+time_limit: 300
+namespace: adapter-lab
+description: >
+  In the "adapter-lab" namespace, create a pod named "adapter-pod" that demonstrates
+  the adapter container pattern. The pod should have two containers: a main container
+  named "app" using the "busybox" image that runs the command
+  ["/bin/sh", "-c", "while true; do echo 'raw log entry'; sleep 5; done"]
+  and an adapter container named "log-adapter" using "busybox" that reformats the logs
+  by running ["/bin/sh", "-c", "while true; do echo '[FORMATTED] log entry'; sleep 5; done"].
+  Both containers should share an emptyDir volume named "shared-data" mounted at "/data"
+  in both containers.
+
+hint: >
+  The adapter pattern transforms output from the main container into a normalized format.
+  Both containers share a volume via emptyDir. Use volumeMounts in each container to
+  mount the shared volume. Keep commands simple so both containers stay running.
+
+validations:
+  - name: pod_exists
+    type: resource_exists
+    resource: pod/adapter-pod
+    namespace: adapter-lab
+
+  - name: two_containers
+    type: container_count
+    pod: adapter-pod
+    namespace: adapter-lab
+    expected: 2
+
+  - name: app_container_image
+    type: container_image
+    pod: adapter-pod
+    container: app
+    namespace: adapter-lab
+    expected: "busybox"
+
+  - name: adapter_container_image
+    type: container_image
+    pod: adapter-pod
+    container: log-adapter
+    namespace: adapter-lab
+    expected: "busybox"
+
+  - name: shared_volume_mounted
+    type: volume_mount
+    pod: adapter-pod
+    container: app
+    namespace: adapter-lab
+    mount_path: /data
+
+solution:
+  steps:
+    - "kubectl create namespace adapter-lab --dry-run=client -o yaml | kubectl apply -f -"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: adapter-pod
+        namespace: adapter-lab
+      spec:
+        containers:
+        - name: app
+          image: busybox
+          command: ["/bin/sh", "-c", "while true; do echo 'raw log entry'; sleep 5; done"]
+          volumeMounts:
+          - name: shared-data
+            mountPath: /data
+        - name: log-adapter
+          image: busybox
+          command: ["/bin/sh", "-c", "while true; do echo '[FORMATTED] log entry'; sleep 5; done"]
+          volumeMounts:
+          - name: shared-data
+            mountPath: /data
+        volumes:
+        - name: shared-data
+          emptyDir: {}
+      EOF

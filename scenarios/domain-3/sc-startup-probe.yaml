@@ -1,0 +1,71 @@
+id: sc-startup-probe
+domain: 3
+title: "Startup Probe for Slow-Starting Containers"
+difficulty: medium
+time_limit: 240
+namespace: startup-lab
+description: >
+  In the "startup-lab" namespace, create a pod named "slow-start" using the "nginx" image
+  that has a startup probe configured. The startup probe should use HTTP GET on path "/"
+  and port 80, with a failureThreshold of 30 and periodSeconds of 10 (allowing up to 5
+  minutes for startup). Also configure a liveness probe using HTTP GET on path "/" and
+  port 80 with periodSeconds of 10. The startup probe protects the liveness probe from
+  firing during slow initialization.
+
+hint: >
+  A startup probe disables liveness and readiness probes until it succeeds.
+  Set failureThreshold * periodSeconds to the maximum startup time you want to allow.
+  Once the startup probe succeeds, the liveness probe takes over.
+
+validations:
+  - name: pod_exists
+    type: resource_exists
+    resource: pod/slow-start
+    namespace: startup-lab
+
+  - name: startup_probe_configured
+    type: command_output
+    command: "kubectl get pod slow-start -n startup-lab -o jsonpath='{.spec.containers[0].startupProbe.httpGet.port}'"
+    mode: contains
+    expected: "80"
+
+  - name: startup_probe_failure_threshold
+    type: command_output
+    command: "kubectl get pod slow-start -n startup-lab -o jsonpath='{.spec.containers[0].startupProbe.failureThreshold}'"
+    mode: contains
+    expected: "30"
+
+  - name: liveness_probe_configured
+    type: command_output
+    command: "kubectl get pod slow-start -n startup-lab -o jsonpath='{.spec.containers[0].livenessProbe.httpGet.port}'"
+    mode: contains
+    expected: "80"
+
+solution:
+  steps:
+    - "kubectl create namespace startup-lab --dry-run=client -o yaml | kubectl apply -f -"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: slow-start
+        namespace: startup-lab
+      spec:
+        containers:
+        - name: nginx
+          image: nginx
+          ports:
+          - containerPort: 80
+          startupProbe:
+            httpGet:
+              path: /
+              port: 80
+            failureThreshold: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            periodSeconds: 10
+      EOF

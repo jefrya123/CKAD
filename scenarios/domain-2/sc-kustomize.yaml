@@ -1,0 +1,80 @@
+id: sc-kustomize
+domain: 2
+title: "Kustomize with Overlay"
+difficulty: hard
+time_limit: 360
+namespace: kustomize-lab
+description: >
+  In the "kustomize-lab" namespace, use kustomize to deploy a customized nginx application.
+  Create a deployment named "nginx" with 1 replica using the nginx image, then use
+  kubectl apply -k to apply a kustomization that sets the namespace to "kustomize-lab",
+  adds the namePrefix "prod-", and sets replicas to 3. The resulting deployment should
+  be named "prod-nginx" with 3 replicas in the "kustomize-lab" namespace.
+
+  Steps: Create the base directory structure at /tmp/kustomize-demo/base/ with deployment.yaml
+  and kustomization.yaml. Create /tmp/kustomize-demo/overlays/prod/kustomization.yaml
+  with namespace, namePrefix, and replica override. Apply with kubectl apply -k.
+
+hint: >
+  Create /tmp/kustomize-demo/base/deployment.yaml with a basic nginx deployment.
+  Create /tmp/kustomize-demo/base/kustomization.yaml listing the deployment.yaml resource.
+  Create /tmp/kustomize-demo/overlays/prod/kustomization.yaml with: resources: [../../base],
+  namespace: kustomize-lab, namePrefix: prod-, and replicas override for nginx to count 3.
+  Then: kubectl create namespace kustomize-lab && kubectl apply -k /tmp/kustomize-demo/overlays/prod/
+
+validations:
+  - name: deployment_exists
+    type: resource_exists
+    resource: deployment/prod-nginx
+    namespace: kustomize-lab
+
+  - name: replicas_correct
+    type: command_output
+    command: "kubectl get deployment prod-nginx -n kustomize-lab -o jsonpath='{.spec.replicas}'"
+    mode: exact
+    expected: "3"
+
+solution:
+  steps:
+    - "kubectl create namespace kustomize-lab --dry-run=client -o yaml | kubectl apply -f -"
+    - "mkdir -p /tmp/kustomize-demo/base /tmp/kustomize-demo/overlays/prod"
+    - |
+      cat <<'EOF' > /tmp/kustomize-demo/base/deployment.yaml
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: nginx
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: nginx
+        template:
+          metadata:
+            labels:
+              app: nginx
+          spec:
+            containers:
+            - name: nginx
+              image: nginx
+      EOF
+    - |
+      cat <<'EOF' > /tmp/kustomize-demo/base/kustomization.yaml
+      apiVersion: kustomize.config.k8s.io/v1beta1
+      kind: Kustomization
+      resources:
+      - deployment.yaml
+      EOF
+    - |
+      cat <<'EOF' > /tmp/kustomize-demo/overlays/prod/kustomization.yaml
+      apiVersion: kustomize.config.k8s.io/v1beta1
+      kind: Kustomization
+      resources:
+      - ../../base
+      namespace: kustomize-lab
+      namePrefix: prod-
+      replicas:
+      - name: nginx
+        count: 3
+      EOF
+    - "kubectl apply -k /tmp/kustomize-demo/overlays/prod/"

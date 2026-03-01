@@ -1,0 +1,105 @@
+id: sc-blue-green
+domain: 2
+title: "Blue-Green Deployment Pattern"
+difficulty: hard
+time_limit: 360
+namespace: bg-lab
+description: >
+  In the "bg-lab" namespace, implement a blue-green deployment. Create two deployments:
+  "app-blue" with 3 replicas using image "nginx:1.19" labeled with "app=myapp" and
+  "version=blue", and "app-green" with 3 replicas using image "nginx:1.21" labeled with
+  "app=myapp" and "version=green". Create a Service named "myapp" of type ClusterIP on
+  port 80 initially pointing to the blue deployment (selector: app=myapp, version=blue).
+  Then switch traffic to green by patching the service selector to version=green.
+
+hint: >
+  Use kubectl patch to switch the service selector. The key insight is that you create
+  both deployments simultaneously but only one receives traffic at a time based on the
+  service selector. Patch with: kubectl patch svc myapp -n bg-lab -p '{"spec":{"selector":{"version":"green"}}}'
+
+validations:
+  - name: blue_deployment_exists
+    type: resource_exists
+    resource: deployment/app-blue
+    namespace: bg-lab
+
+  - name: green_deployment_exists
+    type: resource_exists
+    resource: deployment/app-green
+    namespace: bg-lab
+
+  - name: service_exists
+    type: resource_exists
+    resource: service/myapp
+    namespace: bg-lab
+
+  - name: service_points_to_green
+    type: command_output
+    command: "kubectl get svc myapp -n bg-lab -o jsonpath='{.spec.selector.version}'"
+    mode: exact
+    expected: "green"
+
+solution:
+  steps:
+    - "kubectl create namespace bg-lab --dry-run=client -o yaml | kubectl apply -f -"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: app-blue
+        namespace: bg-lab
+      spec:
+        replicas: 3
+        selector:
+          matchLabels:
+            app: myapp
+            version: blue
+        template:
+          metadata:
+            labels:
+              app: myapp
+              version: blue
+          spec:
+            containers:
+            - name: nginx
+              image: nginx:1.19
+      EOF
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: app-green
+        namespace: bg-lab
+      spec:
+        replicas: 3
+        selector:
+          matchLabels:
+            app: myapp
+            version: green
+        template:
+          metadata:
+            labels:
+              app: myapp
+              version: green
+          spec:
+            containers:
+            - name: nginx
+              image: nginx:1.21
+      EOF
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: myapp
+        namespace: bg-lab
+      spec:
+        selector:
+          app: myapp
+          version: blue
+        ports:
+        - port: 80
+      EOF
+    - "kubectl patch svc myapp -n bg-lab -p '{\"spec\":{\"selector\":{\"version\":\"green\"}}}'"

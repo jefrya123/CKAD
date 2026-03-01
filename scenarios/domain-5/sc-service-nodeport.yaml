@@ -1,0 +1,45 @@
+id: sc-service-nodeport
+domain: 5
+title: "Expose Deployment with NodePort Service"
+difficulty: easy
+time_limit: 180
+namespace: nodeport-lab
+description: >
+  In the "nodeport-lab" namespace, create a deployment named "nodeport-app" with 2 replicas
+  using the "nginx" image. Expose it as a NodePort service named "nodeport-svc" on port 80
+  with targetPort 80. The service should be accessible externally via the node IP on the
+  assigned NodePort.
+
+hint: >
+  Use: kubectl expose deployment nodeport-app --name=nodeport-svc --port=80 --type=NodePort -n nodeport-lab
+  The NodePort will be assigned automatically in the 30000-32767 range.
+  Check the assigned port with: kubectl get svc nodeport-svc -n nodeport-lab
+
+validations:
+  - name: deployment_exists
+    type: resource_exists
+    resource: deployment/nodeport-app
+    namespace: nodeport-lab
+
+  - name: service_exists
+    type: resource_exists
+    resource: service/nodeport-svc
+    namespace: nodeport-lab
+
+  - name: service_type_nodeport
+    type: command_output
+    command: "kubectl get svc nodeport-svc -n nodeport-lab -o jsonpath='{.spec.type}'"
+    mode: exact
+    expected: "NodePort"
+
+  - name: service_port_80
+    type: command_output
+    command: "kubectl get svc nodeport-svc -n nodeport-lab -o jsonpath='{.spec.ports[0].port}'"
+    mode: exact
+    expected: "80"
+
+solution:
+  steps:
+    - "kubectl create namespace nodeport-lab --dry-run=client -o yaml | kubectl apply -f -"
+    - "kubectl create deployment nodeport-app --image=nginx --replicas=2 -n nodeport-lab"
+    - "kubectl expose deployment nodeport-app --name=nodeport-svc --port=80 --type=NodePort -n nodeport-lab"
