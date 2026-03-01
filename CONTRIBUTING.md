@@ -9,8 +9,10 @@ Thank you for contributing. This guide covers how to set up a development enviro
 git clone https://github.com/USER/ckad-drill.git
 cd ckad-drill
 
-# Install dev dependencies (bats, shellcheck, yq, jq, kind)
+# Install dev dependencies (bats, shellcheck)
 scripts/dev-setup.sh
+
+# Also required (install manually if not present): yq, jq, kind, kubectl, Docker
 
 # Verify the setup
 make shellcheck

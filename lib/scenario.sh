@@ -154,6 +154,13 @@ scenario_setup() {
         eval "${cmd}"
       fi
     done <<< "${setup_commands}"
+  else
+    # Manifest-only setup (no commands) — apply manifest directly
+    local setup_manifest
+    setup_manifest=$(yq -r '.setup.manifest // empty' "${file}")
+    if [[ -n "${setup_manifest}" ]]; then
+      echo "${setup_manifest}" | kubectl apply -f - -n "${SCENARIO_NAMESPACE}"
+    fi
   fi
 }
 
