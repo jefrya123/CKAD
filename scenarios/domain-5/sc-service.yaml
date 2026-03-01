@@ -1,0 +1,49 @@
+id: sc-service
+domain: 5
+title: "Expose a Deployment as a ClusterIP Service"
+difficulty: easy
+time_limit: 120
+namespace: svc-ns
+description: >
+  In the "svc-ns" namespace, create a Deployment named "web-app" with image "nginx:1.25"
+  and 3 replicas. Expose it as a ClusterIP Service named "web-svc" on port 80, targeting
+  port 80 on the pods.
+
+hint: >
+  Use "kubectl expose deployment web-app --name=web-svc --port=80" after creating the
+  deployment. The service type defaults to ClusterIP.
+
+setup:
+  commands:
+    - "kubectl create namespace svc-ns --dry-run=client -o yaml | kubectl apply -f -"
+
+validations:
+  - name: deployment_exists
+    type: resource_exists
+    resource: deployment/web-app
+    namespace: svc-ns
+
+  - name: service_exists
+    type: resource_exists
+    resource: service/web-svc
+    namespace: svc-ns
+
+  - name: service_type
+    type: resource_field
+    resource: service/web-svc
+    namespace: svc-ns
+    jsonpath: "{.spec.type}"
+    expected: "ClusterIP"
+
+  - name: service_port
+    type: resource_field
+    resource: service/web-svc
+    namespace: svc-ns
+    jsonpath: "{.spec.ports[0].port}"
+    expected: "80"
+
+solution:
+  steps:
+    - "kubectl create namespace svc-ns --dry-run=client -o yaml | kubectl apply -f -"
+    - "kubectl create deployment web-app --image=nginx:1.25 --replicas=3 -n svc-ns"
+    - "kubectl expose deployment web-app --name=web-svc --port=80 -n svc-ns"

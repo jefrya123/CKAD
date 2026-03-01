@@ -1,5 +1,5 @@
-id: sc-network-policy
-domain: 3
+id: sc-netpol-deny
+domain: 5
 title: "Deny All Ingress with a NetworkPolicy"
 difficulty: hard
 time_limit: 300
