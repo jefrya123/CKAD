@@ -1,0 +1,41 @@
+id: debug-wrong-image
+domain: 3
+title: "Fix: Wrong Image Name"
+difficulty: easy
+time_limit: 120
+namespace: debug-lab01
+description: >
+  A pod named lab01-web has been deployed but is stuck in ImagePullBackOff.
+  Diagnose the issue and fix the pod so it runs successfully.
+
+setup:
+  manifest: |
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: lab01-web
+      namespace: debug-lab01
+    spec:
+      containers:
+      - name: web
+        image: ngnix
+        ports:
+        - containerPort: 80
+
+hint: >
+  Run kubectl describe pod lab01-web -n debug-lab01 and look at the Events section.
+  The error message will tell you exactly what went wrong with the image name.
+
+validations:
+  - name: pod_running
+    type: container_running
+    pod: lab01-web
+    namespace: debug-lab01
+    container: web
+
+solution:
+  steps:
+    - "kubectl get pod lab01-web -n debug-lab01"
+    - "kubectl describe pod lab01-web -n debug-lab01 | grep -A5 Events"
+    - "kubectl get pod lab01-web -n debug-lab01 -o yaml | grep image:"
+    - "kubectl patch pod lab01-web -n debug-lab01 --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/containers/0/image\", \"value\": \"nginx\"}]'"

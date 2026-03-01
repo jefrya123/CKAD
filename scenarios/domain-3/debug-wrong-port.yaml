@@ -1,0 +1,65 @@
+id: debug-wrong-port
+domain: 3
+title: "Fix: Wrong Service Target Port"
+difficulty: easy
+time_limit: 120
+namespace: debug-lab02
+description: >
+  A Deployment named lab02-app and a Service named lab02-svc have been deployed.
+  The app is running but the service cannot route traffic to the pods.
+  Diagnose the misconfiguration and fix the service.
+
+setup:
+  manifest: |
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: lab02-app
+      namespace: debug-lab02
+    spec:
+      replicas: 2
+      selector:
+        matchLabels:
+          app: lab02
+      template:
+        metadata:
+          labels:
+            app: lab02
+        spec:
+          containers:
+          - name: nginx
+            image: nginx
+            ports:
+            - containerPort: 80
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: lab02-svc
+      namespace: debug-lab02
+    spec:
+      selector:
+        app: lab02
+      ports:
+      - port: 80
+        targetPort: 8080
+
+hint: >
+  Check the service endpoints: kubectl get endpoints lab02-svc -n debug-lab02.
+  Compare the targetPort in the service with the containerPort in the pod spec.
+
+validations:
+  - name: service_target_port
+    type: resource_field
+    resource: service/lab02-svc
+    namespace: debug-lab02
+    field: ".spec.ports[0].targetPort"
+    expected: "80"
+
+solution:
+  steps:
+    - "kubectl get endpoints lab02-svc -n debug-lab02"
+    - "kubectl describe service lab02-svc -n debug-lab02"
+    - "kubectl get pods -n debug-lab02 -o wide"
+    - "kubectl patch service lab02-svc -n debug-lab02 --type='json' -p='[{\"op\": \"replace\", \"path\": \"/spec/ports/0/targetPort\", \"value\": 80}]'"
+    - "kubectl get endpoints lab02-svc -n debug-lab02  # Verify endpoints appear"
