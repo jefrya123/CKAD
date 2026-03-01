@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Ship It
 status: in_progress
-last_updated: "2026-03-01T01:06:00.000Z"
+last_updated: "2026-03-01T01:23:51.475Z"
 progress:
-  total_phases: 4
-  completed_phases: 0
-  total_plans: 2
-  completed_plans: 1
+  total_phases: 5
+  completed_phases: 5
+  total_plans: 13
+  completed_plans: 13
 ---
 
 # Project State
@@ -18,14 +18,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Unlimited, free, real-cluster CKAD practice with automated validation
-**Current focus:** Milestone v1.1 Ship It — Phase 4 (Exam Mode) Plan 1 complete, Plan 2 next
+**Current focus:** Milestone v1.1 Ship It — Phase 4 (Exam Mode) complete, Phase 5 (Learn Mode) next
 
 ## Current Position
 
 Phase: 4 of 7 (Exam Mode) — first v1.1 phase
-Plan: 1/2 complete (04-01 done — exam session engine)
-Status: In progress
-Last activity: 2026-03-01 — 04-01 complete: lib/exam.sh with 39 passing unit tests
+Plan: 2/2 complete (04-01 exam session engine, 04-02 exam CLI wiring)
+Status: Phase 4 complete
+Last activity: 2026-03-01 — 04-02 complete: exam CLI wired into bin/ckad-drill, 94 tests passing
 
 Progress: [####------] 40% (4/7 phases complete — v1.0 phases done; Phase 4 in progress)
 
@@ -44,7 +44,7 @@ Progress: [####------] 40% (4/7 phases complete — v1.0 phases done; Phase 4 in
 | 02-scenario-validation-engine | 2 | 11 min | 5.5 min |
 | 03-cli-drill-mode | 6 | 16 min | 2.7 min |
 | 03.1-drill-integration-fixes | 1 | 14 min | 14 min |
-| 04-exam-mode (partial) | 1/2 | 9 min | 9 min |
+| 04-exam-mode | 2/2 | 22 min | 11 min |
 
 ## Accumulated Context
 
@@ -69,6 +69,8 @@ Key decisions affecting v1.1 work:
 - jq atomic write pattern (tmp + mv) for all file updates
 - SCENARIO_NAMESPACE bridge pattern for cleanup paths
 - Index-based yq extraction (.solution.steps[N]) for multi-line YAML block scalars
+- [Phase 04-02]: Exam subcommands extracted to helper functions (_exam_start/_exam_submit) because local keyword not valid in case blocks
+- [Phase 04-02]: check) branches on SESSION_MODE after session_require — avoids dual session_require/exam_require calls
 
 ### Pending Todos
 
@@ -82,5 +84,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 04-01-PLAN.md — lib/exam.sh exam session engine, 39 tests, ready for 04-02
+Stopped at: Completed 04-02-PLAN.md — exam CLI wiring, 94 tests, exam mode fully functional
 Resume file: None
