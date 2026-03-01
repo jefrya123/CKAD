@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Ship It
 status: unknown
-last_updated: "2026-03-01T02:52:35.842Z"
+last_updated: "2026-03-01T03:09:09.674Z"
 progress:
   total_phases: 7
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 20
-  completed_plans: 18
+  completed_plans: 20
 ---
 
 # Project State
@@ -22,12 +22,12 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 
 ## Current Position
 
-Phase: 6 of 7 (Content Migration)
-Plan: 4/5 complete (06-04 learn scenario extraction)
-Status: Phase 6 in progress — 16 learn scenarios extracted across all 5 domains, CONT-03/04/05 complete
-Last activity: 2026-02-28 — 06-04 complete: 16 learn-prefix scenarios with learn_intro from tutorial content, all 5 domains covered
+Phase: 6 of 7 (Content Migration) — COMPLETE
+Plan: 5/5 complete (06-05 gap-fill, archive, and validation)
+Status: Phase 6 complete — 70 YAML scenarios across 5 domains, old content archived, CONT-06/07/08 complete
+Last activity: 2026-03-01 — 06-05 complete: 10 gap-filling scenarios added, old markdown archived to archive/study-guide/
 
-Progress: [######----] 66% (5/7 phases complete — Phase 6 in progress, plan 4/5 done)
+Progress: [#######---] 86% (6/7 phases complete — Phase 7 Distribution next)
 
 ## Performance Metrics
 
@@ -49,6 +49,7 @@ Progress: [######----] 66% (5/7 phases complete — Phase 6 in progress, plan 4/
 | Phase 06-content-migration P02 | 3 | 2 tasks | 14 files |
 | Phase 06-content-migration P03 | 12 | 2 tasks | 13 files |
 | Phase 06-content-migration P04 | 8 | 2 tasks | 16 files |
+| Phase 06-content-migration P05 | 12 | 2 tasks | 93 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,8 @@ Key decisions affecting v1.1 work:
 - [Phase 06-content-migration]: sc-network-policy moved from domain-3 to domain-5, renamed to sc-netpol-deny (NetworkPolicy is Services & Networking content)
 - [Phase 06-content-migration]: Lab-08 actual content is Job restartPolicy (not PVC access mode as described in plan) — renamed to debug-job-restart-policy.yaml for accuracy
 - [Phase 06-content-migration]: learn_intro extracted from tutorial lesson prose not invented; domain-4 and domain-5 directories created; quiz questions not converted (knowledge-based recall only)
+- [Phase 06-content-migration]: container_running check is timing-dependent in validate-scenario — use container_count + container_image + volume_mount for multi-container pod scenarios
+- [Phase 06-content-migration]: sc-rbac-clusterrole creates cluster-scoped ClusterRole/ClusterRoleBinding — not cleaned up by namespace deletion, must be managed separately
 
 ### Pending Todos
 
@@ -97,5 +100,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 06-01-PLAN.md (retroactive) — 18 YAML scenarios created for domains 1-3, CONT-01 complete; Phase 6 Plan 4/5 done overall
+Stopped at: Completed 06-05-PLAN.md — 70 YAML scenarios (10+ per domain), old content archived, Phase 6 complete; Phase 7 Distribution is next
 Resume file: None

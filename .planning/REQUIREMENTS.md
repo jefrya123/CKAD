@@ -95,9 +95,9 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **CONT-03**: Tutorial inline exercises extracted as learn-prefix scenarios with concept text
 - [x] **CONT-04**: Domain exercises (~2,200 lines) extracted as additional scenarios
 - [x] **CONT-05**: Quiz questions convertible to practical tasks become scenarios
-- [ ] **CONT-06**: Speed drills and cheatsheet preserved as reference content
-- [ ] **CONT-07**: Total scenario count >= 70 at launch
-- [ ] **CONT-08**: Each domain has at least 10 scenarios
+- [x] **CONT-06**: Speed drills and cheatsheet preserved as reference content
+- [x] **CONT-07**: Total scenario count >= 70 at launch
+- [x] **CONT-08**: Each domain has at least 10 scenarios
 
 ### Distribution & Quality
 
@@ -215,9 +215,9 @@ Requirements for initial release. Each maps to roadmap phases.
 | CONT-03 | Phase 6 | Complete |
 | CONT-04 | Phase 6 | Complete |
 | CONT-05 | Phase 6 | Complete |
-| CONT-06 | Phase 6 | Pending |
-| CONT-07 | Phase 6 | Pending |
-| CONT-08 | Phase 6 | Pending |
+| CONT-06 | Phase 6 | Complete |
+| CONT-07 | Phase 6 | Complete |
+| CONT-08 | Phase 6 | Complete |
 | TEST-01 | Phase 7 | Pending |
 | TEST-02 | Phase 7 | Pending |
 | TEST-03 | Phase 7 | Pending |
