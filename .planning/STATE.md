@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Ship It
 status: unknown
-last_updated: "2026-03-01T01:32:14.564Z"
+last_updated: "2026-03-01T02:04:31.668Z"
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 13
-  completed_plans: 13
+  total_phases: 6
+  completed_phases: 6
+  total_plans: 15
+  completed_plans: 15
 ---
 
 # Project State
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Unlimited, free, real-cluster CKAD practice with automated validation
-**Current focus:** Milestone v1.1 Ship It — Phase 5 (Learn Mode) in progress — Plan 01 complete
+**Current focus:** Milestone v1.1 Ship It — Phase 5 (Learn Mode) complete
 
 ## Current Position
 
 Phase: 5 of 7 (Learn Mode)
-Plan: 1/2 complete (05-01 learn mode library)
-Status: Phase 5 Plan 1 complete
-Last activity: 2026-03-01 — 05-01 complete: lib/learn.sh and progress.sh learn functions, 57 tests passing
+Plan: 2/2 complete (05-02 learn CLI wiring)
+Status: Phase 5 complete — all LERN requirements done
+Last activity: 2026-03-01 — 05-02 complete: learn subcommands wired into bin/ckad-drill, 87 tests passing
 
-Progress: [####------] 40% (4/7 phases complete — v1.0 phases done; Phase 5 in progress)
+Progress: [#####-----] 57% (5/7 phases complete — Phase 5 done; Phase 6 next)
 
 ## Performance Metrics
 
@@ -45,6 +45,7 @@ Progress: [####------] 40% (4/7 phases complete — v1.0 phases done; Phase 5 in
 | 03-cli-drill-mode | 6 | 16 min | 2.7 min |
 | 03.1-drill-integration-fixes | 1 | 14 min | 14 min |
 | 04-exam-mode | 2/2 | 22 min | 11 min |
+| Phase 05-learn-mode P02 | 7 | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -74,6 +75,8 @@ Key decisions affecting v1.1 work:
 - [Phase 05-01]: learn_intro YAML field gates learn-mode scenarios (no registry — presence-based discovery)
 - [Phase 05-01]: progress .learn key is additive on first progress_record_learn — progress_init stays PROG-03 compatible
 - [Phase 05-01]: Decorated sort pattern for progressive ordering within domain (easy->medium->hard)
+- [Phase 05-02]: cluster_check_active before learn_next_lesson in _learn_start ensures cluster error fires before scenario discovery
+- [Phase 05-02]: _learn_start/_learn_list helpers extracted — local keyword not valid in case blocks (same pattern as exam mode)
 
 ### Pending Todos
 
@@ -87,5 +90,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 05-01-PLAN.md — learn mode library (lib/learn.sh + progress.sh extensions), 57 tests passing
+Stopped at: Completed 05-02-PLAN.md — learn CLI wiring (bin/ckad-drill learn subcommands), all LERN requirements, 87 tests passing
 Resume file: None
