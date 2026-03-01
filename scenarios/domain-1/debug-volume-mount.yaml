@@ -50,6 +50,7 @@ solution:
   steps:
     - "kubectl describe pod lab03-pod -n debug-lab03 | grep -A5 Mounts"
     - "kubectl get pod lab03-pod -n debug-lab03 -o yaml | grep -A5 volumes"
+    - "kubectl delete pod lab03-pod -n debug-lab03"
     - |
       kubectl apply -f - <<EOF
       apiVersion: v1
@@ -70,4 +71,3 @@ solution:
           configMap:
             name: lab03-config
       EOF
-    - "kubectl delete pod lab03-pod -n debug-lab03 && kubectl apply -f <the-fixed-manifest>"
