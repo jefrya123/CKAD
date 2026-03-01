@@ -88,7 +88,7 @@ Each task was committed atomically:
 1. **Task 1: Create dev-setup.sh and test helper infrastructure** - `63b5482` (feat)
 2. **Task 2: Write unit tests for common.sh and cluster.sh dep checking** - `8f79f7d` (feat)
 
-**Plan metadata:** (docs commit to follow)
+**Plan metadata:** `81f59d9` (docs: complete plan)
 
 ## Files Created/Modified
 
