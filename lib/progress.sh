@@ -110,6 +110,38 @@ progress_record() {
     "${CKAD_PROGRESS_FILE}" > "${tmp_file}" && mv "${tmp_file}" "${CKAD_PROGRESS_FILE}"
 }
 
+# progress_record_exam SCORE PASSED DOMAIN_RESULTS_JSON
+# Appends an exam result to the .exams array in progress.json.
+# SCORE: integer percentage (0-100)
+# PASSED: "true" or "false"
+# DOMAIN_RESULTS_JSON: JSON array of per-domain results from exam_grade
+# Atomic write via temp file + mv.
+progress_record_exam() {
+  local score="$1"
+  local passed="$2"
+  local domain_results="$3"
+
+  progress_init
+
+  local timestamp
+  timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+  local tmp_file
+  tmp_file="${CKAD_PROGRESS_FILE}.tmp.$$"
+
+  jq --argjson score "${score}" \
+     --argjson passed "${passed}" \
+     --arg ts "${timestamp}" \
+     --argjson domains "${domain_results}" \
+    '.exams += [{
+      "date": $ts,
+      "score": $score,
+      "passed": $passed,
+      "domains": $domains
+    }]' \
+    "${CKAD_PROGRESS_FILE}" > "${tmp_file}" && mv "${tmp_file}" "${CKAD_PROGRESS_FILE}"
+}
+
 # progress_read_domain_rates
 # Outputs space-separated "DOMAIN:PERCENT" pairs for each domain with data.
 # Example: "1:75 2:50 3:100"
