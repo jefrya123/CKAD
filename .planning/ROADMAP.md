@@ -125,7 +125,14 @@ Plans:
   3. Tutorial inline exercises are extracted as learn-prefix scenarios with concept text; domain exercises yield additional scenarios
   4. Total scenario count is at or above 70 with each of the 5 domains having at least 10 scenarios
   5. Speed drills and cheatsheet are preserved as reference content; existing study guide content is archived
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — Convert markdown scenarios for Domains 1-3 to YAML (18 files)
+- [ ] 06-02-PLAN.md — Convert markdown scenarios for Domains 4-5 to YAML (12 files)
+- [ ] 06-03-PLAN.md — Convert 12 troubleshooting labs to debug-prefix YAML scenarios
+- [ ] 06-04-PLAN.md — Extract learn-prefix scenarios from tutorials, exercises, and quizzes (16 files)
+- [ ] 06-05-PLAN.md — Audit counts, gap-fill to 70+, archive old content, preserve reference materials
 
 ### Phase 7: Testing, CI, Distribution, Docs
 **Goal**: The project has a full test suite, automated CI, and a working install story
@@ -154,6 +161,6 @@ Phase 7 begins after Phase 6 completes.
 | 3. CLI + Drill Mode | v1.0 | 6/6 | Complete | 2026-02-28 |
 | 3.1 Drill Integration Fixes | v1.0 | 1/1 | Complete | 2026-03-01 |
 | 4. Exam Mode | v1.1 | 2/2 | Complete | 2026-03-01 |
-| 5. Learn Mode | 2/2 | Complete   | 2026-03-01 | - |
-| 6. Content Migration | v1.1 | 0/TBD | Not started | - |
+| 5. Learn Mode | v1.1 | 2/2 | Complete | 2026-03-01 |
+| 6. Content Migration | v1.1 | 0/5 | Planning complete | - |
 | 7. Testing, CI, Distribution, Docs | v1.1 | 0/TBD | Not started | - |
