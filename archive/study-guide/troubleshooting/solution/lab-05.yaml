@@ -1,22 +1,16 @@
-# Fix: service selector matches pod labels
+# LAB 05 SOLUTION
+# BUG: namespace: neptune -> pluto
+---
 apiVersion: v1
 kind: Pod
 metadata:
-  name: lab05-pod
+  name: q07-webserver
+  namespace: pluto
   labels:
-    app: backend
-    tier: api
+    app: webserver
 spec:
   containers:
   - name: nginx
-    image: nginx
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: lab05-svc
-spec:
-  selector:
-    app: backend
-  ports:
-  - port: 80
+    image: nginx:1.21
+    ports:
+    - containerPort: 80

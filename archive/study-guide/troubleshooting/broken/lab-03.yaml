@@ -1,14 +1,27 @@
-# Bug: volume is declared but not mounted in the container
+# LAB 03 — Mirrors Q5 (ServiceAccount + Secret): Secret has wrong type
+# Symptom: Secret exists but token field is empty / not a real SA token
+# Your job: Fix the secret so it auto-populates the token for the ServiceAccount
+#
+# SETUP:
+#   kubectl create namespace neptune 2>/dev/null || true
+#   kubectl apply -f lab-03.yaml
+#
+# Then check: kubectl get secret q05-token -n neptune -o jsonpath='{.data.token}' | base64 -d
+# It should be a valid JWT (starts with eyJ...)
+---
 apiVersion: v1
-kind: Pod
+kind: ServiceAccount
 metadata:
-  name: lab03-pod
-spec:
-  containers:
-  - name: app
-    image: busybox
-    command: ["sh", "-c", "cat /config/app.conf; sleep 3600"]
-  volumes:
-  - name: config
-    configMap:
-      name: lab03-config
+  name: q05-sa
+  namespace: neptune
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: q05-token
+  namespace: neptune
+  annotations:
+    kubernetes.io/service-account.name: q05-sa
+type: Opaque               # BUG: should be kubernetes.io/service-account-token
+stringData:
+  note: "this is not a token"

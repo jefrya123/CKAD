@@ -1,11 +1,14 @@
-# Fix: corrected image name to nginx
+# LAB 01 SOLUTION
+# BUG 1: label id: wrong-label  -> id: q02-pod
+# BUG 2: container name: q02-pod -> main-container
+---
 apiVersion: v1
 kind: Pod
 metadata:
-  name: lab01-web
+  name: q02-pod
+  labels:
+    id: q02-pod
 spec:
   containers:
-  - name: web
-    image: nginx
-    ports:
-    - containerPort: 80
+  - name: main-container
+    image: nginx:1.21

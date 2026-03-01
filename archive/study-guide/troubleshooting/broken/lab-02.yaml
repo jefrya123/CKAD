@@ -1,31 +1,26 @@
-# Bug: service targetPort doesn't match container port
-apiVersion: apps/v1
-kind: Deployment
+# LAB 02 — Mirrors Q3 (Job): Wrong parallelism structure + missing pod label
+# Symptom: Job applies but completes wrong number of pods, label missing
+# Your job: Fix so job runs 3 completions with parallelism 2, pods labelled id=q03-job
+#
+# SETUP: kubectl apply -f lab-02.yaml -n neptune
+# kubectl get job q03-job -n neptune
+# kubectl get pods -n neptune -l id=q03-job   <- should return 3 pods
+---
+apiVersion: batch/v1
+kind: Job
 metadata:
-  name: lab02-app
+  name: q03-job
+  namespace: neptune
 spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: lab02
+  completions: 3
+  parallelism: 5            # BUG 1: parallelism > completions — wasteful and wrong per spec
   template:
     metadata:
       labels:
-        app: lab02
+        app: q03-job        # BUG 2: label key should be "id", not "app"
     spec:
+      restartPolicy: Never
       containers:
-      - name: nginx
-        image: nginx
-        ports:
-        - containerPort: 80
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: lab02-svc
-spec:
-  selector:
-    app: lab02
-  ports:
-  - port: 80
-    targetPort: 8080
+      - name: job
+        image: busybox
+        command: ["/bin/sh", "-c", "sleep 2 && echo done"]

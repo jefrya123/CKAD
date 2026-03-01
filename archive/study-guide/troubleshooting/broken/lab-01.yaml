@@ -1,11 +1,23 @@
-# Bug: image name has a typo (ngnix instead of nginx)
+# LAB 01 — Mirrors Q2 (Pods): Wrong container name + bad label
+# Symptom: Pod is Running but container name and label are wrong
+# Your job: Fix both so the pod matches the spec below
+#
+# GOAL:
+#   - Pod name: q02-pod
+#   - Container name MUST be: main-container (not q02-pod)
+#   - Label: id=q02-pod
+#   - Image: nginx:1.21
+#
+# SETUP: kubectl apply -f lab-01.yaml
+# Then: kubectl describe pod q02-pod | grep -E "Container|Image|Labels"
+---
 apiVersion: v1
 kind: Pod
 metadata:
-  name: lab01-web
+  name: q02-pod
+  labels:
+    id: wrong-label         # BUG 1: label value is wrong
 spec:
   containers:
-  - name: web
-    image: ngnix
-    ports:
-    - containerPort: 80
+  - name: q02-pod           # BUG 2: container name should be "main-container"
+    image: nginx:1.21

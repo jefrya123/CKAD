@@ -1,14 +1,26 @@
-# Bug: using old deprecated API version for Ingress
-apiVersion: extensions/v1beta1
-kind: Ingress
+# LAB 04 — Mirrors Q6 (ReadinessProbe): Probe path and timing wrong
+# Symptom: Pod runs but READY shows 0/1 indefinitely — probe never passes
+# Your job: Fix the readinessProbe so pod becomes 1/1 Ready
+#
+# SETUP:
+#   kubectl create namespace neptune 2>/dev/null || true
+#   kubectl apply -f lab-04.yaml
+#   kubectl get pod q06-pod -n neptune -w   # watch READY stay 0/1
+---
+apiVersion: v1
+kind: Pod
 metadata:
-  name: lab04-ingress
+  name: q06-pod
+  namespace: neptune
 spec:
-  rules:
-  - host: app.example.com
-    http:
-      paths:
-      - path: /
-        backend:
-          serviceName: web-svc
-          servicePort: 80
+  containers:
+  - name: nginx
+    image: nginx
+    ports:
+    - containerPort: 80
+    readinessProbe:
+      httpGet:
+        path: /healthz      # BUG 1: nginx doesn't serve /healthz, use /
+        port: 8080          # BUG 2: nginx listens on 80, not 8080
+      initialDelaySeconds: 10
+      periodSeconds: 5

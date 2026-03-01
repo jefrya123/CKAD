@@ -1,22 +1,25 @@
-# Bug: service selector doesn't match pod labels
+# LAB 05 — Mirrors Q7 (Pod Namespace Migration): Pod has wrong namespace in spec
+# Symptom: Pod is running in neptune but should be in pluto. Manifest has the wrong namespace.
+# Your job: Fix the manifest so it creates the pod in namespace "pluto", then delete from neptune.
+#
+# SETUP:
+#   kubectl create namespace neptune 2>/dev/null || true
+#   kubectl create namespace pluto   2>/dev/null || true
+#   kubectl apply -f lab-05.yaml
+#   kubectl get pod q07-webserver -n neptune   # <- running in wrong namespace
+#
+# GOAL: pod running in pluto, deleted from neptune
+---
 apiVersion: v1
 kind: Pod
 metadata:
-  name: lab05-pod
+  name: q07-webserver
+  namespace: neptune          # BUG: should be pluto
   labels:
-    app: backend
-    tier: api
+    app: webserver
 spec:
   containers:
   - name: nginx
-    image: nginx
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: lab05-svc
-spec:
-  selector:
-    app: frontend
-  ports:
-  - port: 80
+    image: nginx:1.21
+    ports:
+    - containerPort: 80

@@ -1,18 +1,42 @@
-# Fix: template labels match selector
-apiVersion: apps/v1
-kind: Deployment
+# LAB 10 SOLUTION
+# BUG 1: key: user     -> username
+# BUG 2: key: pass     -> password
+# BUG 3: secretName: q14-wrong-secret -> q14-secret
+---
+apiVersion: v1
+kind: Secret
 metadata:
-  name: lab10-deploy
+  name: q14-secret
+  namespace: moon
+stringData:
+  username: moon-admin
+  password: M00nPass
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: q14-pod
+  namespace: moon
 spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: web
-  template:
-    metadata:
-      labels:
-        app: web
-    spec:
-      containers:
-      - name: nginx
-        image: nginx
+  containers:
+  - name: app
+    image: busybox
+    command: ["sh", "-c", "sleep 3600"]
+    env:
+    - name: DB_USER
+      valueFrom:
+        secretKeyRef:
+          name: q14-secret
+          key: username
+    - name: DB_PASS
+      valueFrom:
+        secretKeyRef:
+          name: q14-secret
+          key: password
+    volumeMounts:
+    - name: creds
+      mountPath: /etc/creds
+  volumes:
+  - name: creds
+    secret:
+      secretName: q14-secret

@@ -1,16 +1,48 @@
-# Fix: schedule corrected to 5 fields (every 2 hours)
-apiVersion: batch/v1
-kind: CronJob
+# LAB 09 SOLUTION
+# BUG 1: accessModes ReadWriteMany -> ReadWriteOnce (must match PV)
+# BUG 2: storage 2Gi -> 1Gi (must be <= PV capacity)
+---
+apiVersion: v1
+kind: PersistentVolume
 metadata:
-  name: lab09-cron
+  name: q12-pv
 spec:
-  schedule: "0 */2 * * *"
-  jobTemplate:
-    spec:
-      template:
-        spec:
-          containers:
-          - name: task
-            image: busybox
-            command: ["echo", "running"]
-          restartPolicy: OnFailure
+  capacity:
+    storage: 1Gi
+  accessModes:
+  - ReadWriteOnce
+  hostPath:
+    path: /tmp/q12
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: q12-pvc
+  namespace: earth
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: ""
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: q12-pod
+  namespace: earth
+spec:
+  containers:
+  - name: app
+    image: busybox
+    command: ["sh", "-c", "sleep 3600"]
+    volumeMounts:
+    - name: data
+      mountPath: /mnt/data
+  volumes:
+  - name: data
+    persistentVolumeClaim:
+      claimName: q12-pvc

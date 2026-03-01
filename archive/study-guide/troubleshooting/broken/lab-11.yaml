@@ -1,17 +1,40 @@
-# Bug: egress policy blocks DNS (port 53 UDP), so pod can't resolve any service names
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
+# LAB 11 — Mirrors Q16 (Logging Sidecar): Sidecar and main container not sharing volume
+# Symptom: Deployment runs but "kubectl logs -c log-reader" shows nothing
+# Your job: Fix it so the sidecar streams what the app writes
+#
+# SETUP:
+#   kubectl create namespace moon 2>/dev/null || true
+#   kubectl apply -f lab-11.yaml
+#   kubectl logs -n moon deploy/q16-deploy -c log-reader  # empty
+---
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: lab11-policy
-  namespace: default
+  name: q16-deploy
+  namespace: moon
 spec:
-  podSelector:
+  replicas: 1
+  selector:
     matchLabels:
-      app: restricted
-  policyTypes:
-  - Egress
-  egress:
-  - to: []
-    ports:
-    - port: 443
-      protocol: TCP
+      app: q16
+  template:
+    metadata:
+      labels:
+        app: q16
+    spec:
+      containers:
+      - name: app
+        image: busybox
+        command: ["sh", "-c", "while true; do echo \"$(date): log entry\" >> /var/log/app/app.log; sleep 3; done"]
+        volumeMounts:
+        - name: logs
+          mountPath: /var/log/app
+      - name: log-reader
+        image: busybox
+        command: ["sh", "-c", "tail -f /var/log/app/app.log"]
+        volumeMounts:
+        - name: log-data        # BUG: volume name "log-data" doesn't exist, should be "logs"
+          mountPath: /var/log/app
+      volumes:
+      - name: logs
+        emptyDir: {}

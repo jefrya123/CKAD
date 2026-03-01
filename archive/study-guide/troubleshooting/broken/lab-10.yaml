@@ -1,18 +1,47 @@
-# Bug: selector.matchLabels doesn't match template.metadata.labels
-apiVersion: apps/v1
-kind: Deployment
+# LAB 10 — Mirrors Q14 (Secret Volume+Env): Secret key names mismatched
+# Symptom: Pod runs but env vars are empty, volume files missing
+# Your job: Fix the secret references so both env var and volume mount work
+#
+# SETUP:
+#   kubectl create namespace moon 2>/dev/null || true
+#   kubectl apply -f lab-10.yaml
+#   kubectl exec q14-pod -n moon -- env | grep DB_    # empty
+#   kubectl exec q14-pod -n moon -- ls /etc/creds     # empty or error
+---
+apiVersion: v1
+kind: Secret
 metadata:
-  name: lab10-deploy
+  name: q14-secret
+  namespace: moon
+stringData:
+  username: moon-admin
+  password: M00nPass
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: q14-pod
+  namespace: moon
 spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: web
-  template:
-    metadata:
-      labels:
-        app: frontend
-    spec:
-      containers:
-      - name: nginx
-        image: nginx
+  containers:
+  - name: app
+    image: busybox
+    command: ["sh", "-c", "sleep 3600"]
+    env:
+    - name: DB_USER
+      valueFrom:
+        secretKeyRef:
+          name: q14-secret
+          key: user           # BUG 1: key is "username" not "user"
+    - name: DB_PASS
+      valueFrom:
+        secretKeyRef:
+          name: q14-secret
+          key: pass           # BUG 2: key is "password" not "pass"
+    volumeMounts:
+    - name: creds
+      mountPath: /etc/creds
+  volumes:
+  - name: creds
+    secret:
+      secretName: q14-wrong-secret  # BUG 3: secret name is "q14-secret" not "q14-wrong-secret"

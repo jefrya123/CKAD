@@ -1,18 +1,31 @@
-# Bug: liveness probe checks port 3000 but app runs on port 80
-apiVersion: v1
-kind: Pod
+# LAB 06 — Mirrors Q8 (Deployment Rollout): Deployment stuck on bad image
+# Symptom: Deployment shows 0/2 READY, pods in ImagePullBackOff
+# Your job: Find the bad image, roll back to the previous working revision
+#
+# SETUP:
+#   kubectl create namespace neptune 2>/dev/null || true
+#   kubectl apply -f lab-06.yaml
+#   kubectl get pods -n neptune   # ImagePullBackOff
+#
+# GOAL: All pods Running after rollback, save history to /tmp/lab06-history.txt
+---
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: lab06-pod
+  name: q08-deploy
+  namespace: neptune
+  annotations:
+    kubernetes.io/change-cause: "update to broken image"
 spec:
-  containers:
-  - name: nginx
-    image: nginx
-    ports:
-    - containerPort: 80
-    livenessProbe:
-      httpGet:
-        path: /
-        port: 3000
-      initialDelaySeconds: 3
-      periodSeconds: 3
-      failureThreshold: 2
+  replicas: 2
+  selector:
+    matchLabels:
+      app: q08-deploy
+  template:
+    metadata:
+      labels:
+        app: q08-deploy
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:99.99-doesnotexist    # BUG: bad image — roll back to nginx:1.21

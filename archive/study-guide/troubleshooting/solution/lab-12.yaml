@@ -1,37 +1,58 @@
-# Fixes:
-# 1. Image: ngnix:latest → nginx:latest
-# 2. containerPort: 8080 → 80 (nginx default)
-# 3. Readiness probe port: 3000 → 80
-# 4. ConfigMap lab12-config must exist (create it first)
-# 5. Volume name mismatch: volumeMount "data" doesn't match volume "storage"
-#
-# kubectl create configmap lab12-config --from-literal=setting=value
+# LAB 12 SOLUTION
+# BUG 1: initContainer missing volumeMount for /work
+# BUG 2: service selector app: q17-wrong -> q17
+# BUG 3: NetworkPolicy namespaceSelector name: venus -> moon
+---
 apiVersion: v1
 kind: Pod
 metadata:
-  name: lab12-app
+  name: q17-pod
+  namespace: moon
   labels:
-    app: lab12
+    app: q17
 spec:
+  initContainers:
+  - name: init
+    image: busybox
+    command: ["sh", "-c", "echo ready > /work/status.txt"]
+    volumeMounts:           # fixed BUG 1
+    - name: work
+      mountPath: /work
   containers:
-  - name: web
-    image: nginx:latest
-    ports:
-    - containerPort: 80
-    readinessProbe:
-      httpGet:
-        path: /
-        port: 80
-      initialDelaySeconds: 5
-    env:
-    - name: CONFIG
-      valueFrom:
-        configMapKeyRef:
-          name: lab12-config
-          key: setting
+  - name: main
+    image: nginx
     volumeMounts:
-    - name: data
-      mountPath: /data
+    - name: work
+      mountPath: /work
   volumes:
-  - name: data
+  - name: work
     emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: q18-svc
+  namespace: moon
+spec:
+  selector:
+    app: q17              # fixed BUG 2
+  ports:
+  - port: 80
+    targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: q20-netpol
+  namespace: moon
+spec:
+  podSelector:
+    matchLabels:
+      app: q17
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: moon      # fixed BUG 3

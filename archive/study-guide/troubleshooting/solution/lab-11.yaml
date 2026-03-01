@@ -1,21 +1,34 @@
-# Fix: added DNS egress rule (port 53 UDP)
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
+# LAB 11 SOLUTION
+# BUG: log-reader volumeMount name "log-data" -> "logs" (must match the defined volume)
+---
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: lab11-policy
-  namespace: default
+  name: q16-deploy
+  namespace: moon
 spec:
-  podSelector:
+  replicas: 1
+  selector:
     matchLabels:
-      app: restricted
-  policyTypes:
-  - Egress
-  egress:
-  - to: []
-    ports:
-    - port: 53
-      protocol: UDP
-  - to: []
-    ports:
-    - port: 443
-      protocol: TCP
+      app: q16
+  template:
+    metadata:
+      labels:
+        app: q16
+    spec:
+      containers:
+      - name: app
+        image: busybox
+        command: ["sh", "-c", "while true; do echo \"$(date): log entry\" >> /var/log/app/app.log; sleep 3; done"]
+        volumeMounts:
+        - name: logs
+          mountPath: /var/log/app
+      - name: log-reader
+        image: busybox
+        command: ["sh", "-c", "tail -f /var/log/app/app.log"]
+        volumeMounts:
+        - name: logs            # fixed
+          mountPath: /var/log/app
+      volumes:
+      - name: logs
+        emptyDir: {}
