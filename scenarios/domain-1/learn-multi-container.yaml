@@ -1,0 +1,67 @@
+id: learn-multi-container
+domain: 1
+title: "Multi-Container Pod Patterns (Sidecar)"
+difficulty: medium
+time_limit: 240
+namespace: learn-multi
+learn_intro: >
+  Multiple containers in one pod share network (same IP, reach each other via
+  localhost) and can share volumes. The sidecar pattern enhances the main
+  container without modifying it: your app writes logs to a shared emptyDir
+  volume, a sidecar reads and ships them. The adapter pattern transforms output
+  to a different format. The ambassador pattern proxies network traffic for the
+  main container. All three patterns use the same YAML mechanic: multiple
+  entries in spec.containers, sharing volumes. Use -c to target a specific
+  container: kubectl logs <pod> -c sidecar or kubectl exec <pod> -c sidecar.
+description: >
+  Create a pod named "sidecar-demo" in the learn-multi namespace with two
+  containers. The main container named "app" runs nginx and mounts an emptyDir
+  volume named "logs" at /var/log/nginx. The sidecar container named "logger"
+  runs busybox with command ["sh", "-c", "tail -f /var/log/nginx/access.log"]
+  and mounts the same "logs" volume at /var/log/nginx. Verify both containers
+  are running.
+hint: >
+  Both containers must mount the same volume. Define the volume once in
+  spec.volumes as emptyDir: {}. Each container references it by name in
+  spec.containers[].volumeMounts. The logger container's tail command will wait
+  for the access.log file to appear.
+validations:
+  - name: pod_exists
+    type: resource_exists
+    resource: pod/sidecar-demo
+    namespace: learn-multi
+  - name: two_containers
+    type: container_count
+    pod: sidecar-demo
+    namespace: learn-multi
+    expected: 2
+solution:
+  steps:
+    - "kubectl create ns learn-multi --dry-run=client -o yaml | kubectl apply -f -"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: sidecar-demo
+        namespace: learn-multi
+      spec:
+        containers:
+        - name: app
+          image: nginx
+          volumeMounts:
+          - name: logs
+            mountPath: /var/log/nginx
+        - name: logger
+          image: busybox
+          command: ["/bin/sh", "-c", "tail -f /var/log/nginx/access.log 2>/dev/null || sleep 3600"]
+          volumeMounts:
+          - name: logs
+            mountPath: /var/log/nginx
+        volumes:
+        - name: logs
+          emptyDir: {}
+      EOF
+    - "kubectl get pod sidecar-demo -n learn-multi"
+    - "kubectl exec sidecar-demo -n learn-multi -c app -- curl -s localhost"
+    - "kubectl logs sidecar-demo -n learn-multi -c logger"

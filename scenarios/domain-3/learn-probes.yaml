@@ -1,0 +1,75 @@
+id: learn-probes
+domain: 3
+title: "Liveness and Readiness Probes"
+difficulty: easy
+time_limit: 180
+namespace: learn-probes
+learn_intro: >
+  Without probes, Kubernetes only knows if the container process is alive.
+  Probes let you tell Kubernetes how to check your application's real health.
+  Liveness probe: if it fails, Kubernetes kills and restarts the container
+  (use to recover from deadlocks). Readiness probe: if it fails, the pod is
+  removed from Service endpoints but stays running (use when the app is
+  temporarily unable to serve traffic). Both support httpGet (most common for
+  web apps), tcpSocket, and exec mechanisms. Key timing fields:
+  initialDelaySeconds (wait before first probe), periodSeconds (how often),
+  failureThreshold (failures before action).
+description: >
+  Create a pod named "nginx-probed" in the learn-probes namespace using nginx.
+  Add a liveness probe that checks HTTP GET on path / port 80 every 10 seconds
+  starting 5 seconds after container start. Add a readiness probe that checks
+  HTTP GET on path / port 80 every 5 seconds starting 3 seconds after start.
+  Verify the pod becomes ready.
+hint: >
+  Add spec.containers[].livenessProbe and spec.containers[].readinessProbe
+  sections. Both use httpGet.path: / and httpGet.port: 80. Set
+  initialDelaySeconds and periodSeconds appropriately. The pod will show 0/1
+  Running briefly until the readiness probe first passes.
+validations:
+  - name: pod_exists
+    type: resource_exists
+    resource: pod/nginx-probed
+    namespace: learn-probes
+  - name: liveness_probe_set
+    type: jsonpath
+    resource: pod/nginx-probed
+    namespace: learn-probes
+    path: "{.spec.containers[0].livenessProbe.httpGet.port}"
+    expected: "80"
+  - name: readiness_probe_set
+    type: jsonpath
+    resource: pod/nginx-probed
+    namespace: learn-probes
+    path: "{.spec.containers[0].readinessProbe.httpGet.port}"
+    expected: "80"
+solution:
+  steps:
+    - "kubectl create ns learn-probes --dry-run=client -o yaml | kubectl apply -f -"
+    - |
+      kubectl apply -f - <<EOF
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: nginx-probed
+        namespace: learn-probes
+      spec:
+        containers:
+        - name: nginx
+          image: nginx
+          ports:
+          - containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 3
+            periodSeconds: 5
+      EOF
+    - "kubectl get pod nginx-probed -n learn-probes -w"
+    - "kubectl describe pod nginx-probed -n learn-probes | grep -A 5 'Liveness\\|Readiness'"

@@ -1,0 +1,46 @@
+id: learn-rollbacks
+domain: 2
+title: "Rollouts and Rollbacks"
+difficulty: medium
+time_limit: 240
+namespace: learn-rollback
+learn_intro: >
+  When a Deployment update causes problems you can instantly roll back to the
+  previous version. Kubernetes keeps revision history for each Deployment update.
+  Key commands: kubectl rollout history deployment/name (see all revisions),
+  kubectl rollout undo deployment/name (roll back to previous revision),
+  kubectl rollout undo deployment/name --to-revision=2 (roll back to specific
+  revision). Each undo creates a new revision — it does not erase history.
+  Verify the rollback image with: kubectl get deployment name -o
+  jsonpath='{.spec.template.spec.containers[0].image}'.
+description: >
+  Create a Deployment named "myapp" in the learn-rollback namespace using
+  nginx:1.24 with 2 replicas. Update the image to nginx:1.25 (first revision).
+  Then roll back to the previous version (nginx:1.24) and verify the image
+  reverted.
+hint: >
+  Create the deployment, then kubectl set image deployment/myapp
+  nginx=nginx:1.25 -n learn-rollback. After that, kubectl rollout undo
+  deployment/myapp -n learn-rollback. Check with kubectl rollout history
+  deployment/myapp -n learn-rollback to see revisions.
+validations:
+  - name: deployment_exists
+    type: resource_exists
+    resource: deployment/myapp
+    namespace: learn-rollback
+  - name: image_rolled_back
+    type: container_image
+    pod_selector: app=myapp
+    container: nginx
+    namespace: learn-rollback
+    expected: "nginx:1.24"
+solution:
+  steps:
+    - "kubectl create ns learn-rollback --dry-run=client -o yaml | kubectl apply -f -"
+    - "kubectl create deployment myapp --image=nginx:1.24 --replicas=2 -n learn-rollback"
+    - "kubectl set image deployment/myapp nginx=nginx:1.25 -n learn-rollback"
+    - "kubectl rollout status deployment/myapp -n learn-rollback"
+    - "kubectl rollout history deployment/myapp -n learn-rollback"
+    - "kubectl rollout undo deployment/myapp -n learn-rollback"
+    - "kubectl rollout status deployment/myapp -n learn-rollback"
+    - "kubectl get deployment myapp -n learn-rollback -o jsonpath='{.spec.template.spec.containers[0].image}'"

@@ -1,0 +1,43 @@
+id: learn-deployments
+domain: 2
+title: "Deployments and Scaling"
+difficulty: easy
+time_limit: 180
+namespace: learn-deploy
+learn_intro: >
+  A Deployment gives pods self-healing (if a pod dies, a new one replaces it)
+  and scaling (declare the desired replica count and Kubernetes maintains it).
+  The ownership chain is: Deployment -> ReplicaSet -> Pods. The ReplicaSet
+  finds its pods using label selectors — spec.selector.matchLabels must match
+  spec.template.metadata.labels. Create fast on the exam:
+  kubectl create deployment web --image=nginx --replicas=3.
+  Scale after creation: kubectl scale deployment web --replicas=5.
+  The ReplicaSet controller loop detects mismatches and reconciles immediately.
+description: >
+  Create a Deployment named "webserver" in the learn-deploy namespace using the
+  nginx:1.24 image with 3 replicas. Scale it to 5 replicas after creation.
+  Verify all 5 pods are running.
+hint: >
+  Use kubectl create deployment webserver --image=nginx:1.24 --replicas=3
+  -n learn-deploy to create, then kubectl scale deployment webserver
+  --replicas=5 -n learn-deploy to scale. Verify with kubectl get pods
+  -l app=webserver -n learn-deploy.
+validations:
+  - name: deployment_exists
+    type: resource_exists
+    resource: deployment/webserver
+    namespace: learn-deploy
+  - name: replicas_5
+    type: jsonpath
+    resource: deployment/webserver
+    namespace: learn-deploy
+    path: "{.spec.replicas}"
+    expected: "5"
+solution:
+  steps:
+    - "kubectl create ns learn-deploy --dry-run=client -o yaml | kubectl apply -f -"
+    - "kubectl create deployment webserver --image=nginx:1.24 --replicas=3 -n learn-deploy"
+    - "kubectl get pods -l app=webserver -n learn-deploy"
+    - "kubectl scale deployment webserver --replicas=5 -n learn-deploy"
+    - "kubectl get deployment webserver -n learn-deploy"
+    - "kubectl get pods -l app=webserver -n learn-deploy"

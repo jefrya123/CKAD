@@ -1,0 +1,60 @@
+id: learn-jobs-cronjobs
+domain: 1
+title: "Jobs and CronJobs"
+difficulty: medium
+time_limit: 240
+namespace: learn-jobs
+learn_intro: >
+  A Job wraps a pod with completion tracking: it creates pods to do work,
+  tracks how many completed successfully, and retries on failure. Key fields:
+  completions (how many successful runs needed), parallelism (concurrent pods),
+  backoffLimit (max failures before giving up), restartPolicy must be Never or
+  OnFailure. Create fast: kubectl create job name --image=busybox -- echo hello.
+  A CronJob runs a Job on a schedule using standard cron format
+  (minute hour dom month dow). Create fast: kubectl create cronjob name
+  --image=busybox --schedule="*/5 * * * *" -- date. There are three debug
+  layers: CronJob -> Job -> Pod.
+description: >
+  Create a Job named "batch-task" in the learn-jobs namespace using busybox
+  that runs echo "Batch complete" and exits. The job should require 3 successful
+  completions with up to 2 pods running in parallel. Verify the job completes.
+hint: >
+  Use kubectl create job batch-task --image=busybox --dry-run=client -o yaml
+  -- echo "Batch complete" > job.yaml, then add spec.completions: 3 and
+  spec.parallelism: 2 to the jobSpec. The pod template restartPolicy must be
+  Never (kubectl create job sets this automatically).
+validations:
+  - name: job_exists
+    type: resource_exists
+    resource: job/batch-task
+    namespace: learn-jobs
+  - name: job_field_completions
+    type: jsonpath
+    resource: job/batch-task
+    namespace: learn-jobs
+    path: "{.spec.completions}"
+    expected: "3"
+solution:
+  steps:
+    - "kubectl create ns learn-jobs --dry-run=client -o yaml | kubectl apply -f -"
+    - |
+      kubectl apply -n learn-jobs -f - <<EOF
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: batch-task
+        namespace: learn-jobs
+      spec:
+        completions: 3
+        parallelism: 2
+        backoffLimit: 4
+        template:
+          spec:
+            containers:
+            - name: worker
+              image: busybox
+              command: ["/bin/sh", "-c", "echo Batch complete"]
+            restartPolicy: Never
+      EOF
+    - "kubectl get job batch-task -n learn-jobs -w"
+    - "kubectl logs job/batch-task -n learn-jobs"

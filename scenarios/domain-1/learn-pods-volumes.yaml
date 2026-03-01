@@ -1,0 +1,48 @@
+id: learn-pods-volumes
+domain: 1
+title: "Pods, Containers, and Shared Volumes"
+difficulty: easy
+time_limit: 180
+namespace: learn-pods
+learn_intro: >
+  A pod is a group of one or more containers that share two things: network
+  (all containers share the same IP — they reach each other via localhost) and
+  storage (volumes declared at the pod level are mounted by each container).
+  emptyDir is the simplest volume type: it is created when the pod starts and
+  deleted when the pod is deleted. Generate pod YAML fast on the exam:
+  kubectl run mypod --image=nginx --dry-run=client -o yaml > pod.yaml
+  then add volumes and volumeMounts.
+description: >
+  Create a pod named "web" in the learn-pods namespace using the nginx image.
+  Add an emptyDir volume named "data" and mount it at /usr/share/nginx/html.
+  Verify the pod is running.
+hint: >
+  Generate a scaffold: kubectl run web --image=nginx --dry-run=client -o yaml > pod.yaml,
+  then add spec.volumes (emptyDir: {}) and spec.containers[].volumeMounts sections.
+  Apply with kubectl apply -f pod.yaml -n learn-pods.
+validations:
+  - name: pod_exists
+    type: resource_exists
+    resource: pod/web
+    namespace: learn-pods
+  - name: volume_mounted
+    type: volume_mount
+    pod: web
+    container: web
+    namespace: learn-pods
+    mount_path: /usr/share/nginx/html
+solution:
+  steps:
+    - "kubectl create ns learn-pods --dry-run=client -o yaml | kubectl apply -f -"
+    - "kubectl run web --image=nginx --dry-run=client -o yaml > /tmp/pod.yaml"
+    - |
+      # Edit /tmp/pod.yaml to add under spec:
+      #   volumes:
+      #   - name: data
+      #     emptyDir: {}
+      # And under spec.containers[0]:
+      #   volumeMounts:
+      #   - name: data
+      #     mountPath: /usr/share/nginx/html
+    - "kubectl apply -f /tmp/pod.yaml -n learn-pods"
+    - "kubectl get pod web -n learn-pods"
