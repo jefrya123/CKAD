@@ -1,58 +1,61 @@
-# Quick-Fire Scenarios
+# Scenarios
 
-25 timed exam-style scenarios. Each one is a self-contained task you'd see on the real CKAD exam.
+YAML-based scenarios for ckad-drill. Organized by domain.
 
-## How to Use
+## Domains
 
-1. Set a timer (time limit is in each file)
-2. Read the task — don't peek at hints or solution
-3. Complete it in your cluster
-4. Check your work against the solution
-5. If you went over time, practice until you can do it within the limit
+- `domain-1/` — Application Design & Build
+- `domain-2/` — Application Deployment
+- `domain-3/` — Observability & Maintenance
+- `domain-4/` — Application Environment, Configuration & Security
+- `domain-5/` — Services & Networking
 
-## Scenarios by Domain
+## Scenario Types
 
-### Domain 1: Application Design & Build
-| # | Scenario | Time |
-|---|----------|------|
-| 01 | [Create Multi-Container Pod](scenario-01-multi-container-pod.md) | 3 min |
-| 02 | [Init Container Setup](scenario-02-init-container.md) | 3 min |
-| 03 | [Create a Job](scenario-03-job.md) | 2 min |
-| 04 | [CronJob with History Limits](scenario-04-cronjob.md) | 3 min |
-| 05 | [Pod with PVC](scenario-05-pod-with-pvc.md) | 3 min |
+- `sc-*.yaml` — Standard drill/exam scenarios
+- `debug-*.yaml` — Troubleshooting scenarios (broken resource provided, user must fix)
+- `learn-*.yaml` — Learn-mode scenarios (concept text + guided exercise)
 
-### Domain 2: Application Deployment
-| # | Scenario | Time |
-|---|----------|------|
-| 06 | [Rolling Update](scenario-06-rolling-update.md) | 3 min |
-| 07 | [Rollback Deployment](scenario-07-rollback.md) | 2 min |
-| 08 | [Helm Install & Upgrade](scenario-08-helm.md) | 4 min |
-| 09 | [Scale & Update Deployment](scenario-09-scale-update.md) | 2 min |
-| 10 | [Canary Deployment](scenario-10-canary.md) | 5 min |
+## Scenario Counts
 
-### Domain 3: Observability & Maintenance
-| # | Scenario | Time |
-|---|----------|------|
-| 11 | [Add Liveness Probe](scenario-11-liveness-probe.md) | 3 min |
-| 12 | [Readiness + Liveness Probes](scenario-12-readiness-probe.md) | 4 min |
-| 13 | [Debug CrashLoopBackOff](scenario-13-debug-crash.md) | 3 min |
-| 14 | [Container Logging](scenario-14-logging.md) | 2 min |
-| 15 | [Fix Failing Probe](scenario-15-fix-probe.md) | 3 min |
+| Domain | sc- | debug- | learn- | Total |
+|--------|-----|--------|--------|-------|
+| domain-1 (Design & Build) | 8 | 2 | 4 | 14 |
+| domain-2 (Deployment) | 8 | 2 | 4 | 14 |
+| domain-3 (Observability) | 8 | 4 | 3 | 15 |
+| domain-4 (Config & Security) | 8 | 2 | 3 | 13 |
+| domain-5 (Services & Networking) | 8 | 3 | 3 | 14 |
+| **Total** | **40** | **13** | **17** | **70** |
 
-### Domain 4: Config & Security
-| # | Scenario | Time |
-|---|----------|------|
-| 16 | [ConfigMap + Secret in Pod](scenario-16-configmap-secret.md) | 4 min |
-| 17 | [SecurityContext](scenario-17-security-context.md) | 3 min |
-| 18 | [ServiceAccount with RBAC](scenario-18-rbac.md) | 5 min |
-| 19 | [Resource Limits](scenario-19-resource-limits.md) | 3 min |
-| 20 | [ResourceQuota](scenario-20-resource-quota.md) | 4 min |
+## Usage
 
-### Domain 5: Services & Networking
-| # | Scenario | Time |
-|---|----------|------|
-| 21 | [Expose Deployment as Service](scenario-21-service.md) | 2 min |
-| 22 | [Create Ingress](scenario-22-ingress.md) | 4 min |
-| 23 | [Network Policy Deny All](scenario-23-netpol-deny.md) | 3 min |
-| 24 | [Network Policy Allow Specific](scenario-24-netpol-allow.md) | 5 min |
-| 25 | [DNS Debugging](scenario-25-dns.md) | 3 min |
+Run a scenario in drill mode:
+```bash
+ckad-drill drill
+```
+
+Run in learn mode (shows concept text before exercises):
+```bash
+ckad-drill learn
+```
+
+Validate a specific scenario or all scenarios:
+```bash
+ckad-drill validate-scenario scenarios/domain-1/sc-multi-container-pod.yaml
+ckad-drill validate-scenario scenarios/
+```
+
+## Schema
+
+Each scenario YAML contains:
+- `id` — Unique identifier
+- `domain` — Domain number (1-5)
+- `title` — Human-readable name
+- `difficulty` — easy | medium | hard
+- `time_limit` — Seconds allowed
+- `namespace` — Kubernetes namespace to use
+- `description` — What the user must accomplish
+- `hint` — Guidance without giving away the solution
+- `validations` — List of automated checks
+- `solution.steps` — Commands that solve the scenario
+- `learn_intro` — (learn- scenarios only) Concept text shown before the exercise
