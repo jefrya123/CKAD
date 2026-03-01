@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: unknown
-last_updated: "2026-03-01T00:15:54.899Z"
+milestone: v1.1
+milestone_name: Ship It
+status: not_started
+last_updated: "2026-02-28T12:00:00.000Z"
 progress:
   total_phases: 4
-  completed_phases: 4
-  total_plans: 11
-  completed_plans: 11
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
@@ -18,43 +18,30 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Unlimited, free, real-cluster CKAD practice with automated validation
-**Current focus:** Phase 4 - Exam Mode
+**Current focus:** Milestone v1.1 — defining requirements
 
 ## Current Position
 
-Phase: 3.1 of 7 (Drill Integration Fixes) — Complete
-Plan: 1 of 1 in current phase (03.1-01 complete)
-Status: Phase 3.1 complete — 1/1 plans done; all 4 drill integration bugs fixed
-Last activity: 2026-02-28 — Plan 03.1-01 complete: fixed BREAK-01/02/03 and DEFECT-01 in bin/ckad-drill; 20/20 drill.bats tests passing
-
-Progress: [███████░░░] ~70%
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-02-28 — Milestone v1.1 started
 
 ## Performance Metrics
 
-**Velocity:**
-- Total plans completed: 2
-- Average duration: 2.5 min
-- Total execution time: ~0.08 hours
+**Velocity (from v1.0):**
+- Total plans completed: 11
+- Average duration: ~4 min
+- Total execution time: ~0.7 hours
 
-**By Phase:**
+**By Phase (v1.0):**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation-cluster | 2 | 5 min | 2.5 min |
-
-**Recent Trend:**
-- Last 5 plans: 01-01 (2 min), 01-02 (3 min), 02-01 (5 min), 02-02 (6 min)
-- Trend: consistent, on pace
-
-*Updated after each plan completion*
-| Phase 02-scenario-validation-engine P01 | 5 min | 2 tasks | 9 files |
-| Phase 02-scenario-validation-engine P02 | 6 min | 2 tasks | 3 files |
-| Phase 03-cli-drill-mode P02 | 3 | 2 tasks | 5 files |
-| Phase 03-cli-drill-mode P01 | 3 | 2 tasks | 4 files |
-| Phase 03-cli-drill-mode P04 | 8 | 2 tasks | 2 files |
-| Phase 03-cli-drill-mode P06 | 1 | 2 tasks | 2 files |
-| Phase 03-cli-drill-mode P05 | 1 | 2 tasks | 2 files |
-| Phase 03.1-drill-integration-fixes P01 | 14 | 2 tasks | 2 files |
+| 02-scenario-validation-engine | 2 | 11 min | 5.5 min |
+| 03-cli-drill-mode | 6 | 16 min | 2.7 min |
+| 03.1-drill-integration-fixes | 1 | 14 min | 14 min |
 
 ## Accumulated Context
 
@@ -69,38 +56,17 @@ Key decisions affecting current work:
 - Phase 3: Subcommand model, no TUI (ADR-02); PROMPT_COMMAND timer (ADR-10); additive-only progress schema (ADR-05)
 - Phase 4: Exam mode as distinct component with separate session state (ADR-11)
 
-**From 01-01 execution:**
-- error() is print-only (no exit) — keeps lib functions composable; callers decide on exit
-- Calico installed via manifest-only method (calico.yaml) — simpler than operator method for Phase 1
-- Lib files use `# shellcheck shell=bash` directive (no shebang) + `# shellcheck disable=SC2034` for shared constants
-
-**From 01-02 execution:**
-- Re-source tests run in subshells (bash -c) — common.sh readonly vars prevent re-sourcing in same bats process
-- command() function override preferred over PATH manipulation for mocking command -v in unit tests
-- bats-support and bats-assert installed as gitignored git clones in test/helpers/ (re-bootstrapped via dev-setup.sh)
-- [Phase 02-01]: yq v3 syntax required (yq -r '.field // empty' file) — machine has v3.4.3, not v4; do not use yq eval
-- [Phase 02-01]: Bats unit tests use absolute path loading (not test-helper.bash) due to relative load resolution issue from test/unit/ subdir
-- [Phase 02-01]: command() function override in bash -c subshell for mocking command -v (same pattern as cluster.bats)
-- [Phase 02-02]: ((n++)) || true required with set -e — arithmetic increment from 0 is falsy and exits without || true
-- [Phase 02-02]: eval used in command_output validator — exam scenario commands may use pipes, env vars, complex shell expressions
-- [Phase 02-02]: container_running FAIL path makes second kubectl call for diagnostic output — not an ADR-07 violation since check already failed
-- [Phase 03-cli-drill-mode]: Streak logic: same-day no-op, yesterday increments, gap resets to 1
-- [Phase 03-cli-drill-mode]: jq atomic write pattern (tmp + mv) used in progress.sh for all file updates
-- [Phase 03-01]: SC2016 disabled at file level in timer.sh — single-quoted printf strings intentionally emit unexpanded shell code for user's shell sourcing
-- [Phase 03-01]: Epoch-based end_at in session.json for cross-platform date arithmetic (no date -d or date -j needed)
-- [Phase 03-03]: cluster_check_active added to common.sh (not cluster.sh) — guard utility used by drill subcommands, not cluster lifecycle
-- [Phase 03-03]: EXIT trap installed before scenario_setup, removed after session_write — protects partial setup from Ctrl+C without auto-cleanup on normal exit
-- [Phase 03-03]: Elapsed time computed as (now - (end_at - time_limit)) — avoids parsing started_at ISO string using epoch arithmetic only
-- [Phase 03-cli-drill-mode]: Delegate case arms to _cmd_* helpers: local keyword cannot be used at top-level case scope in bash
-- [Phase 03-cli-drill-mode]: yaml_file loop variable instead of scenario_file to avoid SC2153 shellcheck false positive with SCENARIO_FILE global
-- [Phase 03-cli-drill-mode]: Reset kubectl context to default after validate-scenario to avoid surprising the user
-- [Phase 03-06]: Index-based yq extraction (.solution.steps[N]) for multi-line YAML block scalars prevents heredoc splitting
-- [Phase 03-06]: warn on failed eval instead of silent 2>/dev/null suppression — operator visibility for solution step failures
-- [Phase 03-cli-drill-mode]: Shell detection emitted into user shell output (ZSH_VERSION check), not in timer.sh bash logic — timer.sh always runs in bash regardless of user shell
-- [Phase 03-cli-drill-mode]: zsh timer uses add-zsh-hook precmd hook; bash timer uses PROMPT_COMMAND — shell-detection block emitted in output
-- [Phase 03.1-drill-integration-fixes]: XDG_CONFIG_HOME controls session file path in bats tests because common.sh unconditionally overwrites CKAD_SESSION_FILE at source time
-- [Phase 03.1-drill-integration-fixes]: SCENARIO_NAMESPACE bridge pattern: set SCENARIO_NAMESPACE from SESSION_NAMESPACE before calling scenario_cleanup in next/skip/_drill_cleanup paths
-- [Phase 03.1-drill-integration-fixes]: Unescaped ${PATH} in bash -c double-quoted string for correct PATH inheritance (escaped \${PATH} becomes single-quote literal, breaking jq/rm)
+**From v1.0 execution (key patterns):**
+- error() is print-only (no exit) — callers decide on exit
+- yq v3 syntax required (yq -r '.field // empty' file) — not v4
+- ((n++)) || true required with set -e — arithmetic increment from 0 is falsy
+- eval used in command_output validator — intentional for exam-realistic commands
+- jq atomic write pattern (tmp + mv) for all file updates
+- SC2016 disabled at file level in timer.sh — single-quoted printf strings emit unexpanded shell code
+- XDG_CONFIG_HOME controls session file path in bats tests
+- SCENARIO_NAMESPACE bridge pattern for cleanup paths
+- Shell detection emitted into user shell output (ZSH_VERSION check), not in timer.sh bash logic
+- Index-based yq extraction (.solution.steps[N]) for multi-line YAML block scalars
 
 ### Pending Todos
 
@@ -114,5 +80,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 03.1-01-PLAN.md — fixed BREAK-01/02/03 and DEFECT-01 in bin/ckad-drill; 20/20 drill.bats tests passing; shellcheck clean
+Stopped at: Starting milestone v1.1
 Resume file: None
