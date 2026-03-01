@@ -32,16 +32,16 @@ validations:
     resource: pod/secure-app
     namespace: learn-security
   - name: run_as_user
-    type: jsonpath
+    type: resource_field
     resource: pod/secure-app
     namespace: learn-security
-    path: "{.spec.securityContext.runAsUser}"
+    jsonpath: "{.spec.securityContext.runAsUser}"
     expected: "1000"
   - name: readonly_filesystem
-    type: jsonpath
+    type: resource_field
     resource: pod/secure-app
     namespace: learn-security
-    path: "{.spec.containers[0].securityContext.readOnlyRootFilesystem}"
+    jsonpath: "{.spec.containers[0].securityContext.readOnlyRootFilesystem}"
     expected: "true"
 solution:
   steps:

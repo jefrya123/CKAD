@@ -28,10 +28,10 @@ validations:
     resource: deployment/webserver
     namespace: learn-deploy
   - name: replicas_5
-    type: jsonpath
+    type: resource_field
     resource: deployment/webserver
     namespace: learn-deploy
-    path: "{.spec.replicas}"
+    jsonpath: "{.spec.replicas}"
     expected: "5"
 solution:
   steps:

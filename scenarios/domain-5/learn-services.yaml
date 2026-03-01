@@ -33,10 +33,10 @@ validations:
     resource: service/backend-svc
     namespace: learn-svc
   - name: service_type
-    type: jsonpath
+    type: resource_field
     resource: service/backend-svc
     namespace: learn-svc
-    path: "{.spec.type}"
+    jsonpath: "{.spec.type}"
     expected: "ClusterIP"
 solution:
   steps:

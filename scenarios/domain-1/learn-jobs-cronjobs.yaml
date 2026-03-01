@@ -29,10 +29,10 @@ validations:
     resource: job/batch-task
     namespace: learn-jobs
   - name: job_field_completions
-    type: jsonpath
+    type: resource_field
     resource: job/batch-task
     namespace: learn-jobs
-    path: "{.spec.completions}"
+    jsonpath: "{.spec.completions}"
     expected: "3"
 solution:
   steps:

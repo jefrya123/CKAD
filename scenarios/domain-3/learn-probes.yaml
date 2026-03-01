@@ -31,16 +31,16 @@ validations:
     resource: pod/nginx-probed
     namespace: learn-probes
   - name: liveness_probe_set
-    type: jsonpath
+    type: resource_field
     resource: pod/nginx-probed
     namespace: learn-probes
-    path: "{.spec.containers[0].livenessProbe.httpGet.port}"
+    jsonpath: "{.spec.containers[0].livenessProbe.httpGet.port}"
     expected: "80"
   - name: readiness_probe_set
-    type: jsonpath
+    type: resource_field
     resource: pod/nginx-probed
     namespace: learn-probes
-    path: "{.spec.containers[0].readinessProbe.httpGet.port}"
+    jsonpath: "{.spec.containers[0].readinessProbe.httpGet.port}"
     expected: "80"
 solution:
   steps:
